@@ -23,7 +23,7 @@ object Application extends Controller {
     val workspaceOpt = Workspace.findByName(name)
     if (workspaceOpt.isDefined) {
       val workspace = workspaceOpt.get
-      Redirect(routes.Application.showPhase(name, workspace.phases.size - 1))
+      Redirect(routes.Application.showPhase(name, 0))
     }
     else
       BadRequest("workspace does not exist")
@@ -55,9 +55,11 @@ object Application extends Controller {
     }
     else BadWorkspace(workspaceName) 
   }
-  
-  def addPhase(workspaceName: String, phaseType: String) = Action {
+
+  /*
+  def addPhase(workspaceName: String) = Action {
     val workspaceOpt = Workspace.findByName(workspaceName)
+    val phaseType = "Understand"
     if(workspaceOpt.isDefined){
       val workspace = workspaceOpt.get
       Workspace.addPhase(workspace, phaseType)
@@ -65,6 +67,7 @@ object Application extends Controller {
     }
     else BadWorkspace(workspaceName)
   }
+  // */
   
   def createWorkspace(name: String) = Action {
     Workspace.create(name)
