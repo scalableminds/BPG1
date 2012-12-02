@@ -5,14 +5,15 @@ import PlayProject._
 object ApplicationBuild extends Build {
 
     val appName         = "bp"
-    val appVersion      = "1.0-SNAPSHOT"
+    val appVersion      = "0.1"
 
     val appDependencies = Seq(
-      // Add your project dependencies here,
+      "org.mongodb" %% "casbah" % "2.4.0",
+      "com.novus" %% "salat" % "1.9.1"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-      // Add your own project settings here      
+      resolvers += "repo.novus rels" at "http://repo.novus.com/releases/",
+      resolvers += "repo.novus snaps" at "http://repo.novus.com/snapshots/"
     )
-
 }
