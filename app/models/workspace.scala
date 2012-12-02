@@ -23,7 +23,7 @@ case class Workspace(name: String, phases: List[DPhase], _id: ObjectId = new Obj
 
 object Workspace extends BasicDAO[Workspace]("workspaces"){
   
-  val StandardPhases : List[DPhase] = List(DPhase("Understand", ""), DPhase("Observe", ""), DPhase("Point of View", ""),
+  val StandardPhases : List[DPhase] = List(DPhase("Understand", ""), DPhase("Observe", ""), DPhase("PointOfView", ""),
       DPhase("Ideate", ""), DPhase("Prototype", ""), DPhase("Test", ""))
   
   def findByName(name: String) = findOne(MongoDBObject("name" -> name));
