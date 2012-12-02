@@ -7,6 +7,7 @@ GET     /                           controllers.Application.index
 GET		/workspace/create/:name	  	controllers.Application.createWorkspace(name)
 GET		/workspace/:name		    controllers.Application.showWorkspace(name)
 GET		/workspace/:name/:phase		controllers.Application.showPhase(name, phase: Int)
+POST    /workspace/:name/:phase		controllers.Application.updatePhase(name, phase: Int)
 
 
 # Map static resources from the /public folder to the /assets URL path
