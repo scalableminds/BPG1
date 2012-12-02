@@ -1,7 +1,46 @@
 @(workspace: Workspace, phase: Int)
 
 @main(workspace.name) {
-  <textarea rows="20" cols="75">
-  @workspace.phases(phase).content
-  </textarea>
+
+  <div id="phases-image">
+    <img src="@routes.Assets.at("images/" + workspace.phases(phase).name.toLowerCase() + ".png")" usemap="#imgmap201212302438">
+    <map id="imgmap201212302438" name="imgmap201212302438">
+      <area shape="rect" alt="Understand" title="" coords="1,45,70,117" href="@routes.Application.showPhase(workspace.name, 0)" target="" />
+      <area shape="rect" alt="Observe" title="" coords="85,48,154,118" href="@routes.Application.showPhase(workspace.name, 1)" target="" />
+      <area shape="rect" alt="Point of View" title="" coords="170,50,242,121" href="@routes.Application.showPhase(workspace.name, 2)" target="" />
+      <area shape="rect" alt="Ideate" title="" coords="260,51,327,120" href="@routes.Application.showPhase(workspace.name, 3)" target="" />
+      <area shape="rect" alt="Prototype" title="" coords="344,51,413,118" href="@routes.Application.showPhase(workspace.name, 4)" target="" />
+      <area shape="rect" alt="Test" title="" coords="427,52,500,118" href="@routes.Application.showPhase(workspace.name, 5)" target="" />
+    </map>
+  </div>
+
+  <div id="editor">@workspace.phases(phase).content</div>
+
+  <button id="save-button" class="btn btn-primary btn-large">Save</button>
+
+
+  <script type="text/javascript" src="@routes.Assets.at("javascripts/ckeditor/ckeditor.js")"></script>
+  <script type="text/javascript">
+    $(function() {
+      var editor = CKEDITOR.replace( 'editor', { height : 400 } );
+
+      editor.on("changed")
+      $(window).on("beforeunload", function () { 
+        if (editor.checkDirty())
+          return "Did you save?"; 
+      });
+
+      $("#save-button").click(function () {
+        $.ajax({
+          url : "@routes.Application.updatePhase(workspace.name, phase)",
+          data : { content : editor.getData() }
+        }).then(function () { 
+          editor.resetDirty();
+          alert("Successfully saved!\n Thank you =]"); 
+        }, function () {
+          alert("Sorry, there was a problem saving your workspace. Please try again later.");
+        });
+      });
+    });
+  </script>
 }
