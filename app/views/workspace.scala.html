@@ -14,7 +14,7 @@
     </map>
   </div>
 
-  <div id="editor">@workspace.phases(phase).content</div>
+  <div id="editor">@Html(workspace.phases(phase).content)</div>
 
   <button id="save-button" class="btn btn-primary btn-large">Save</button>
 
@@ -33,10 +33,11 @@
       $("#save-button").click(function () {
         $.ajax({
           url : "@routes.Application.updatePhase(workspace.name, phase)",
+          type : "POST",
           data : { content : editor.getData() }
         }).then(function () { 
           editor.resetDirty();
-          alert("Successfully saved!\n Thank you =]"); 
+          alert("Successfully saved!\nThank you =]"); 
         }, function () {
           alert("Sorry, there was a problem saving your workspace. Please try again later.");
         });
