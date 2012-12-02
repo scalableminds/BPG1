@@ -1,7 +1,9 @@
-@(message: String)
+@(workspaces: List[Workspace])
 
-@main("Welcome to Play 2.0") {
-    
-    @play20.welcome(message)
-    
+@main("Dschool Doc") {
+    <ul>
+      @workspaces.map{ workspace => 
+        <li> <a href="@routes.Application.showWorkspace(workspace.name)">@workspace.name</a> </li>
+      }
+    </ul<
 }

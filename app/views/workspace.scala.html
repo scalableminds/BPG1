@@ -1,0 +1,7 @@
+@(workspace: Workspace, phase: Int)
+
+@main(workspace.name) {
+  <textarea rows="20" cols="75">
+  @workspace.phases(phase).content
+  </textarea>
+}
