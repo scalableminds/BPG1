@@ -7,8 +7,8 @@
 }
 
 #save-button {
-  position: absolute;
-  z-index: 1000;
+  position: fixed;
+  z-index: 10000;
   top: 20px;
   right: 20px;
 }
