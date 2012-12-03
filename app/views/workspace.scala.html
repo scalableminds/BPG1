@@ -31,16 +31,24 @@
       });
 
       $("#save-button").click(function () {
+
+        if ($(this).hasClass("disabled")) return;
+
         $.ajax({
           url : "@routes.Application.updatePhase(workspace.name, phase)",
           type : "POST",
           data : { content : editor.getData() }
         }).then(function () { 
           editor.resetDirty();
-          alert("Successfully saved!\nThank you =]"); 
         }, function () {
           alert("Sorry, there was a problem saving your workspace. Please try again later.");
+        }).always(function () {
+          setTimeout(function() { 
+            $("#save-button").removeClass("disabled").html("Save");
+          }, 500);
         });
+
+        $(this).addClass("disabled").html("<i class=\"icon-refresh icon-white rotating\"></i> Saving...");
       });
     });
   </script>
