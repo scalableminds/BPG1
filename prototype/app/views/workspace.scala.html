@@ -1,22 +1,46 @@
-@(workspace: Workspace, phase: Int)
+@(workspace: Workspace, phase: DPhase)
 
 @main(workspace.name) {
 
   <div id="phases-image">
-    <img src="@routes.Assets.at("images/" + workspace.phases(phase).name.toLowerCase() + ".png")" usemap="#imgmap201212302438">
+    <img src="@routes.Assets.at("images/" + phase.name.toLowerCase() + ".png")" usemap="#imgmap201212302438">
     <map id="imgmap201212302438" name="imgmap201212302438">
-      <area shape="rect" alt="Understand" title="" coords="1,45,70,117" href="@routes.Application.showPhase(workspace.name, 0)" target="" />
-      <area shape="rect" alt="Observe" title="" coords="85,48,154,118" href="@routes.Application.showPhase(workspace.name, 1)" target="" />
-      <area shape="rect" alt="Point of View" title="" coords="170,50,242,121" href="@routes.Application.showPhase(workspace.name, 2)" target="" />
-      <area shape="rect" alt="Ideate" title="" coords="260,51,327,120" href="@routes.Application.showPhase(workspace.name, 3)" target="" />
-      <area shape="rect" alt="Prototype" title="" coords="344,51,413,118" href="@routes.Application.showPhase(workspace.name, 4)" target="" />
-      <area shape="rect" alt="Test" title="" coords="427,52,500,118" href="@routes.Application.showPhase(workspace.name, 5)" target="" />
+      <area alt="General" title="General" shape="poly" coords=" 2,8, 76,9, 72,75, 4,75, 5,19, 5,11, 4,11" href="@routes.Application.showPhase(workspace.name,"General")" target="" />
+      <area alt="Understand" title="Understand" shape="poly" coords=" 115,7, 186,7, 185,76, 110,75, 113,8" href="@routes.Application.showPhase(workspace.name, "Understand")" target="" />
+      <area alt="Observe" title="Observe" shape="poly" coords=" 201,8, 270,8, 268,77, 199,75, 200,11" href="@routes.Application.showPhase(workspace.name,"Observe")" target="" />
+      <area alt="Point of View" title="Point of View" shape="poly" coords=" 286,5, 356,7, 356,73, 288,73, 286,10" href="@routes.Application.showPhase(workspace.name, "PointOfView")" target="" />
+      <area alt="Ideate" title="Ideate" shape="poly" coords=" 375,8, 447,4, 442,73, 373,76, 372,13" href="@routes.Application.showPhase(workspace.name, "Ideate")" target="" />
+      <area alt="Prototype" title="Prototype" shape="poly" coords=" 457,6, 525,7, 526,68, 463,78, 456,6" href="@routes.Application.showPhase(workspace.name, "Prototype")" target="" />
+      <area alt="Test" title="Test" shape="poly" coords=" 545,9, 610,5, 614,69, 553,75, 539,15" href="@routes.Application.showPhase(workspace.name, "Test")" target="" />
     </map>
   </div>
 
-  <div id="editor">@Html(workspace.phases(phase).content)</div>
+  <div id="editor">@Html(phase.content)</div>
+
+  <div id="feedback-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-header">
+      <h3 id="myModalLabel">Feedback</h3>
+    </div>
+    <div class="modal-body">
+      <form>
+        <fieldset>
+          <label>Name</label>
+          <input type="text">
+          <label>Message</label>
+          <textarea rows="3" class="input-block-level" type="text"></textarea>
+        </fieldset>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Cancel</button>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </div>
+
 
   <button id="save-button" class="btn btn-primary btn-large">Save</button>
+  <a id="back-button" class="btn" href="/">Dashboard</a>
+  <a id="feedback-button" role="button" class="btn">Feedback</a>
 
 
   <script type="text/javascript" src="@routes.Assets.at("javascripts/ckeditor/ckeditor.js")"></script>
@@ -25,9 +49,9 @@
       var editor = CKEDITOR.replace( 'editor', { height : 400 } );
 
       editor.on("changed")
-      $(window).on("beforeunload", function () { 
+      $(window).on("beforeunload", function () {
         if (editor.checkDirty())
-          return "Did you save?"; 
+          return "Did you save?";
       });
 
       $("#save-button").click(function () {
@@ -35,21 +59,26 @@
         if ($(this).hasClass("disabled")) return;
 
         $.ajax({
-          url : "@routes.Application.updatePhase(workspace.name, phase)",
+          url : "@routes.Application.updatePhase(workspace.name, phase.name)",
           type : "POST",
           data : { content : editor.getData() }
-        }).then(function () { 
+        }).then(function () {
           editor.resetDirty();
         }, function () {
           alert("Sorry, there was a problem saving your workspace. Please try again later.");
         }).always(function () {
-          setTimeout(function() { 
+          setTimeout(function() {
             $("#save-button").removeClass("disabled").html("Save");
           }, 500);
         });
 
         $(this).addClass("disabled").html("<i class=\"icon-refresh icon-white rotating\"></i> Saving...");
       });
+
+      $("#feedback-button").click(function () {
+        $("#feedback-modal").modal({"show":true})
+      });
+
     });
   </script>
 }

@@ -1,1 +1,1 @@
-playframework/play run
+Play20/play run
