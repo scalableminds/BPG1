@@ -3,7 +3,7 @@
 @main("Dschool Doc") {
     <ul>
       @workspaces.map{ workspace => 
-        <li> <a href="@routes.Application.showWorkspace(workspace.name)">@workspace.name</a> </li>
+        <li> <a href="@routes.Application.showPhase(workspace.name,"General")">@workspace.name</a> </li>
       }
     </ul<
 }

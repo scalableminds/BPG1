@@ -3,12 +3,12 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET   /                           controllers.Application.index
 GET		/workspace/create/:name	  	controllers.Application.createWorkspace(name)
-GET		/workspace/:name		    controllers.Application.showWorkspace(name)
-GET		/workspace/:name/:phase		controllers.Application.showPhase(name, phase: Int)
-POST    /workspace/:name/:phase		controllers.Application.updatePhase(name, phase: Int)
+GET		/workspace/:name		        controllers.Application.showPhase(name, phase: String ?= "General")
+GET		/workspace/:name/:phase		  controllers.Application.showPhase(name, phase: String)
+POST  /workspace/:name/:phase		  controllers.Application.updatePhase(name, phase: String)
 
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET   /assets/*file               controllers.Assets.at(path="/public", file)
