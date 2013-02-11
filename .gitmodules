@@ -2,3 +2,6 @@
 [submodule "prototype/playframework"]
 	path = prototype/playframework
 	url = git@github.com:tmbo/Play20.git
+[submodule "project-zoom/playframework"]
+	path = project-zoom/playframework
+	url = https://github.com/tmbo/Play20
