@@ -11,8 +11,8 @@ $(function() {
 	var col0 = 'purple';
 	var col1 = 'steelblue';
 	var col2 = 'forestgreen';
-	var col3 = 'orange';
-	var col4 = 'yellow';
+	var col3 = 'yellow';
+	var col4 = 'firebrick';
 
 //images:	
 	paper.setStart();
@@ -36,6 +36,7 @@ $(function() {
 		
 		c.attr({
 			fill: eval('col' + Math.floor(Math.random()*5)),
+			stroke: .0,
 		});
 		
 		c.id = i;
