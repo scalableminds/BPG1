@@ -37,6 +37,7 @@ $(function() {
 		c.attr({
 			fill: eval('col' + Math.floor(Math.random()*5)),
 			stroke: .0,
+			opacity: .8,
 		});
 		
 		c.id = i;
@@ -55,7 +56,7 @@ $(function() {
 		this.attr({x: this.ox + dx, y: this.oy + dy});
 	},
 	up = function () {
-		this.animate({opacity: 1.}, 500, ">");
+		this.animate({opacity: .8}, 500, ">");
 	};
 
 	var start_c = function () {
