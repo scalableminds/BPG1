@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript" src="d3.js"></script>
+    <style type="text/css">
+circle {
+  stroke: #000;
+  stroke-opacity: .5;
+}
+  </style>
+  </head>
+  <body>
+    <div id="body">
+    </div>
+    <script type="text/javascript">
+
+var w = 1280,
+    h = 600;
+
+var nodes = d3.range(500).map(function() { return {
+  radius: Math.random() * 12 + 4, 
+  x: Math.random() * w, 
+  y: Math.random() * h,
+  data: Math.floor(Math.random() * 20000)
+  //data: 1
+}
+}); 
+
+
+var color = d3.scale.category10();
+
+var node_drag = d3.behavior.drag()
+  .on("drag", dragmove)
+
+function dragmove(d, i) {
+  d.x = d3.event.x;
+  d.y = d3.event.y;
+  
+  d3.select(this)
+    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+}
+
+var svg = d3.select("#body").append("svg:svg")
+  .attr("width", w)
+  .attr("height", h);
+
+var node = svg.selectAll(".node")
+     .data(nodes.slice(1))
+  .enter().append("g")
+    .attr("class", "node")
+    .call(node_drag)
+    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  
+node.append("circle")
+  .attr("r", function(d) { return d.radius; })
+  .style("fill", function(d, i) { return color(i % 3); });
+
+node.append("text")
+  .attr("font-size", 5)
+  .text(function(d) { return d.data; });    
+
+    </script>
+  </body>
+</html>
