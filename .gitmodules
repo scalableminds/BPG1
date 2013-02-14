@@ -5,3 +5,6 @@
 [submodule "project-zoom/playframework"]
 	path = project-zoom/playframework
 	url = https://github.com/tmbo/Play20
+[submodule "proofs-of-concept/kinetic"]
+	path = proofs-of-concept/kinetic
+	url = git@github.com:normanrz/kinetic-performance-test.git
