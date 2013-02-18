@@ -37,7 +37,6 @@ $(function() {
 		c.attr({
 			fill: eval('col' + Math.floor(Math.random()*5)),
 			stroke: .0,
-			opacity: .8,
 		});
 		
 		c.id = i;
@@ -50,26 +49,26 @@ $(function() {
 	var start = function () {
 		this.ox = this.attr("x");
 		this.oy = this.attr("y");
-		this.animate({opacity: .5}, 500, ">");
+		this.animate({}, 500, ">");
 	},
 	move = function (dx, dy) {
 		this.attr({x: this.ox + dx, y: this.oy + dy});
 	},
 	up = function () {
-		this.animate({opacity: .8}, 500, ">");
+		this.animate({}, 500, ">");
 	};
 
 	var start_c = function () {
 		this.ox = this.attr("cx");
 		this.oy = this.attr("cy");
-		this.animate({opacity: .5}, 500, ">");
+		this.animate({}, 500, ">");
 	},
 	move_c = function (dx, dy) {
 		this.attr({cx: this.ox + dx, cy: this.oy + dy});		
 		circles[this.id][1].attr({x:this.ox + dx, y: this.oy + dy});
 	},
 	up_c = function () {
-		this.animate({opacity: 1.}, 500, ">");
+		this.animate({}, 500, ">");
 	};
 	
 	images.drag(move, start, up);
