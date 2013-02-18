@@ -1,11 +1,11 @@
 $(function() {
 	var paper = Raphael('draw', 30, '100%', '100%');
 	
-	for (var i = 0; i < 20; ++i) {	
-		var random_w = Math.floor(Math.random()*500);
-		var random_h = Math.floor(Math.random()*500);
-		window['im_' + i] = "http://placehold.it/" + random_w + "x" + random_h;	
-	}
+	// for (var i = 0; i < 20; ++i) {	
+		// var random_w = Math.floor(Math.random()*500);
+		// var random_h = Math.floor(Math.random()*500);
+		// window['im_' + i] = "http://placehold.it/" + random_w + "x" + random_h;	
+	// }
 	
 //colors:
 	var col0 = 'purple';
@@ -15,13 +15,13 @@ $(function() {
 	var col4 = 'firebrick';
 
 //images:	
-	paper.setStart();
-	for (var i = 0; i < 10; ++i) {
-		var random_x = Math.floor(Math.random()*1001);
-		var random_y = Math.floor(Math.random()*1001);
-		paper.image(eval('im_' + Math.floor(Math.random()*20)), random_x, random_y, 50, 50);
-	}
-	images = paper.setFinish();
+	// paper.setStart();
+	// for (var i = 0; i < 10; ++i) {
+		// var random_x = Math.floor(Math.random()*1001);
+		// var random_y = Math.floor(Math.random()*1001);
+		// paper.image(eval('im_' + Math.floor(Math.random()*20)), random_x, random_y, 50, 50);
+	// }
+	// images = paper.setFinish();
 
 //circles with text:
 	circles = paper.set();
