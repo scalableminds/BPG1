@@ -71,6 +71,6 @@ $(function() {
 		this.animate({}, 500, ">");
 	};
 	
-	images.drag(move, start, up);
+	// images.drag(move, start, up);
 	circles.drag(move_c, start_c, up_c);
 });
