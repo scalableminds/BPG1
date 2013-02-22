@@ -9,23 +9,28 @@ import scala.concurrent.duration._
 import play.api.Logger
 
 case class DropboxAuth(
-    user: String, 
-    password: String,
-    appSignature: String,
-    appKey: String)
+  user: String,
+  password: String,
+  appSignature: String,
+  appKey: String)
 
-class DropboxActor(dropbox: DropboxAPI) extends ConnectorActor with PlayConfig{
+class DropboxActor(dropbox: DropboxAPI) extends ConnectorActor with PlayConfig {
   val TICKER_INTERVAL = 1 minute
-  
+
   var updateTicker: Cancellable = null
-  
-  def start =  {
+
+  def start = {
     Logger.debug("Starting update ticker")
-    updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL){
-      dropbox.updateLocalDropbox
+    updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL) {
+      dropbox.updateLocalDropbox.map { l =>
+        Logger.error("Got the list! L: " + l.size)
+        l.map { artifactUpdate =>
+          artifactActor ! artifactUpdate
+        }
+      }
     }
   }
-  
+
   def stop = {
     updateTicker.cancel
   }

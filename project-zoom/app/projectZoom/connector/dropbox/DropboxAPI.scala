@@ -16,6 +16,12 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import com.dropbox.client2.DropboxAPI.DeltaEntry
 import scala.collection.JavaConversions._
+import play.api.libs.json._
+import projectZoom.artifact._
+import java.io.IOException
+import play.api.Logger
+import com.dropbox.client2.DropboxAPI.DropboxInputStream
+import java.io.InputStream
 
 case class DropboxUpdates(entries: List[DeltaEntry[Entry]], lastCursor: String) {
   def ++(u: DropboxUpdates) = {
@@ -25,8 +31,7 @@ case class DropboxUpdates(entries: List[DeltaEntry[Entry]], lastCursor: String) 
   }
 }
 
-class DropboxAPI(appKey: AppKeyPair) extends PlayActorSystem{
-  type DApi = com.dropbox.client2.DropboxAPI[WebAuthSession]
+class DropboxAPI(appKey: AppKeyPair) extends PlayActorSystem with DropboxUpdateHandler {
 
   lazy val timeout = 1 second
 
@@ -44,7 +49,7 @@ class DropboxAPI(appKey: AppKeyPair) extends PlayActorSystem{
     new com.dropbox.client2.DropboxAPI(session)
   }
 
-  def withApi[T](f: DApi => T): Future[T] = {
+  def withApi[T](f: DropboxAPI.DApi => T): Future[T] = {
     try {
       api.future(timeout).map(f)
     } catch {
@@ -55,7 +60,7 @@ class DropboxAPI(appKey: AppKeyPair) extends PlayActorSystem{
     }
   }
 
-  private def fetchUpdateList(api: DApi, cursor: String): DropboxUpdates = {
+  private def fetchUpdateList(api: DropboxAPI.DApi, cursor: String): DropboxUpdates = {
     val deltaPage = api.delta(cursor)
     val update = DropboxUpdates(deltaPage.entries.toList, deltaPage.cursor)
     if (deltaPage.hasMore) {
@@ -65,21 +70,36 @@ class DropboxAPI(appKey: AppKeyPair) extends PlayActorSystem{
     }
   }
 
+  def retrieveFile(path: String, fileHandler: InputStream => ArtifactUpdate) = withApi { api =>
+    try {
+      Some(fileHandler(api.getFileStream(path, null)))
+    } catch {
+      case e: Exception =>
+        Logger.error("Something went wrong: " + e);
+        None
+    }
+  }
+
   def fetchUpdates = withApi { api =>
     val updates = fetchUpdateList(api, DropboxAPI.lastCursor)
     DropboxAPI.saveCursor(updates.lastCursor)
     updates.entries
   }
-  
-  def updateLocalDropbox = {
-    fetchUpdates.map{ updates =>
-      updates.map( handleUpdate)
-      updates
+
+  def updateLocalDropbox: Future[List[Future[Option[Any]]]] = {
+    Logger.debug("about to update dropbox")
+    DropboxAPI.projects match {
+      case Some(projects) =>
+        Logger.debug("about to fetch updates")
+        fetchUpdates.map { updates =>
+          Logger.debug("got updates: " + updates.size)
+          val f = updates.flatMap(handleDropboxUpdate(projects))
+          Logger.error("Finished handling updates") 
+          f
+        }
+      case _ =>
+        Future.successful(Nil)
     }
-  }
-  
-  private def handleUpdate(update: DeltaEntry[Entry]) = {
-    
   }
 
   /*
@@ -91,18 +111,90 @@ class DropboxAPI(appKey: AppKeyPair) extends PlayActorSystem{
     }
   }
 */
-  
-  def list(path: String): Future[List[Entry]] = {
+
+  /*def list(path: String): Future[List[Entry]] = {
     val pretifiedPath = if (path.startsWith("/")) path else "/" + path
     withApi { api =>
       api.metadata(pretifiedPath, 0, null, true, null).contents.asScala.toList
     }
-  }
+  }*/
 
   //def accountInfo = withApi(_.accountInfo())
 }
 
-object DropboxAPI extends PlayConfig with ConnectorSettings {
+case class ProjectRelativePath(projectName: String, path: String)
+
+trait DropboxUpdateHandler {
+  import play.api.libs.concurrent.Execution.Implicits._
+
+  val projectRx = "^/([^/]+)/(.*)$".r
+
+  def retrieveFile(path: String, f: InputStream => ArtifactUpdate): Future[Option[ArtifactUpdate]]
+
+  def updateInfo(projectName: String) =
+    UpdateInfo(DropboxAPI.identifier, projectName)
+
+  def extractRelativePath(projects: JsValue, update: DeltaEntry[Entry]) = {
+    Logger.debug("Update Path: " + update.lcPath)
+    update.lcPath match {
+      case projectRx(projectPath, path) =>
+        (projects \ projectPath).asOpt[String].map { project =>
+          ProjectRelativePath(project, path)
+        }
+      case _ =>
+        None
+    }
+  }
+
+  def metadata2JsValue(dpxEntry: Entry) = {
+    Json.obj(
+      "fileName" -> dpxEntry.fileName(),
+      "hash" -> dpxEntry.hash,
+      "mimeType" -> dpxEntry.mimeType,
+      "byteSize" -> dpxEntry.bytes,
+      "timestamp" -> dpxEntry.clientMtime)
+  }
+
+  def handleDropboxUpdate(projects: JsObject)(update: DeltaEntry[Entry]): Option[Future[Option[Any]]] = {
+    Logger.debug("about to handle updates")
+    extractRelativePath(projects, update).map { relativePath =>
+      Logger.debug(s"Relative path: $relativePath")
+      Option(update.metadata) match {
+        case Some(m) if m.isDir =>
+          handleDirUpdate(relativePath, update)
+        case Some(m) if !m.isDir =>
+          handleFileUpdate(relativePath, update)
+        case _ =>
+          handleDelete(relativePath, update)
+      }
+    }
+  }
+
+  private def handleDirUpdate(relativePath: ProjectRelativePath, update: DeltaEntry[Entry]): Future[Option[Any]] = {
+    Future.successful(None)
+  }
+
+  private def handleFileUpdate(relativePath: ProjectRelativePath, update: DeltaEntry[Entry]): Future[Option[Any]] = {
+    retrieveFile(update.lcPath, { fileStream =>
+      Logger.warn("received file stream!")
+      UpdateFileArtifact(
+        updateInfo(relativePath.projectName),
+        relativePath.path,
+        fileStream,
+        metadata2JsValue(update.metadata))
+    })
+  }
+
+  private def handleDelete(relativePath: ProjectRelativePath, update: DeltaEntry[Entry]): Future[Option[Any]] = {
+    Future.successful(Some(DeleteFileArtifact(
+      updateInfo(relativePath.projectName),
+      relativePath.path)))
+  }
+}
+
+object DropboxAPI extends PlayConfig with ConnectorSettings with DropboxSettings {
+  type DApi = com.dropbox.client2.DropboxAPI[WebAuthSession]
+
   val identifier = "dropbox"
 
   val accessType = Session.AccessType.DROPBOX
@@ -110,16 +202,16 @@ object DropboxAPI extends PlayConfig with ConnectorSettings {
   def create = {
     val settings = awaitSettings
     for {
-      key <- (settings \ "appKey").asOpt[String]
-      secret <- (settings \ "appSecret").asOpt[String]
+      key <- (settings \ APP_KEY).asOpt[String]
+      secret <- (settings \ APP_SECRET).asOpt[String]
     } yield {
       new DropboxAPI(new AppKeyPair(key, secret))
     }
   }
 
   def storeToken(token: AccessTokenPair) = {
-    storeSetting("accessTokenKey", token.key)
-    storeSetting("accessTokenSecret", token.secret)
+    storeSetting(ACCESS_TOKEN_KEY, token.key)
+    storeSetting(ACCESS_TOKEN_SECRET, token.secret)
     token
   }
 
@@ -130,11 +222,15 @@ object DropboxAPI extends PlayConfig with ConnectorSettings {
   def loadToken: Option[AccessTokenPair] = {
     val settings = awaitSettings
     for {
-      key <- (settings \ "accessTokenKey").asOpt[String]
-      secret <- (settings \ "accessTokenSecret").asOpt[String]
+      key <- (settings \ ACCESS_TOKEN_KEY).asOpt[String]
+      secret <- (settings \ ACCESS_TOKEN_SECRET).asOpt[String]
     } yield {
       new AccessTokenPair(key, secret)
     }
+  }
+
+  def projects: Option[JsObject] = {
+    (awaitSettings \ PROJECTS).asOpt[JsObject]
   }
 
   def obtainToken(appKey: AppKeyPair): AccessTokenPair =
@@ -157,10 +253,19 @@ object DropboxAPI extends PlayConfig with ConnectorSettings {
   }
 
   def lastCursor = {
-    (awaitSettings \ "cursor").asOpt[String] getOrElse null
+    (awaitSettings \ CURSOR).asOpt[String] getOrElse null
   }
 
   def saveCursor(cursor: String) = {
-    storeSetting("cursor", cursor)
+    storeSetting(CURSOR, cursor)
   }
+}
+
+trait DropboxSettings {
+  val APP_KEY = "appKey"
+  val APP_SECRET = "appSecret"
+  val ACCESS_TOKEN_KEY = "accessTokenKey"
+  val ACCESS_TOKEN_SECRET = "accessTokenSecret"
+  val CURSOR = "cursor"
+  val PROJECTS = "projects"
 }

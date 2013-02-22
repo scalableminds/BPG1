@@ -22,9 +22,12 @@ object ApplicationBuild extends Build {
     "commons-io" % "commons-io" % "1.3.2",
     "org.apache.commons" % "commons-email" % "1.2",
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",
+    "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources(),
     "org.reactivemongo" %% "reactivemongo" % "0.8")
 
   val dependencyResolvers = Seq(
+    Resolver.url("play-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
+    Resolver.url("typesafe community snaps", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns),
     "repo.novus rels" at "http://repo.novus.com/releases/",
     "repo.novus snaps" at "http://repo.novus.com/snapshots/",
     "sonatype rels" at "https://oss.sonatype.org/content/repositories/releases/",

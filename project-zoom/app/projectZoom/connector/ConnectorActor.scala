@@ -1,6 +1,8 @@
 package projectZoom.connector
 
 import akka.actor.Actor
+import projectZoom.artifact.ArtifactUpdate
+import play.api.Logger
 
 case class StartAggregating()
 
@@ -9,9 +11,17 @@ trait ConnectorInterface{
 }
 
 trait ConnectorActor extends Actor with ConnectorInterface{
-  
+  lazy val artifactActor = {
+    val a = context.system.actorFor("ArtifactActor")
+    Logger.debug("artifact actor: " + a.path)
+    a
+  }
+    
   def receive = {
     case StartAggregating =>
       start()
+      
+    case update : ArtifactUpdate =>
+      
   }
 }
