@@ -59,6 +59,7 @@
       this.force = d3.layout.force().nodes(this.nodes).links(this.links).size([WIDTH, HEIGHT]).linkDistance(150).charge(-500).on("tick", (function() {
         return _this.tick();
       }));
+      this.initArrowMarkers();
       this.drag_line = this.svg.append("svg:path").attr("class", "link dragline hidden").attr("d", "M0,0L0,0");
       this.path = this.svg.append("svg:g").selectAll("path");
       this.circle = this.svg.append("svg:g").selectAll("g");
@@ -66,8 +67,7 @@
       this.selected_link = null;
       this.mousedown_link = null;
       this.mousedown_node = null;
-      this.mouseup_node = null;
-      return this.initArrowMarkers();
+      return this.mouseup_node = null;
     };
 
     Graph.prototype.initArrowMarkers = function() {
@@ -83,23 +83,19 @@
 
     Graph.prototype.tick = function() {
       this.path.attr("d", function(d) {
-        var deltaX, deltaY, dist, normX, normY, sourcePadding, sourceX, sourceY, targetPadding, targetX, targetY, _ref, _ref1;
+        var deltaX, deltaY, dist, normX, normY, sourcePadding, sourceX, sourceY, targetPadding, targetX, targetY;
         deltaX = d.target.x - d.source.x;
         deltaY = d.target.y - d.source.y;
         dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         normX = deltaX / dist;
         normY = deltaY / dist;
-        sourcePadding = (_ref = d.left) != null ? _ref : {
-          17: 12
-        };
-        targetPadding = (_ref1 = d.right) != null ? _ref1 : {
-          17: 12
-        };
+        sourcePadding = d.left ? 17 : 12;
+        targetPadding = d.right ? 17 : 12;
         sourceX = d.source.x + (sourcePadding * normX);
         sourceY = d.source.y + (sourcePadding * normY);
         targetX = d.target.x - (targetPadding * normX);
         targetY = d.target.y - (targetPadding * normY);
-        return "M " + sourceX + "," + sourceY + "L" + targetX + "," + targetY;
+        return "M" + sourceX + "," + sourceY + "L" + targetX + "," + targetY;
       });
       return this.circle.attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";

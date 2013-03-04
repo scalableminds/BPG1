@@ -5,6 +5,7 @@ colors = d3.scale.category10()
 
 class Graph
 
+
   constructor : (selector) ->
 
     @svg = d3.select(selector)
@@ -41,6 +42,7 @@ class Graph
     @init()
     @restart()
 
+
   init : ->
 
     # init D3 force layout
@@ -51,6 +53,8 @@ class Graph
       .linkDistance(150)
       .charge(-500)
       .on("tick", ( => @tick()) )
+
+    @initArrowMarkers()
 
     # line displayed when dragging new nodes
     @drag_line = @svg.append("svg:path")
@@ -67,8 +71,6 @@ class Graph
     @mousedown_link = null
     @mousedown_node = null
     @mouseup_node = null
-
-    @initArrowMarkers()
 
 
   initArrowMarkers : ->
@@ -113,13 +115,13 @@ class Graph
       dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
       normX = deltaX / dist
       normY = deltaY / dist
-      sourcePadding = d.left ? 17 : 12
-      targetPadding = d.right ? 17 : 12
+      sourcePadding = if d.left then 17 else 12
+      targetPadding = if d.right then 17 else 12
       sourceX = d.source.x + (sourcePadding * normX)
       sourceY = d.source.y + (sourcePadding * normY)
       targetX = d.target.x - (targetPadding * normX)
       targetY = d.target.y - (targetPadding * normY)
-      return "M #{sourceX},#{sourceY}L#{targetX},#{targetY}"
+      return "M#{sourceX},#{sourceY}L#{targetX},#{targetY}"
     )
 
     @circle.attr("transform", (d) ->
