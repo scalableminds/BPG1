@@ -296,7 +296,7 @@
       var selected_link, selected_node;
       selected_node = this.selected_node, selected_link = this.selected_link;
       if (d3.event.keyCode === 17) {
-        circle.call(force.drag);
+        this.circle.call(this.force.drag);
         this.svg.classed("ctrl", true);
       }
       if (!(selected_node && selected_link)) {

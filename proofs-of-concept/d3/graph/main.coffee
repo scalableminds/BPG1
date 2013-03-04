@@ -369,7 +369,7 @@ class Graph
 
     # ctrl
     if d3.event.keyCode == 17
-      circle.call(force.drag)
+      @circle.call(@force.drag)
       @svg.classed("ctrl", true)
 
 
