@@ -140,10 +140,10 @@ class Graph
         return d == selected_link
       )
       .style("marker-start", (d) ->
-        return d.left ? "url(#start-arrow)" : ""
+        return if d.left then "url(#start-arrow)" else ""
       )
       .style("marker-end", (d) ->
-        return d.right ? "url(#end-arrow)" : ""
+        return if d.right then "url(#end-arrow)" else ""
       )
 
     # add new links
@@ -153,23 +153,23 @@ class Graph
         return d == selected_link
       )
       .style("marker-start", (d) ->
-        return d.left ? "url(#start-arrow)" : ""
+        return if d.left then "url(#start-arrow)" else ""
       )
       .style("marker-end", (d) ->
-        return d.right ? "url(#end-arrow)" : ""
+        return if d.right then "url(#end-arrow)" else ""
       )
       .on("mousedown", (d) =>
         return if d3.event.ctrlKey
 
         # select link
         mousedown_link = d
-        if mousedown_link == selected_link
+        if mousedown_link == @selected_link
           @selected_link = null
         else
-          @selected_link == mousedown_link
+          @selected_link = mousedown_link
 
         @selected_node = null
-        restart()
+        @restart()
       )
 
     # remove old links
@@ -240,6 +240,9 @@ class Graph
         @restart()
       )
       .on("mouseup", (d) =>
+
+        { mousedown_node, mouseup_node } = this
+
         return unless mousedown_node
 
         # needed by FF
@@ -393,7 +396,7 @@ class Graph
   keyup : =>
     # ctrl
     if d3.event.keyCode == 17
-      circle
+      @circle
         .on("mousedown.drag", null)
         .on("touchstart.drag", null)
       @svg.classed("ctrl", false)

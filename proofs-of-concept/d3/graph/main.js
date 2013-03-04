@@ -114,40 +114,44 @@
       this.path.classed("selected", function(d) {
         return d === selected_link;
       }).style("marker-start", function(d) {
-        var _ref;
-        return (_ref = d.left) != null ? _ref : {
-          "url(#start-arrow)": ""
-        };
+        if (d.left) {
+          return "url(#start-arrow)";
+        } else {
+          return "";
+        }
       }).style("marker-end", function(d) {
-        var _ref;
-        return (_ref = d.right) != null ? _ref : {
-          "url(#end-arrow)": ""
-        };
+        if (d.right) {
+          return "url(#end-arrow)";
+        } else {
+          return "";
+        }
       });
       this.path.enter().append("svg:path").attr("class", "link").classed("selected", function(d) {
         return d === selected_link;
       }).style("marker-start", function(d) {
-        var _ref;
-        return (_ref = d.left) != null ? _ref : {
-          "url(#start-arrow)": ""
-        };
+        if (d.left) {
+          return "url(#start-arrow)";
+        } else {
+          return "";
+        }
       }).style("marker-end", function(d) {
-        var _ref;
-        return (_ref = d.right) != null ? _ref : {
-          "url(#end-arrow)": ""
-        };
+        if (d.right) {
+          return "url(#end-arrow)";
+        } else {
+          return "";
+        }
       }).on("mousedown", function(d) {
         if (d3.event.ctrlKey) {
           return;
         }
         mousedown_link = d;
-        if (mousedown_link === selected_link) {
+        if (mousedown_link === _this.selected_link) {
           _this.selected_link = null;
         } else {
-          _this.selected_link === mousedown_link;
+          _this.selected_link = mousedown_link;
         }
         _this.selected_node = null;
-        return restart();
+        return _this.restart();
       });
       this.path.exit().remove();
       this.circle = this.circle.data(this.nodes, function(d) {
@@ -199,6 +203,7 @@
         return _this.restart();
       }).on("mouseup", function(d) {
         var direction, link, source, target, __this;
+        mousedown_node = _this.mousedown_node, mouseup_node = _this.mouseup_node;
         if (!mousedown_node) {
           return;
         }
@@ -323,7 +328,7 @@
 
     Graph.prototype.keyup = function() {
       if (d3.event.keyCode === 17) {
-        circle.on("mousedown.drag", null).on("touchstart.drag", null);
+        this.circle.on("mousedown.drag", null).on("touchstart.drag", null);
         return this.svg.classed("ctrl", false);
       }
     };
