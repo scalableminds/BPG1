@@ -14,7 +14,7 @@ object ApplicationBuild extends Build {
     conf.getString("application.revision"))
 
   val projectZoomDependencies = Seq(
-    "play.modules.reactivemongo" %% "play2-reactivemongo" % "0.1-SNAPSHOT"  cross CrossVersion.full,
+    "org.reactivemongo" %% "play2-reactivemongo" % "0.8",
     "org.mongodb" %% "casbah-commons" % "2.5.0",
     "org.mongodb" %% "casbah-core" % "2.5.0",
     "org.mongodb" %% "casbah-query" % "2.5.0",
@@ -22,8 +22,7 @@ object ApplicationBuild extends Build {
     "commons-io" % "commons-io" % "1.3.2",
     "org.apache.commons" % "commons-email" % "1.2",
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",
-    "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources(),
-    "org.reactivemongo" %% "reactivemongo" % "0.8")
+    "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources())
 
   val dependencyResolvers = Seq(
     Resolver.url("play-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
