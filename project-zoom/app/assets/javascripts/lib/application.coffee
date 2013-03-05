@@ -22,7 +22,7 @@ class Application
     wrapperMaker = (initializer) -> 
       (callback) ->
         result = initializer(options, callback)
-        if _.isFunction(result.then) and _.isFunction(result.done)
+        if result? and _.isFunction(result.then) and _.isFunction(result.done)
           result.then(
             (arg) -> callback(null, arg)
             (err) -> callback(err)

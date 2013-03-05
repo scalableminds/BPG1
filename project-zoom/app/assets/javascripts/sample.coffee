@@ -1,14 +1,16 @@
 ### define
+backbone : Backbone
 app : app
 jquery : $
 ###
 
 app.addInitializer (options, callback) ->
 
-  alert(options.test)
-  d = new $.Deferred()
-  setTimeout(
-    -> d.resolve()
-    2000
+  model = new Backbone.DeepModel( 
+    test : 
+      xyz : 123
   )
-  d.promise()
+
+  model.set("test.zyx", 321)
+
+  callback()
