@@ -10,10 +10,11 @@ import reactivemongo.bson.BSONDocumentReader
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONString
 import reactivemongo.bson.BSONObjectID
+import projectZoom.bson.Bson
 
 trait BSONDocumentHandler[T] extends BSONDocumentReader[T] with BSONDocumentWriter[T]
 
-trait MongoDAO[T] {
+trait MongoDAO[T] extends MongoJSONHelpers{
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
@@ -23,7 +24,7 @@ trait MongoDAO[T] {
   implicit val handler: BSONDocumentHandler[T]
 
   def findHeadOption(attribute: String, value: String) = {
-    collection.find(BSONDocument(attribute -> BSONString(value))).one
+    collection.find(Bson.obj(attribute -> value)).one
   }
 
   def findById(id: String) = {
