@@ -36,6 +36,7 @@ object ApplicationBuild extends Build {
 
   val projectZoom = play.Project(appName, appVersion, projectZoomDependencies).settings(
     //templatesImport += "",
+    coffeescriptOptions := Seq("native", "coffee -p"),
     resolvers ++= dependencyResolvers
     //playAssetsDirectories += file("") 
   )
