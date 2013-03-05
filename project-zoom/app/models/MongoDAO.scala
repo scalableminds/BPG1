@@ -11,8 +11,17 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONString
 import reactivemongo.bson.BSONObjectID
 import projectZoom.bson.Bson
+import projectZoom.util.MongoHelpers
+import play.api.libs.json.JsObject
 
 trait BSONDocumentHandler[T] extends BSONDocumentReader[T] with BSONDocumentWriter[T]
+
+trait MongoJson extends MongoDAO[JsObject] {
+  implicit object handler extends BSONDocumentHandler[JsObject] {
+    def read(doc: BSONDocument)= Implicits.JsObjectReader.read(doc)
+    def write(js: JsObject)= Implicits.JsObjectWriter.write(js)
+  }
+}
 
 trait MongoDAO[T] extends MongoJSONHelpers{
 
