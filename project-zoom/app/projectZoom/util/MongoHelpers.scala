@@ -5,14 +5,9 @@ import play.api.libs.json.Json._
 import reactivemongo.bson.BSONObjectID
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import reactivemongo.api.QueryBuilder
-import play.modules.reactivemongo.PlayBsonImplicits
+import play.modules.reactivemongo._
 
-trait MongoHelpers extends PlayBsonImplicits{
-  implicit def jsonToQueryBuilder(js: JsValue) = {
-    QueryBuilder().query(js)
-  }
-  
+trait MongoHelpers extends ReactiveBSONImplicits with JSONLibraryImplicits{
   /** Writes an ID in Json Extended Notation */
   val toObjectId =
     OWrites[String] { s => Json.obj("_id" -> Json.obj("$oid" -> s)) }

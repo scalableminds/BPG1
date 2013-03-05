@@ -24,17 +24,17 @@ object TestSpace {
                                                   //| "op":"replace","path":"/test/a/4","value":"hello"}]
   val a = Json.obj(
     "test" -> Json.obj(
-      "a" -> Json.arr(2,3,4,5,4),
+      "a" -> Json.arr(3,3,4,5,4),
       "b" -> "",
       "d" -> 2,
-      "c" -> "x"))                                //> a  : play.api.libs.json.JsObject = {"test":{"a":[2,3,4,5,4],"b":"","d":2,"c"
+      "c" -> "x"))                                //> a  : play.api.libs.json.JsObject = {"test":{"a":[3,3,4,5,4],"b":"","d":2,"c"
                                                   //| :"x"}}
-  JsonPatch.patch(a, j)                           //> ZR: {"test":{"a":[2,3,4,5,4,1],"b":"","d":2,"c":"x"}}
-                                                  //| ZR: {"test":{"a":[2,3,4,5,4,1],"b":"","d":2,"c":"x"}}
-                                                  //| ZR: {"test":{"a":[2,3,4,5,4,1],"d":2,"c":"x"}}
-                                                  //| ZR: {"test":{"a":[2,3,4,5,"hello",1],"d":2,"c":"x"}}
+  JsonPatch.patch(a, j)                           //> ZR: {"test":{"a":[3,3,4,5,4,1],"b":"","d":2,"c":"x"}}
+                                                  //| ZR: {"test":{"a":[3,3,4,5,4,1],"b":"","d":2,"c":"x"}}
+                                                  //| ZR: {"test":{"a":[3,3,4,5,4,1],"d":2,"c":"x"}}
+                                                  //| ZR: {"test":{"a":[3,3,4,5,"hello",1],"d":2,"c":"x"}}
                                                   //| res0: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = JsSuccess({
-                                                  //| "test":{"a":[2,3,4,5,"hello",1],"d":2,"c":"x"}},)
+                                                  //| "test":{"a":[3,3,4,5,"hello",1],"d":2,"c":"x"}},)
   //a.patch.reads(j)
   //println("Hello")
 }
