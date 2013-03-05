@@ -14,6 +14,7 @@ import play.api.libs.json._
 import play.api.libs.json.util._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import projectZoom.bson.Bson
 
 case class User(
     id: UserId,
@@ -37,15 +38,11 @@ object User extends MongoDAO[User] {
   def findByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
 
   def findByUserId(userId: UserId) = {
-    collection.find(BSONDocument(
-      "id" -> BSONString(userId.id),
-      "provider" -> BSONString(userId.providerId))).one
+    collection.find(Bson.obj("userId" -> UserIdFormat.writes(userId))).one
   }
 
   def findByEmailAndProvider(email: String, provider: String) = {
-    collection.find(BSONDocument(
-      "email" -> BSONString(email),
-      "provider" -> BSONString(provider))).one
+    collection.find(Bson.obj("email" -> email, "userId.providerId" -> provider)).one
   }
 
   def fromIdentity(i: Identity): User = {
@@ -81,23 +78,12 @@ object User extends MongoDAO[User] {
     (__ \ 'userId).format[UserId] and
     (__ \ 'firstName).format[String] and
     (__ \ 'lastName).format[String] and
-    (__ \ 'email).formatOpt[String] and
+    (__ \ 'email).formatNullable[String] and
     (__ \ 'authMethod).format[AuthenticationMethod] and
     (__ \ 'oAuth1Info).formatNullable[OAuth1Info] and
     (__ \ 'oAuth2Info).formatNullable[OAuth2Info] and
     (__ \ 'passwordInfo).formatNullable[PasswordInfo] and
     (__ \ 'roles).format(list[String]))(User.apply _, unlift(User.unapply))
-
-  /*val userWrites = (
-    (__ \ 'id).writes[String] and
-    (__ \ 'firstName).writes[String] and
-    (__ \ 'lastName).writes[String] and
-    (__ \ 'email).writes(optional[String]) and
-    (__ \ 'authMethod).writes[AuthenticationMethod] and
-    (__ \ 'oAuth1Info).writes(optional[OAuth1Info]) and
-    (__ \ 'oAuth2Info).writes(optional[OAuth2Info]) and
-    (__ \ 'passwordInfo).writes(optional[PasswordInfo]) and
-    (__ \ 'roles).writes(list[String]))(User.unapply)*/
 
   implicit object handler extends BSONDocumentHandler[User] {
     def read(doc: BSONDocument): User =
