@@ -1,16 +1,20 @@
 package models
 
 import reactivemongo.bson.BSONDocument
-import reactivemongo.bson.handlers._
 import reactivemongo.bson.BSONString
-import reactivemongo.bson.handlers.DefaultBSONHandlers.DefaultBSONReaderHandler
-import reactivemongo.bson.handlers.DefaultBSONHandlers.DefaultBSONDocumentWriter
+import reactivemongo.bson.BSONWriter
 import securesocial.core._
 import reactivemongo.bson.BSONArray
 import reactivemongo.bson.BSONInteger
-import play.api.libs.json.Json
+import play.modules.reactivemongo.MongoJSONHelpers
+import play.modules.reactivemongo.Implicits
+import reactivemongo.bson.BSONHandler
+import reactivemongo.bson.BSONHandler
+import play.api.libs.json._
+import play.api.libs.json.util._
+import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import play.api.libs.json.Format
+import projectZoom.bson.Bson
 
 case class User(
     id: UserId,
@@ -21,7 +25,7 @@ case class User(
     oAuth1Info: Option[OAuth1Info],
     oAuth2Info: Option[OAuth2Info],
     passwordInfo: Option[PasswordInfo],
-    roles: List[String] = Nil) extends Identity {
+    roles: List[String]) extends Identity {
   val fullName: String = s"$firstName $lastName"
   val avatarUrl = None
 }
@@ -34,57 +38,58 @@ object User extends MongoDAO[User] {
   def findByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
 
   def findByUserId(userId: UserId) = {
-    collection.find(BSONDocument(
-      "id" -> BSONString(userId.id),
-      "provider" -> BSONString(userId.providerId))).headOption
+    collection.find(Bson.obj("userId" -> UserIdFormat.writes(userId))).one
   }
 
   def findByEmailAndProvider(email: String, provider: String) = {
-    collection.find(BSONDocument(
-      "email" -> BSONString(email),
-      "provider" -> BSONString(provider))).headOption
+    collection.find(Bson.obj("email" -> email, "userId.providerId" -> provider)).one
   }
 
-  def apply(i: Identity): User = {
-    User(i.id, i.firstName, i.lastName, i.email, i.authMethod, i.oAuth1Info, i.oAuth2Info, i.passwordInfo)
+  def fromIdentity(i: Identity): User = {
+    User(i.id, i.firstName, i.lastName, i.email, i.authMethod, i.oAuth1Info, i.oAuth2Info, i.passwordInfo, Nil)
   }
 
-  implicit object reader extends BSONReader[User] {
-    def fromBSON(document: BSONDocument): User = {
-      val doc = document.toTraversable
-      User(
-        UserId(doc.getAs[BSONString]("id").get.value,
-          doc.getAs[BSONString]("provider").get.value),
-        doc.getAs[BSONString]("firstName").get.value,
-        doc.getAs[BSONString]("lastName").get.value,
-        doc.getAs[BSONString]("email").map(_.value),
-        AuthenticationMethod(doc.getAs[BSONString]("authMethod").get.value),
-        doc.getAs[BSONDocument]("oAuth1Info").map { oc =>
-          val o = oc.toTraversable
-          OAuth1Info(
-            o.getAs[BSONString]("token").get.value,
-            o.getAs[BSONString]("secret").get.value)
-        },
-        doc.getAs[BSONDocument]("oAuth2Info").map { oc =>
-          val o = oc.toTraversable
-          OAuth2Info(
-            o.getAs[BSONString]("accessToken").get.value,
-            o.getAs[BSONString]("tokenType").map(_.value),
-            o.getAs[BSONInteger]("expiresIn").map(_.value),
-            o.getAs[BSONString]("refreshToken").map(_.value))
-        },
-        doc.getAs[BSONDocument]("passwordInfo").map { oc =>
-          val o = oc.toTraversable
-          PasswordInfo(
-            o.getAs[BSONString]("hasher").get.value,
-            o.getAs[BSONString]("password").get.value,
-            o.getAs[BSONString]("salt").map(_.value))
-        },
-        doc.getAs[BSONArray]("roles").get.iterator.map(_.value.toString).toList)
-    }
+  implicit val AuthenticationMethodFormat: Format[AuthenticationMethod] = {
+    val r = ((__).read[String]).map(AuthenticationMethod.apply)
+    val w = Writes.apply[AuthenticationMethod](a => JsString(a.method))
+    Format.apply(r, w)
   }
 
-  implicit object writer extends BSONWriter[User] {
-    def toBSON(token: User): BSONDocument = ???
+  implicit val OAuth1InfoFormat: Format[OAuth1Info] = (
+    (__ \ 'token).format[String] and
+    (__ \ 'secret).format[String])(OAuth1Info.apply, unlift(OAuth1Info.unapply))
+
+  implicit val OAuth2InfoFormat: Format[OAuth2Info] = (
+    (__ \ 'accessToken).format[String] and
+    (__ \ 'tokenType).formatNullable[String] and
+    (__ \ 'expiresIn).formatNullable[Int] and
+    (__ \ 'refreshToken).formatNullable[String])(OAuth2Info.apply, unlift(OAuth2Info.unapply))
+
+  implicit val PasswordInfoFormat: Format[PasswordInfo] = (
+    (__ \ 'hasher).format[String] and
+    (__ \ 'password).format[String] and
+    (__ \ 'salt).formatNullable[String])(PasswordInfo.apply, unlift(PasswordInfo.unapply))
+
+  implicit val UserIdFormat: Format[UserId] = (
+    (__ \ 'id).format[String] and
+    (__ \ 'providerId).format[String])(UserId.apply, unlift(UserId.unapply))
+
+  val userFormat = (
+    (__ \ 'userId).format[UserId] and
+    (__ \ 'firstName).format[String] and
+    (__ \ 'lastName).format[String] and
+    (__ \ 'email).formatNullable[String] and
+    (__ \ 'authMethod).format[AuthenticationMethod] and
+    (__ \ 'oAuth1Info).formatNullable[OAuth1Info] and
+    (__ \ 'oAuth2Info).formatNullable[OAuth2Info] and
+    (__ \ 'passwordInfo).formatNullable[PasswordInfo] and
+    (__ \ 'roles).format(list[String]))(User.apply _, unlift(User.unapply))
+
+  implicit object handler extends BSONDocumentHandler[User] {
+    def read(doc: BSONDocument): User =
+      userFormat.reads(MongoJSONHelpers.toJSON(doc)).get
+
+    def write(u: User): BSONDocument =
+      Implicits.JsObjectWriter.write(userFormat.writes(u))
   }
 }

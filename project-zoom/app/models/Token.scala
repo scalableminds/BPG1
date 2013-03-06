@@ -3,11 +3,11 @@ package models
 import securesocial.core.providers.{ Token => SocialToken }
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import reactivemongo.bson._
-import reactivemongo.bson.handlers._
+import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.BSONString
+import reactivemongo.bson.BSONDateTime
+import reactivemongo.bson.BSONBoolean
 import org.joda.time.DateTime
-import reactivemongo.bson.handlers.DefaultBSONHandlers.DefaultBSONReaderHandler
-import reactivemongo.bson.handlers.DefaultBSONHandlers.DefaultBSONDocumentWriter
 
 object Token extends MongoDAO[SocialToken] {
   override def collection = db("tokens")
@@ -19,7 +19,7 @@ object Token extends MongoDAO[SocialToken] {
   }
   
   override def findById(id: String)= {
-    collection.find(BSONDocument("uuid" -> BSONString(id))).headOption
+    collection.find(BSONDocument("uuid" -> BSONString(id))).one
   }
   
   def removeExpiredTokens() = {
@@ -27,20 +27,8 @@ object Token extends MongoDAO[SocialToken] {
     collection.remove(BSONDocument("expirationTime" -> BSONDocument("$lt" -> BSONDateTime(now))))
   }
   
-  implicit object reader extends BSONReader[SocialToken] {
-    def fromBSON(document: BSONDocument): SocialToken = {
-      val doc = document.toTraversable
-      SocialToken(
-        doc.getAs[BSONString]("uuid").get.value,
-        doc.getAs[BSONString]("email").get.value,
-        new DateTime(doc.getAs[BSONDateTime]("creationTime").get.value),
-        new DateTime(doc.getAs[BSONDateTime]("expirationTime").get.value),
-        doc.getAs[BSONBoolean]("isSignUp").get.value)
-    }
-  }
-  
-  implicit object writer extends BSONWriter[SocialToken]{
-    def toBSON(token: SocialToken): BSONDocument = {
+  implicit object handler extends BSONDocumentHandler[SocialToken]{
+    def write(token: SocialToken): BSONDocument = {
       BSONDocument(
           "uuid" -> BSONString(token.uuid),
           "email" -> BSONString(token.email),
@@ -49,6 +37,13 @@ object Token extends MongoDAO[SocialToken] {
           "isSignUp" -> BSONBoolean(token.isSignUp)
       )
     }
+    def read(doc: BSONDocument): SocialToken = {
+      SocialToken(
+        doc.getAs[BSONString]("uuid").get.value,
+        doc.getAs[BSONString]("email").get.value,
+        new DateTime(doc.getAs[BSONDateTime]("creationTime").get.value),
+        new DateTime(doc.getAs[BSONDateTime]("expirationTime").get.value),
+        doc.getAs[BSONBoolean]("isSignUp").get.value)
+    }
   }
-  
 }

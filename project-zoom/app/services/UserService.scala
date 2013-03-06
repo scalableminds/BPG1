@@ -32,7 +32,7 @@ class UserService(application: Application) extends UserServicePlugin(applicatio
   }
 
   def save(identity: Identity): Identity = {
-    User.insert(User(identity))
+    User.insert(User.fromIdentity(identity))
     identity
   }
 

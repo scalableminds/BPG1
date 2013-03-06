@@ -6,8 +6,6 @@ import play.api.libs.json.Json
 import play.api.libs.json.Reads._
 import play.modules.reactivemongo._
 import play.api.libs.json._
-import reactivemongo.bson.handlers.DefaultBSONHandlers._
-import reactivemongo.api.QueryBuilder
 import akka.agent.Agent
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -27,12 +25,12 @@ trait ConnectorSettings extends DBCollection with PlayActorSystem {
 
   def defaultSettings = Json.obj()
 
-  def awaitSettings = {
+  def awaitSettings: JsValue = {
     try{
     Await.result(
       collection
         .find[JsValue](settingsQuery)
-        .headOption.map(_ getOrElse defaultSettings),
+        .one[JsValue].map(_ getOrElse defaultSettings),
       MAX_SETTINGS_AWAIT)
     } catch {
       case e: TimeoutException =>
