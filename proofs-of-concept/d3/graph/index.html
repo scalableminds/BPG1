@@ -9,6 +9,16 @@
   <body>
     <div id="body">
     </div>
-    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="require.js"></script>
+    <script type="text/javascript">
+
+    require(
+      ["controller"],
+      function (Controller) {
+        window.controller = new Controller();
+      }
+    );
+
+    </script>
   </body>
 </html>
