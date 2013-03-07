@@ -9,38 +9,15 @@ define ->
       @svg = svg_container.append("svg:g")
 
 
-      svg_container.on("mousedown", @mousedown)
-        .on("mousemove", @mousemove)
-        .on("mouseup", @mouseup)
-
-      d3.select(window)
-        .on("keydown", @keydown)
-        .on("keyup", @keyup)
+    setNodes : (@nodes) ->
 
 
-      # set up initial nodes and links
-      #  - nodes are known by "id", not by index in array.
-      #  - reflexive edges are indicated on the node (as a bold black circle).
-      #  - links are always source < target edge directions are set by "left" and "right".
-      @nodes = [
-        {id: 0, reflexive: false},
-        {id: 1, reflexive: true },
-        {id: 2, reflexive: false}
-      ]
-
-      @links = [
-        {source: @nodes[0], target: @nodes[1], left: false, right: true }
-        {source: @nodes[1], target: @nodes[2], left: false, right: true }
-      ]
-
-      @lastNodeId = 2
-
-      @init()
-      @restart()
+    setLinks : (@links) ->
 
 
     init : ->
 
+            #var force = d3.layout.force().gravity(.05).distance(100).charge(-100).size([width, height + 300]);
       # init D3 force layout
       @force = d3.layout.force()
         .nodes(@nodes)
@@ -52,10 +29,6 @@ define ->
 
       @initArrowMarkers()
 
-      # line displayed when dragging new nodes
-      @drag_line = @svg.append("svg:path")
-        .attr("class", "link dragline hidden")
-        .attr("d", "M0,0L0,0")
 
       # handles to link and node element groups
       @path = @svg.append("svg:g").selectAll("path")
@@ -67,6 +40,8 @@ define ->
       @mousedown_link = null
       @mousedown_node = null
       @mouseup_node = null
+
+      @restart()
 
 
     initArrowMarkers : ->
@@ -109,6 +84,8 @@ define ->
         deltaX = d.target.x - d.source.x
         deltaY = d.target.y - d.source.y
         dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+        return if dist == 0
+
         normX = deltaX / dist
         normY = deltaY / dist
         sourcePadding = if d.left then 17 else 12
@@ -229,12 +206,6 @@ define ->
           @selected_link = null
           @mousedown_node = mousedown_node
 
-          # reposition drag line
-          @drag_line
-            .style("marker-end", "url(#end-arrow)")
-            .classed("hidden", false)
-            .attr("d", "M#{mousedown_node.x},#{mousedown_node.y}L#{mousedown_node.x},#{mousedown_node.y}")
-
           @restart()
         )
         .on("mouseup", (d) =>
@@ -242,11 +213,6 @@ define ->
           { mousedown_node, mouseup_node } = this
 
           return unless mousedown_node
-
-          # needed by FF
-          @drag_line
-            .classed("hidden", true)
-            .style("marker-end", "")
 
           # check for drag-to-self
           mouseup_node = d
@@ -268,6 +234,8 @@ define ->
             source = mouseup_node
             target = mousedown_node
             direction = "left"
+
+          @mousedown_node = null
 
           link = @links.filter(
             (l) ->
@@ -304,105 +272,12 @@ define ->
       # remove old nodes
       @circle.exit().remove()
 
-      # set the graph in motion
+      # create a static graph
       @force.start()
-
-    mousedown : =>
-      # because :active only works in WebKit?
-      @svg.classed("active", true)
-
-      return if d3.event.ctrlKey or @mousedown_node or @mousedown_link
-
-      # insert new node at point
-      __this = @svg[0][0]
-      point = d3.mouse(__this)
-      node =
-        id: ++@lastNodeId
-        reflexive: false
-
-      node.x = point[0]
-      node.y = point[1]
-      @nodes.push(node)
-
-      @restart()
-
-    mousemove : =>
-      return unless @mousedown_node
-
-      # update drag line
-      __this = @svg[0][0]
-      @drag_line.attr("d", "M#{@mousedown_node.x},#{@mousedown_node.y}L#{d3.mouse(__this)[0]},#{d3.mouse(__this)[1]}")
-
-      @restart()
-
-    mouseup : =>
-      if @mousedown_node
-        # hide drag line
-        @drag_line
-          .classed("hidden", true)
-          .style("marker-end", "")
-
-      # because :active only works in WebKit?
-      @svg.classed("active", false)
-
-      # clear mouse event s
-      @resetMouseVars()
+      for i in [0..500]
+        @force.tick()
+      @force.stop()
 
 
-    spliceLinksForNode : (node) ->
-      toSplice = links.filter(
-        (l) ->
-          return (l.source == node or l.target == node)
-      )
 
-      toSplice.map( (l) ->
-        links.splice(links.indexOf(l), 1)
-      )
-
-    keydown : =>
-
-      { selected_node, selected_link } = this
-
-      # ctrl
-      if d3.event.keyCode == 17
-        @circle.call(@force.drag)
-        @svg.classed("ctrl", true)
-
-
-      return unless selected_node and selected_link
-      switch d3.event.keyCode
-        when 46 #delete
-          if selected_node
-            nodes.splice(nodes.indexOf(selected_node), 1)
-            spliceLinksForNode(selected_node)
-          else if selected_link
-            links.splice(links.indexOf(selected_link), 1)
-
-          @selected_link = null
-          @selected_node = null
-          @restart()
-
-        when 66 # B
-          if selected_link
-            # set link direction to both left and right
-            selected_link.left = true
-            selected_link.right = true
-
-          @restart()
-
-
-    keyup : =>
-      # ctrl
-      if d3.event.keyCode == 17
-        @circle
-          .on("mousedown.drag", null)
-          .on("touchstart.drag", null)
-        @svg.classed("ctrl", false)
-
-
-    redraw : ->
-      return if @mousedown_node
-      console.log d3.event
-      #console.log "transform #{d3.event.translate} scale #{d3.event.scale}"
-      @svg.attr("transform","translate(#{d3.event.translate}) scale(#{d3.event.scale})")
 
