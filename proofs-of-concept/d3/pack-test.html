@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>PivotGraph (Rollup) Layout</title>
+<style>
+
+body {
+font-family: sans-serif;
+font-size: 10px;
+}
+
+.link {
+fill: none;
+stroke: #000;
+stroke-opacity: .25;
+}
+
+.node {
+fill: steelblue;
+'stroke-width': .0;
+}
+
+.axis path,
+.axis line {
+display: none;
+}
+
+circle {
+  fill: rgb(31, 119, 180);
+  fill-opacity: .25;
+  stroke-width: .0;
+}
+
+.leaf circle {
+  fill: #ff7f0e;
+  fill-opacity: .5;
+}
+
+text {
+  font: 30px sans-serif;
+}
+
+</style>
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/d3.rollup.v0.min.js"></script>
+
+<script>
+var diameter = 960,
+    format = d3.format(",d");
+
+function fx(d) { return d.name; }
+function fy(d) { return d.size; }
+
+var svg = d3.select("body").append("svg")
+	.attr("width", diameter)
+	.attr("height", diameter)
+	.append("g")
+	.attr("transform", "translate(2,2)");
+
+var children = '{' +
+'"name":"graph",' +
+'"children": [' + 
+'    {"name": "M", "size": 13},' + 
+'    {"name": "F", "size": 23},' + 
+'    {"name": "M", "size": 23},' + 
+'    {"name": "M", "size": 23},' + 
+'    {"name": "F", "size": 32},' + 
+'    {"name": "M", "size": 43},' + 
+'    {"name": "F", "size": 23},' + 
+'    {"name": "M", "size": 56},' + 
+'    {"name": "F", "size": 56},' + 
+'    {"name": "F", "size": 34}' + 
+'  ]' +
+'}';
+
+var links = '{  "links": [' + 
+'    {"source": 0, "target": 1},' + 
+'    {"source": 1, "target": 2},' + 
+'    {"source": 2, "target": 3},' + 
+'    {"source": 2, "target": 4},' + 
+'    {"source": 2, "target": 5},' + 
+'    {"source": 2, "target": 6},' + 
+'    {"source": 2, "target": 7},' + 
+'    {"source": 5, "target": 6},' + 
+'    {"source": 6, "target": 7},' + 
+'    {"source": 5, "target": 8},' + 
+'    {"source": 8, "target": 6},' + 
+'    {"source": 6, "target": 9}' + 
+'  ]' + 
+'}';
+
+var node_drag = d3.behavior.drag()
+	.on("drag", dragmove)
+
+function dragmove(d, i) {
+	d.x = d3.event.x;
+	d.y = d3.event.y;
+	d3.select(this)
+		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+}
+
+root = JSON.parse(children);
+
+var pack = d3.layout.pack()
+    .size([diameter - 4, diameter - 4])
+    .value(function(d) { return d.size; });
+
+var node = svg.datum(root).selectAll(".node")
+      .data(pack.nodes)
+    .enter().append("g")
+      .attr("class", function(d) { return d.children ? "node" : "leaf node"; })
+	  .call(node_drag)
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+node.append("title")
+      .text(function(d) { return d.name + (d.children ? "" : ": " + format(d.size)); });
+
+node.append("circle")
+  .attr("r", function(d) { return d.r; });
+
+node.filter(function(d) { return !d.children; }).append("text")
+  .attr("dy", ".3em")
+  .style("text-anchor", "middle")
+  .text(function(d) { return d.name.substring(0, d.r / 3); });
+
+d3.select(self.frameElement).style("height", diameter + "px");  	  
+	  
+svg.selectAll(".link")
+    .data(pack.links)
+  .enter().append("path")
+    .attr("d", d3.svg.diagonal());
+	  
+	  
+	  
+
+/////////////////////////////
+//svg.selectAll(".link")
+		// .data(graph.links)
+	// .enter().append("path")
+		// .attr("class", "link")
+		// .attr("d", function(d) {
+	// var sx = d.source.x, sy = d.source.y,
+		// tx = d.target.x, ty = d.target.y,
+		// dx = tx - sx, dy = ty - sy,
+		// dr = 2 * Math.sqrt(dx * dx + dy * dy);
+	// return "M" + sx + "," + sy + "A" + dr + "," + dr + " 0 0,1 " + tx + "," + ty;
+// })
+// .style("stroke-width", function(d) { return d.value * 4; });
+
+// svg.selectAll(".node")
+	  // .data(graph.nodes)
+	// .enter().append("circle")
+	  // .attr("class", "node")
+	  // .attr("r", function(d) { return Math.sqrt(d.nodes.length * 40); })
+	  // .attr("cx", function(d) { return d.x; })
+	  // .attr("cy", function(d) { return d.y; })
+	  // .call(node_drag)
+	  // .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+</script>
