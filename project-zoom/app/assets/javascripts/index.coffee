@@ -23,7 +23,7 @@ require.config(
       exports : "Backbone"
     d3 :
       exports : "d3"
-    "backbone.deepmodel" : 
+    "backbone.deepmodel" :
       deps : [ "backbone", "underscore" ]
       exports : "Backbone.DeepModel"
 
@@ -33,14 +33,18 @@ define(
   "app"
   ["./lib/application", "backbone.deepmodel"]
   (Application) -> new Application()
-) 
+)
 
 
 require ["backbone", "app"], (Backbone, app) ->
 
-  app.on "start" : -> alert("Test")
+  #app.on "start" : -> alert("Test")
 
   require [
     "sample"
   ], -> app.start( test : 123 )
+
+  require [
+    "testGraph"
+  ], -> app.start()
 
