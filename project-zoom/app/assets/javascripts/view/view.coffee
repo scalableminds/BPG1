@@ -1,7 +1,7 @@
 ### define
 lib/event_mixin : EventMixin
 d3 : d3
-./graph : Graph
+./interactive_graph : InteractiveGraph
 ###
 
 class View
@@ -17,11 +17,12 @@ class View
 
     @initD3()
     @initArrowMarkers()
+    @initEventHandlers()
 
 
     graphContainer = @svg.append("svg:g")
 
-    @graph = new Graph(graphContainer)
+    @graph = new InteractiveGraph(graphContainer)
     for i in [0..5]
       @graph.addNode(i*50, i*50)
 
@@ -74,6 +75,11 @@ class View
       .append("svg:path")
         .attr("d", "M10,-5L0,0L10,5")
         .attr("fill", "#000")
+
+
+  initEventHandlers : ->
+
+    @hitbox.on "click", => @graph.addNode(d3.event.offsetX, d3.event.offsetY)
 
 
   zoom : ->

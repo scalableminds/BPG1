@@ -68,28 +68,17 @@ class Graph
 
   drawNodes : (node) ->
 
-    @circles = @circles.data(@nodes, (d) ->
-      return d.id
-    )
+    @circles = @circles.data(@nodes, (d) -> d.id)
 
     #add new nodes or update existing one
     circle = @circles.enter().append("svg:circle")
     circle
       .attr("class", "node")
       .attr("r", NODE_SIZE)
-      .attr("cx", (d) ->
-        return d.x
-      )
-      .attr("cy", (d) ->
-        return d.y
-      )
-      .style("fill", (d) =>
-        return @colors(d.id)
-      )
-      .style("stroke", (d) =>
-        return d3.rgb(@colors(d.id)).darker().toString()
-      )
-
+      .attr("cx", (d) -> d.x)
+      .attr("cy", (d) -> d.y)
+      .style("fill", (d) => @colors(d.id))
+      .style("stroke", (d) => d3.rgb(@colors(d.id)).darker().toString())
 
     #remove deleted nodes
     @circles.exit().remove()
@@ -103,12 +92,8 @@ class Graph
     path = @paths.enter().append("svg:path")
     path
       .attr("class", "edge")
-      .attr("d", (d) ->
-        return d.getLineSegment()
-      )
-      .style("marker-end", (d) ->
-        return "url(#end-arrow)"
-      )
+      .attr("d", (d) -> d.getLineSegment())
+      .style("marker-end", (d) -> "url(#end-arrow)")
 
     #remove delte edges
     @paths.exit().remove()
