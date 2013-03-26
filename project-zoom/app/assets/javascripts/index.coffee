@@ -4,6 +4,7 @@ require.config(
   waitSeconds : 15
 
   paths :
+    bootstrap : "lib/bootstrap"
     underscore : "lib/lodash-1.0.1"
     backbone : "lib/backbone-0.9.10"
     "backbone.wreqr" : "lib/backbone.wreqr-0.1.1"
@@ -16,6 +17,9 @@ require.config(
 
 
   shim :
+    bootstrap : 
+      deps : [ "jquery" ]
+      exports : "Bootstrap"
     underscore :
       exports : "_"
     backbone :
@@ -36,7 +40,7 @@ define(
 )
 
 
-require ["backbone", "app"], (Backbone, app) ->
+require ["backbone", "app", "bootstrap"], (Backbone, app, Bootstrap) ->
 
   #app.on "start" : -> alert("Test")
 
@@ -44,7 +48,7 @@ require ["backbone", "app"], (Backbone, app) ->
     "sample"
   ], -> app.start( test : 123 )
 
-  require [
-    "testGraph"
-  ], -> app.start()
+  #require [
+  #  "testGraph"
+  #], -> app.start()
 
