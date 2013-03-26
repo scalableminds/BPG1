@@ -17,18 +17,8 @@ class View
 
     @initD3()
     @initArrowMarkers()
+    @initGraph()
     @initEventHandlers()
-
-
-    graphContainer = @svg.append("svg:g")
-
-    @graph = new InteractiveGraph(graphContainer)
-    for i in [0..5]
-      @graph.addNode(i*50, i*50)
-
-    @graph.addEdge(0,1)
-    @graph.addEdge(2,3)
-    @graph.addEdge(4,3)
 
 
   initD3 : ->
@@ -47,6 +37,19 @@ class View
             d3.behavior.zoom()
               .on("zoom", ( => @zoom()) )
           )
+
+
+  initGraph : ->
+
+    graphContainer = @svg.append("svg:g")
+
+    @graph = new InteractiveGraph(graphContainer, @hitbox, @svg)
+    for i in [0..5]
+      @graph.addNode(i*50, i*50)
+
+    @graph.addEdge(0,1)
+    @graph.addEdge(2,3)
+    @graph.addEdge(4,3)
 
 
   initArrowMarkers : ->
@@ -80,6 +83,7 @@ class View
   initEventHandlers : ->
 
     @hitbox.on "click", => @graph.addNode(d3.event.offsetX, d3.event.offsetY)
+    @hitbox.on "mousemove", @graph.drawDragLine
 
 
   zoom : ->

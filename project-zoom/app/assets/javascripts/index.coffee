@@ -14,6 +14,8 @@ require.config(
     jquery : "lib/jquery-1.9.1"
     async : "lib/async-0.2.6"
     d3 : "lib/d3-3.0.8"
+    "jquery.hammer" : "lib/jquery.hammer-1.0.3"
+
 
 
   shim :
@@ -30,6 +32,8 @@ require.config(
     "backbone.deepmodel" :
       deps : [ "backbone", "underscore" ]
       exports : "Backbone.DeepModel"
+    "jquery.hammer" :
+      deps : [ "jquery" ]
 
 )
 
@@ -40,15 +44,21 @@ define(
 )
 
 
-require ["backbone", "app", "bootstrap"], (Backbone, app, Bootstrap) ->
+require [
+  "backbone",
+  "app",
+  "jquery.hammer"
+  "bootstrap"
+  ], (Backbone, app) ->
 
   #app.on "start" : -> alert("Test")
 
   require [
-    "sample"
+    "testGraph", "jquery.hammer", "sample"
   ], -> app.start( test : 123 )
 
   #require [
-  #  "testGraph"
+  #  "testGraph", "jquery.hammer"
   #], -> app.start()
+
 

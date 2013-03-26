@@ -49,11 +49,8 @@ object User extends MongoDAO[User] {
     User(i.id, i.firstName, i.lastName, i.email, i.authMethod, i.oAuth1Info, i.oAuth2Info, i.passwordInfo, Nil)
   }
 
-  implicit val AuthenticationMethodFormat: Format[AuthenticationMethod] = {
-    val r = ((__).read[String]).map(AuthenticationMethod.apply)
-    val w = Writes.apply[AuthenticationMethod](a => JsString(a.method))
-    Format.apply(r, w)
-  }
+  implicit val AuthenticationMethodFormat: Format[AuthenticationMethod] = 
+    __.format[String].inmap((m: String) => AuthenticationMethod(m), (a: AuthenticationMethod) => a.method)
 
   implicit val OAuth1InfoFormat: Format[OAuth1Info] = (
     (__ \ 'token).format[String] and

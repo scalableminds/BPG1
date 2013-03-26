@@ -15,8 +15,6 @@ app.addInitializer (options, callback) ->
 
   model.set("test.zyx", 321)
 
-
-
   artifactFinder = new ArtifactFinder()
 
   $("body").append(artifactFinder.domElement)

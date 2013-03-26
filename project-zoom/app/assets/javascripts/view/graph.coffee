@@ -33,7 +33,7 @@ class Graph
   addEdge : (source, target) ->
 
     maxNodeIndex = @nodes.length - 1
-    if source < maxNodeIndex and target < maxNodeIndex
+    if source <= maxNodeIndex and target <= maxNodeIndex
 
       tmp = new Edge(@nodes[source], @nodes[target])
       @edges.push(tmp)

@@ -32,8 +32,9 @@ class Artifact
       })
 
       images.push image
-
-
+    
+    domElement.append(images[0])
+    
     @domElement = domElement
     @images = images
 
