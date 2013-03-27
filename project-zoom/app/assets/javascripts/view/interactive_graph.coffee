@@ -7,7 +7,7 @@ lib/event_mixin : EventMixin
 
 class InteractiveGraph extends Graph
 
-  constructor : (@container, @hitbox, @svg) ->
+  constructor : (@container, @svg) ->
 
     EventMixin.extend(this)
 
@@ -90,7 +90,7 @@ class InteractiveGraph extends Graph
   mouseMove : =>
 
     if @startDrag
-      mouseContext = @container[0][0].parentNode
+      mouseContext = @container[0][0]
 
       @dragLine
         .classed("hidden", false)

@@ -28,10 +28,10 @@ class Graph
     body = document.createElement( 'body' )
     $(foreignObject).attr("x", 0).attr("y", 0).attr("width", 64).attr("height", 64).append(body)
     $(body).append(object)
-    $("g:first").append(foreignObject)  
+    $("g:first").append(foreignObject)
 
 
-  addNode : (x, y) ->
+  addNode : (x, y) =>
 
     tmp = new Node(x, y, @nodeId++)
     @nodes.push(tmp)
@@ -39,7 +39,7 @@ class Graph
     @drawNodes(tmp)
 
 
-  addEdge : (source, target) ->
+  addEdge : (source, target) =>
 
     maxNodeIndex = @nodes.length - 1
     if source <= maxNodeIndex and target <= maxNodeIndex
