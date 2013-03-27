@@ -54,7 +54,7 @@ require [
   #app.on "start" : -> alert("Test")
 
   require [
-    "testGraph", "jquery.hammer", "sample"
+    "testGraph", "jquery.hammer"
   ], -> app.start( test : 123 )
 
   #require [

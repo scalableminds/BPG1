@@ -12,6 +12,7 @@ class ArtifactFinder
 
   domElement : null
   groups : null
+  artifacts : null
 
   SAMPLE_ARTIFACT : { 
     name:"test1"
@@ -27,26 +28,51 @@ class ArtifactFinder
   constructor : () ->
 
     @groups = []
+    @artifactComponents = []
 
     domElement = $('<div/>', {
 
     })
 
+    slider = $("<input/>", {
+      id : "defaultSlider"
+      type : "range"
+      min : "1"
+      max : "500"
+    })
+
+    domElement.append(slider)
+
     artifact = @SAMPLE_ARTIFACT
 
     @createGroups(domElement, @GROUP_NAMES)
-    #domElement.appendTo(parent)
 
-    artifactC = new Artifact(artifact)
+    func = -> this.value
+    x = _.bind(func, slider[0])
+
+
+    artifactC = new Artifact(
+      artifact
+      x
+    )
+    @artifactComponents.push artifactC
+
+    slider.on(
+      "change"
+      => artifactC.resize()
+    )    
+
     domElement.append(artifactC.domElement)
 
     group = _.find(@groups, (g) => g.name is artifact.source)
     group.div.append(artifactC.domElement)
-    #artifactC.resized()
-
-    
 
     @domElement = domElement
+
+
+  setResized : (func) ->
+    @onResized = func
+
 
 
   destroy : ->

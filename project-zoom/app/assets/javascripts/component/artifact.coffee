@@ -9,16 +9,15 @@ class Artifact
   images : null
 
 
-  constructor : (artifact) ->
-
-    $(window).resize( (e) => @resized(e))
+  constructor : (artifact, @width) ->
 
     images = []
 
-    domElement = $('<div/>', {
+    @domElement = $('<div/>', {
       title: "#{artifact.name}"
-      class: "artifact-wrapper"      
     })
+
+    @domElement.width(width())
 
     for resource in artifact.resources
 
@@ -33,22 +32,28 @@ class Artifact
 
       images.push image
     
-    domElement.append(images[0])
+    @domElement.append(images[0])
     
-    @domElement = domElement
     @images = images
 
 
-  resized : (e) ->
+  resize : () ->
 
-    width = $(window).width()
+    width = @width() 
+
+    return unless @domElement?
+    @domElement.width(width)
+
+    width = @domElement[0].getBoundingClientRect().width
+
     @domElement.empty()
-    if width > 800
+    if width > 200
       @domElement.append(@images[2])
-    else if width > 400
+    else if width > 100
       @domElement.append(@images[1])
     else
       @domElement.append(@images[0])      
+
 
   destroy : ->
 

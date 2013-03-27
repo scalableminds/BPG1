@@ -2,23 +2,48 @@
 lib/event_mixin : EventMixin
 d3 : d3
 ./interactive_graph : InteractiveGraph
+../component/artifact_finder : ArtifactFinder
+../component/artifact : Artifact
 ###
 
 class View
 
   WIDTH = 960
   HEIGHT = 500
+  time : null
 
 
 
   constructor : ->
 
     EventMixin.extend(this)
-
+    @initArtifactFinder()
     @initD3()
     @initArrowMarkers()
     @initGraph()
     @initEventHandlers()
+
+    artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, => 64
+    #$(window).resize(=> artifact.resize())
+    @graph.addForeignObject(artifact.domElement)
+
+    @time = 0
+
+    window.setInterval(
+      => 
+        @time += 0.01
+        @time %= Math.PI
+        $("g:first").attr("transform", "scale(#{Math.sin(@time)*Math.PI+1})")
+        artifact.resize()
+      20
+    )
+
+
+
+  initArtifactFinder : ->
+
+    @artifactFinder = new ArtifactFinder()
+    $("body").append @artifactFinder.domElement 
 
 
   initD3 : ->
