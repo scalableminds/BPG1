@@ -25,18 +25,7 @@ class View
 
     artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, -> 64
     @graph.addForeignObject(artifact.domElement)
-
-    @time = 0
-
-    # window.setInterval(
-    #   =>
-    #     @time += 0.01
-    #     @time %= Math.PI
-    #     $("g:first").attr("transform", "scale(#{Math.sin(@time)*Math.PI+1})")
-    #     artifact.resize()
-    #   20
-    # )
-
+    @on "view:zooming", artifact.resize
 
 
   initArtifactFinder : ->
@@ -61,7 +50,6 @@ class View
           .attr("width", WIDTH)
           .attr("height", HEIGHT)
           .attr("fill", "white")
-
 
 
   initGraph : ->
@@ -107,7 +95,6 @@ class View
 
   initEventHandlers : ->
 
-
     graphContainer = @graphContainer[0][0]
     @hitbox.on "click", => @graph.addNode(d3.mouse(graphContainer)[0], d3.mouse(graphContainer)[1])
 
@@ -115,4 +102,5 @@ class View
   zoom : ->
 
     @graphContainer.attr("transform", "scale( #{d3.event.scale} )") #"translate(" + d3.event.translate + ")
+    @trigger("view:zooming")
     console.log "zooming"
