@@ -2,33 +2,48 @@
 lib/event_mixin : EventMixin
 d3 : d3
 ./interactive_graph : InteractiveGraph
+../component/artifact_finder : ArtifactFinder
+../component/artifact : Artifact
 ###
 
 class View
 
   WIDTH = 960
   HEIGHT = 500
+  time : null
 
 
 
   constructor : ->
 
     EventMixin.extend(this)
-
+    @initArtifactFinder()
     @initD3()
     @initArrowMarkers()
+    @initGraph()
     @initEventHandlers()
 
+    artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, => 64
+    #$(window).resize(=> artifact.resize())
+    @graph.addForeignObject(artifact.domElement)
 
-    graphContainer = @svg.append("svg:g")
+    @time = 0
 
-    @graph = new InteractiveGraph(graphContainer)
-    for i in [0..5]
-      @graph.addNode(i*50, i*50)
+    window.setInterval(
+      => 
+        @time += 0.01
+        @time %= Math.PI
+        $("g:first").attr("transform", "scale(#{Math.sin(@time)*Math.PI+1})")
+        artifact.resize()
+      20
+    )
 
-    @graph.addEdge(0,1)
-    @graph.addEdge(2,3)
-    @graph.addEdge(4,3)
+
+
+  initArtifactFinder : ->
+
+    @artifactFinder = new ArtifactFinder()
+    $("body").append @artifactFinder.domElement 
 
 
   initD3 : ->
@@ -47,6 +62,19 @@ class View
             d3.behavior.zoom()
               .on("zoom", ( => @zoom()) )
           )
+
+
+  initGraph : ->
+
+    graphContainer = @svg.append("svg:g")
+
+    @graph = new InteractiveGraph(graphContainer, @hitbox, @svg)
+    for i in [0..5]
+      @graph.addNode(i*50, i*50)
+
+    @graph.addEdge(0,1)
+    @graph.addEdge(2,3)
+    @graph.addEdge(4,3)
 
 
   initArrowMarkers : ->
@@ -80,6 +108,7 @@ class View
   initEventHandlers : ->
 
     @hitbox.on "click", => @graph.addNode(d3.event.offsetX, d3.event.offsetY)
+    @hitbox.on "mousemove", @graph.drawDragLine
 
 
   zoom : ->

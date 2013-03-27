@@ -1,9 +1,16 @@
 package projectZoom.util
 
-import play.api.libs.json.JsPath
-import projectZoom.json.JsMultiPath
-
 object ExtendedTypes {
+
+  import play.api.libs.json.JsObject
+  import play.api.libs.json.JsValue
+  import projectZoom.json.JsonPatch
+
+  implicit class ExtendedJsObject(obj: JsObject) {
+    def patchWith(patch: JsValue) = {
+      JsonPatch.patch(obj, patch)
+    }
+  }
 
   implicit class ExtendedString(val s: String) extends AnyVal {
 
@@ -19,6 +26,9 @@ object ExtendedTypes {
       case _: java.lang.NumberFormatException => None
     }
   }
+
+  import play.api.libs.json.JsPath
+  import projectZoom.json.JsMultiPath
 
   implicit class ExtendedJsPath(val p: JsPath) {
     def \~(ps: String): JsMultiPath = {

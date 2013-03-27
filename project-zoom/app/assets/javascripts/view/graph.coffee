@@ -22,6 +22,15 @@ class Graph
     @nodeId = 0
 
 
+  addForeignObject : (object) ->
+
+    foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject' )
+    body = document.createElement( 'body' )
+    $(foreignObject).attr("x", 0).attr("y", 0).attr("width", 64).attr("height", 64).append(body)
+    $(body).append(object)
+    $("g:first").append(foreignObject)  
+
+
   addNode : (x, y) ->
 
     tmp = new Node(x, y, @nodeId++)
@@ -33,7 +42,7 @@ class Graph
   addEdge : (source, target) ->
 
     maxNodeIndex = @nodes.length - 1
-    if source < maxNodeIndex and target < maxNodeIndex
+    if source <= maxNodeIndex and target <= maxNodeIndex
 
       tmp = new Edge(@nodes[source], @nodes[target])
       @edges.push(tmp)

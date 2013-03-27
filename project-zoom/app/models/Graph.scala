@@ -1,10 +1,12 @@
-package models
+package projectZoom
 
 import play.api.libs.json.JsValue
 import play.api.libs.json._
 import play.api.libs.json.util._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import _root_.models.MongoJson
+import _root_.models.User
 
 object Graph extends MongoJson {
   def collection = db("graphs")
@@ -33,4 +35,10 @@ object Graph extends MongoJson {
     (__ \ 'nodes).read(list(node)) and
     (__ \ 'edges).read(list(node)) and
     (__ \ 'cluster).read(list(cluster))).tupled
+
+  val reducePayloadToId =
+    (__ \ 'payload).json.update((__ \ 'id).json.pick)
+
+  val removePayloadDetails = (
+    (__ \ 'nodes).json.update(reducePayloadToId))
 }
