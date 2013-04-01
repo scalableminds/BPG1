@@ -3,51 +3,40 @@ package projectZoom.connector.incom
 import projectZoom.util._
 import play.api.libs.ws._
 import projectZoom.connector.ConnectorSettings
-import scala.collection.JavaConverters._
 import scala.util.{Success, Failure}
+import play.api.Logger
+import projectZoom.util.CookieJarType._
 
-class IncomAPI(private val username: String, private val password: String) extends PlayActorSystem with IncomCookies{
-  
-  val cookies = scala.collection.mutable.Map[String,String]()
-  
-  def init() {
-    cookies.clear
-    WS.url("http://dschool.incom.org").get() andThen {
-      case Failure(exception) => println(exception)
-      case Success(response) => 
-        updateCookies(response)
-        WS.url("http://dschool.incom.org/action/login").withHeaders(buildCookie).post(loginPostData)      
-    } andThen {
-      case Failure(exception) => println(exception)
-      case Success(response) => 
-        updateCookies(response)
-    }
-  }
-  
-  private val loginPostData = Map("email" -> Seq(username), "password" -> Seq(password))
-  
-  def buildCookie() = ("Cookie", cookies.foldLeft("")((accu, t) => s"$accu ${t._1}=${t._2};"))
-  
-  def isLoggedIn() = cookies.get(dschoolSessionId) match {
-    case Some(id) => id != "deleted"
-    case _ => false
-  }  
+trait IncomCookieHelper extends CookieHelper{
 
-  def updateCookies(response: Response) = {
-    cookies ++= 
-    response.getAHCResponse.getCookies.asScala.toList.map(c => (c.getName, c.getValue)).toMap
-  }
- 
-}
-
-object IncomAPI extends PlayConfig with ConnectorSettings {
-  
-  def create(userName: String, password: String) = {
-    new IncomAPI(userName: String, password: String)
-  }
-}
-
-trait IncomCookies {
   val sessionId = "PHPSESSID"
   val dschoolSessionId = "HPI_UID"
+  
+  def isLoggedIn(cookies: CookieJar) = cookies.contains(sessionId) && 
+    cookies.contains(dschoolSessionId) && 
+    cookies(dschoolSessionId) != "deleted"
+}
+
+class IncomAPI(cookies: CookieJar) extends PlayActorSystem with IncomCookieHelper{
+  def extractPosts() = {}
+}
+
+object IncomAPI extends PlayConfig with ConnectorSettings with IncomCookieHelper{
+  
+  def create(userName: String, password: String): Option[IncomAPI] = {
+    val cookies: CookieJar = scala.collection.mutable.Map[String, String]()
+    val loginPostData = Map("email" -> Seq(userName), "password" -> Seq(password))
+    
+    (WS.url("http://dschool.incom.org").get() andThen {
+      case Failure(exception) => Logger.error(exception.getMessage())
+      case Success(response) => 
+        cookies ++ extractCookieMap(response)
+        WS.url("http://dschool.incom.org/action/login").withHeaders(buildCookie(cookies)).post(loginPostData)      
+    } andThen {
+      case Failure(exception) => Logger.error(exception.getMessage())
+      case Success(response) => 
+        cookies ++ extractCookieMap(response)
+    })
+   if(isLoggedIn(cookies)) Some(new IncomAPI(cookies)) else None
+  }
 }

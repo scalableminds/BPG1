@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 import play.api.Logger
 import play.api.libs.ws._
 
-class IncomActor extends ConnectorActor with PlayConfig {
+class IncomActor(incom: IncomAPI) extends ConnectorActor with PlayConfig {
 
   val TICKER_INTERVAL = 1 minute
 

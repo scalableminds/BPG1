@@ -4,7 +4,7 @@ import akka.actor._
 import akka.actor.SupervisorStrategy._
 import scala.concurrent.duration._
 
-import scala.collection.mutable.ListBuffer
+import projectZoom.util.PlayActorSystem
 
 object SupervisorActor {
   case object ProjectInserted
@@ -12,8 +12,10 @@ object SupervisorActor {
   case object SettingsUpdated
 }
 
-class SupervisorActor extends Actor {
+class SupervisorActor extends Actor with PlayActorSystem{
   import SupervisorActor._
+  
+  val connectors = List[ActorRef]()
   
   def receive = {
     case ProjectInserted => updateProjects
