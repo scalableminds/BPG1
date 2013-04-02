@@ -6,6 +6,8 @@ import projectZoom.connector.ConnectorSettings
 import scala.util.{Success, Failure}
 import play.api.Logger
 import projectZoom.util.CookieJarType._
+import play.api.libs.concurrent.Execution.Implicits._
+
 
 trait IncomCookieHelper extends CookieHelper{
 
@@ -21,7 +23,7 @@ class IncomAPI(cookies: CookieJar) extends PlayActorSystem with IncomCookieHelpe
   def extractPosts() = {}
 }
 
-object IncomAPI extends PlayConfig with ConnectorSettings with IncomCookieHelper{
+object IncomAPI extends PlayConfig with IncomCookieHelper{
   
   def create(userName: String, password: String): Option[IncomAPI] = {
     val cookies: CookieJar = scala.collection.mutable.Map[String, String]()

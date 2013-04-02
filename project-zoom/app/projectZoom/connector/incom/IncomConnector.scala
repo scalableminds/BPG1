@@ -11,10 +11,10 @@ class IncomConnector extends Connector with PlayActorSystem {
   val username = "test"
   val password = "miep"
   
-  def startAggregating = {
+  def startAggregating(implicit app: play.api.Application) = {
     IncomAPI.create(username, password) match {
       case Some(api) =>
-        val actor = system.actorOf(Props(new IncomActor(api)))
+        val actor = Akka.system(app).actorOf(Props(new IncomActor(api)))
         actor ! StartAggregating
       case _ =>
         Logger.error("Couldn't start incom connector")
