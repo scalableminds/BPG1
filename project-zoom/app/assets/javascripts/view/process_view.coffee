@@ -6,7 +6,7 @@ d3 : d3
 ../component/artifact : Artifact
 ###
 
-class View
+class ProcessView
 
   WIDTH = 960
   HEIGHT = 500
@@ -31,12 +31,12 @@ class View
   initArtifactFinder : ->
 
     @artifactFinder = new ArtifactFinder()
-    $("body").append( @artifactFinder.domElement )
+    $("#artifactFinder").append( @artifactFinder.domElement )
 
 
   initD3 : ->
 
-    @svg = d3.select("body")
+    @svg = d3.select("#graph")
       .append("svg")
       .attr("WIDTH", WIDTH)
       .attr("HEIGHT", HEIGHT)

@@ -1,11 +1,11 @@
 ### define
 app : app
 jquery : $
-view/view : View
+view/process_view : ProcessView
 ###
 
 app.addInitializer (options, callback) ->
 
-  view = new View()
+  view = new ProcessView()
 
   callback()
