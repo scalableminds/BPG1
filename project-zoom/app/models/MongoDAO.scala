@@ -10,7 +10,7 @@ import reactivemongo.bson.BSONDocumentReader
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONString
 import reactivemongo.bson.BSONObjectID
-import projectZoom.bson.Bson
+import projectZoom.core.bson.Bson
 import projectZoom.util.MongoHelpers
 import play.api.libs.json.JsObject
 

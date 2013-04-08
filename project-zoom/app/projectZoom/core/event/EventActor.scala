@@ -1,4 +1,4 @@
-package projectZoom.event
+package projectZoom.core.event
 
 import akka.agent.Agent
 import akka.actor.Actor

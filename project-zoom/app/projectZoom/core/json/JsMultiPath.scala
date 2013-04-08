@@ -1,4 +1,4 @@
-package projectZoom.json
+package projectZoom.core.json
 
 import play.api.libs.json.JsPath
 import play.api.libs.json.Reads

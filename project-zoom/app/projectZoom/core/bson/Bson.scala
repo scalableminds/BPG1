@@ -1,4 +1,4 @@
-package projectZoom.bson
+package projectZoom.core.bson
 
 import play.modules.reactivemongo.Implicits
 import play.api.libs.json.Json

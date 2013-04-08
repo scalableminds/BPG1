@@ -14,7 +14,7 @@ import play.api.libs.json._
 import play.api.libs.json.util._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import projectZoom.bson.Bson
+import projectZoom.core.bson.Bson
 
 case class User(
     id: UserId,

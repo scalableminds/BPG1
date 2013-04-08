@@ -1,7 +1,7 @@
 package projectZoom.connector
 
 import akka.actor.Actor
-import projectZoom.artifact.ArtifactUpdate
+import projectZoom.core.artifact.ArtifactUpdate
 import play.api.Logger
 
 case class StartAggregating()

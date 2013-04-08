@@ -17,7 +17,7 @@ import scala.concurrent.Future
 import com.dropbox.client2.DropboxAPI.DeltaEntry
 import scala.collection.JavaConversions._
 import play.api.libs.json._
-import projectZoom.artifact._
+import projectZoom.core.artifact._
 import java.io.IOException
 import play.api.Logger
 import com.dropbox.client2.DropboxAPI.DropboxInputStream
