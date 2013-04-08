@@ -174,7 +174,7 @@ trait DropboxUpdateHandler {
     Future.successful(None)
   }
 
-  private def handleFileUpdate(relativePath: ProjectRelativePath, update: DeltaEntry[Entry]): Future[Option[Any]] = {
+  private def handleFileUpdate(relativePath: ProjectRelativePath, update: DeltaEntry[Entry]): Future[Option[Any]] = ???/*{
     retrieveFile(update.lcPath, { fileStream =>
       Logger.warn("received file stream!")
       UpdateFileArtifact(
@@ -183,13 +183,13 @@ trait DropboxUpdateHandler {
         fileStream,
         metadata2JsValue(update.metadata))
     })
-  }
+  }*/
 
-  private def handleDelete(relativePath: ProjectRelativePath, update: DeltaEntry[Entry]): Future[Option[Any]] = {
+  private def handleDelete(relativePath: ProjectRelativePath, update: DeltaEntry[Entry]): Future[Option[Any]] = ???/*{
     Future.successful(Some(DeleteFileArtifact(
       updateInfo(relativePath.projectName),
       relativePath.path)))
-  }
+  }*/
 }
 
 object DropboxAPI extends PlayConfig with ConnectorSettings with DropboxSettings {
