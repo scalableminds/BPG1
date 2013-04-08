@@ -8,6 +8,6 @@ case class ProjectAggregation(l: List[ProjectFound]) extends Event
 case class UserFound(user: User) extends Event
 case class UserAggregation(l: List[UserFound]) extends Event
 
-class KnowledgeAggregatorActor extends ConnectorActor with EventPublisher {
-  
+trait KnowledgeAggregatorActor extends ConnectorActor with EventPublisher {
+
 }

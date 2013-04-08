@@ -3,31 +3,17 @@ package projectZoom
 import akka.actor._
 import akka.actor.SupervisorStrategy._
 import scala.concurrent.duration._
+import projectZoom.core.event.EventSubscriber
 
 import projectZoom.util.PlayActorSystem
 
-object SupervisorActor {
-  case object ProjectInserted
-  case object UserInserted
-  case object SettingsUpdated
-}
-
-class SupervisorActor extends Actor with PlayActorSystem{
-  import SupervisorActor._
-  
-  val connectors = List[ActorRef]()
+class SupervisorActor extends EventSubscriber with PlayActorSystem{
   
   def receive = {
-    case ProjectInserted => updateProjects
-    case UserInserted => updateUsers
-    case SettingsUpdated => updateSettings
+    case _ => println("TODO")
   }
   
-  override def preStart = {
-    self ! ProjectInserted
-    self ! UserInserted
-    self ! SettingsUpdated
-  }
+  val connectors = List[ActorRef]()
   
   def updateProjects = {
     
