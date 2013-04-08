@@ -6,7 +6,7 @@ d3 : d3
 ../component/artifact : Artifact
 ###
 
-class View
+class ProcessView
 
   WIDTH = 960
   HEIGHT = 500
@@ -23,52 +23,40 @@ class View
     @initGraph()
     @initEventHandlers()
 
-    artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, => 64
-    #$(window).resize(=> artifact.resize())
+    artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, -> 64
     @graph.addForeignObject(artifact.domElement)
-
-    @time = 0
-
-    window.setInterval(
-      => 
-        @time += 0.01
-        @time %= Math.PI
-        $("g:first").attr("transform", "scale(#{Math.sin(@time)*Math.PI+1})")
-        artifact.resize()
-      20
-    )
-
+    @on "view:zooming", artifact.resize
 
 
   initArtifactFinder : ->
 
     @artifactFinder = new ArtifactFinder()
-    $("body").append @artifactFinder.domElement 
+    $("#artifactFinder").append( @artifactFinder.domElement )
 
 
   initD3 : ->
 
-    @svg = d3.select("body")
+    @svg = d3.select("#graph")
       .append("svg")
       .attr("WIDTH", WIDTH)
       .attr("HEIGHT", HEIGHT)
       .attr("pointer-events", "all")
+      .call(
+        d3.behavior.zoom()
+          .on("zoom", ( => @zoom()) )
+      )
 
     @hitbox = @svg.append("svg:rect")
           .attr("width", WIDTH)
           .attr("height", HEIGHT)
           .attr("fill", "white")
-          .call(
-            d3.behavior.zoom()
-              .on("zoom", ( => @zoom()) )
-          )
 
 
   initGraph : ->
 
-    graphContainer = @svg.append("svg:g")
+    @graphContainer = @svg.append("svg:g")
 
-    @graph = new InteractiveGraph(graphContainer, @hitbox, @svg)
+    @graph = new InteractiveGraph(@graphContainer, @svg)
     for i in [0..5]
       @graph.addNode(i*50, i*50)
 
@@ -107,9 +95,12 @@ class View
 
   initEventHandlers : ->
 
-    @hitbox.on "click", => @graph.addNode(d3.event.offsetX, d3.event.offsetY)
-    @hitbox.on "mousemove", @graph.drawDragLine
+    graphContainer = @graphContainer[0][0]
+    @hitbox.on "click", => @graph.addNode(d3.mouse(graphContainer)[0], d3.mouse(graphContainer)[1])
 
 
   zoom : ->
+
+    @graphContainer.attr("transform", "scale( #{d3.event.scale} )") #"translate(" + d3.event.translate + ")
+    @trigger("view:zooming")
     console.log "zooming"

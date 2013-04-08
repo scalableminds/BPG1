@@ -4,7 +4,7 @@ object ExtendedTypes {
 
   import play.api.libs.json.JsObject
   import play.api.libs.json.JsValue
-  import projectZoom.json.JsonPatch
+  import projectZoom.core.json.JsonPatch
 
   implicit class ExtendedJsObject(obj: JsObject) {
     def patchWith(patch: JsValue) = {
@@ -28,7 +28,7 @@ object ExtendedTypes {
   }
 
   import play.api.libs.json.JsPath
-  import projectZoom.json.JsMultiPath
+  import projectZoom.core.json.JsMultiPath
 
   implicit class ExtendedJsPath(val p: JsPath) {
     def \~(ps: String): JsMultiPath = {

@@ -31,15 +31,15 @@ class Artifact
       })
 
       images.push image
-    
+
     @domElement.append(images[0])
-    
+
     @images = images
 
 
-  resize : () ->
+  resize : () =>
 
-    width = @width() 
+    width = @width()
 
     return unless @domElement?
     @domElement.width(width)
@@ -52,7 +52,7 @@ class Artifact
     else if width > 100
       @domElement.append(@images[1])
     else
-      @domElement.append(@images[0])      
+      @domElement.append(@images[0])
 
 
   destroy : ->

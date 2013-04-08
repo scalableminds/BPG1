@@ -20,7 +20,27 @@
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
     </head>
     <body>
-        @content
         <script src="@routes.Assets.at("javascripts/lib/require-2.1.5.js")" data-main="@routes.Assets.at("javascripts/index")" type="text/javascript"></script>
+
+        <div id="artifactFinder"></div>
+
+        <div id="mainBody">
+
+            <div id="toolBar">
+                <div class="navbar">
+                  <div class="navbar-inner">
+                    <a class="brand" href="#">Example Project</a>
+                    <ul class="nav">
+                      <li class="active"><a href="#"><i class="icon-move"></i>Drag Node</a></li>
+                      <li><a href="#"><i class="icon-arrow-left"></i>Connect Nodes</a></li>
+                      <li><a href="#"><i class="icon-trash"></i>Delete Node</a></li>
+                    </ul>
+                  </div>
+                </div>
+            </div>
+
+            <div id="graph"></div>
+        </div>
+        <div id="clearfix"></div>
     </body>
 </html>

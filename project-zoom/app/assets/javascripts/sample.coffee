@@ -8,8 +8,8 @@ jquery : $
 
 app.addInitializer (options, callback) ->
 
-  model = new Backbone.DeepModel( 
-    test : 
+  model = new Backbone.DeepModel(
+    test :
       xyz : 123
   )
 
@@ -17,7 +17,7 @@ app.addInitializer (options, callback) ->
 
   artifactFinder = new ArtifactFinder()
 
-  $("body").append(artifactFinder.domElement)
+  $("#artifactFinder").append(artifactFinder.domElement)
 
 
 

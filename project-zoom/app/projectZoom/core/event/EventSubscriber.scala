@@ -1,4 +1,4 @@
-package projectZoom.event
+package projectZoom.core.event
 
 import play.api.libs.concurrent.Akka
 import play.api.Play.current

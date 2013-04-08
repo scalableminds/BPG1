@@ -1,16 +1,17 @@
 import play.api.GlobalSettings
 import play.api.Application
 import projectZoom.connector.dropbox.DropboxConnector
-import projectZoom.artifact.ArtifactActor
-import projectZoom.knowledge.KnowledgeActor
-import projectZoom.event.EventActor
+import projectZoom.core.artifact.ArtifactActor
+import projectZoom.core.knowledge.KnowledgeActor
+import projectZoom.core.event.EventActor
 
 object Global extends GlobalSettings {
 
   override def onStart(app: Application) {
-    EventActor.start(app)
-    ArtifactActor.start(app)
-    KnowledgeActor.start(app)
+    implicit val application = app
+    EventActor.start
+    ArtifactActor.start    
+    KnowledgeActor.start
     //DropboxConnector.startAggregating(app)
   }
 
