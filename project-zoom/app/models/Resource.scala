@@ -7,6 +7,10 @@ case class ResourceInfo(fileName: String, typ: String)
 
 case class Resource(path: String, fileName: String, typ: String, hash: String, updatedAt: Long = System.currentTimeMillis)
 
+trait DefaultResourceTypes{
+  val DEFAULT_TYP = "default"
+}
+
 trait ResourceFactory {
   def from(ri: ResourceInfo, path: String, hash: String) =
     Resource(
@@ -16,7 +20,7 @@ trait ResourceFactory {
       hash)
 }
 
-object Resource extends MongoJson with ResourceFactory {
+object Resource extends MongoJson with ResourceFactory with DefaultResourceTypes{
   override def collection = db("resources")
 
   implicit val resourceWriter = Json.writes[Resource]

@@ -16,6 +16,7 @@ import models.ResourceInfo
 import play.api.Play
 import java.io.FileOutputStream
 import java.io.FileInputStream
+import models.Resource
 
 case class UpdateInfo(origin: String, projectName: String)
 
@@ -23,6 +24,12 @@ trait ArtifactUpdate extends Event
 case class ArtifactFound(fileStream: InputStream, arifact: ArtifactInfo) extends ArtifactUpdate
 case class ArtifactDeleted(artifact: ArtifactInfo) extends ArtifactUpdate
 case class ArtifactAggregation(l: List[ArtifactFound]) extends ArtifactUpdate
+
+case class ArtifactUpdated(artifact: ArtifactInfo) extends Event
+case class ArtifactInserted(artifact: ArtifactInfo) extends Event
+
+case class ResourceUpdated(resource: ResourceInfo) extends Event
+case class ResourceInserted(resource: ResourceInfo) extends Event
 
 trait FSWriter {
   val basePath = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
@@ -58,9 +65,12 @@ trait FSWriter {
 class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
 
   def receive = {
-    case ArtifactFound(fileStream, foundArtifact) =>
+    case ArtifactFound(inputStream, foundArtifact) =>
       Artifact.update(foundArtifact)
-      // TODO: create file
+      val resourceInfo = ResourceInfo(foundArtifact.name , Resource.DEFAULT_TYP)
+      writeToFS(inputStream, foundArtifact._project, resourceInfo)
+      publish(ArtifactUpdated(foundArtifact))
+      publish(ResourceUpdated(resourceInfo))
     case ArtifactDeleted(artifactInfo) =>
       Artifact.markAsDeleted(artifactInfo)
     case x =>
