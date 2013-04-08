@@ -10,17 +10,18 @@ case class ArtifactAggregation(l: List[ArtifactFound]) extends Event
 
 trait ArtifactAggregatorActor extends ConnectorActor with EventPublisher {
 
-  def publishFoundArtifact(file: File, artifact: Artifact) = {
+  def publishArtifact(file: File, artifact: Artifact) = {
     publish(ArtifactFound(file, artifact))
   }
 
-  def publishDeletedArtifact(artifact: Artifact) = {
-    publish(ArtifactDeleted(artifact))
-  }
-
-  def publishAggregatedArtifacts(l: List[Tuple2[File, Artifact]]) = {
+  def publishArtifacts(l: List[Tuple2[File, Artifact]]) = {
     val foundArtifacts = for (pair <- l) yield ArtifactFound(pair._1, pair._2)
     publish(ArtifactAggregation(foundArtifacts))
   }
+  
+  def publishArtifactDeletion(artifact: Artifact) = {
+    publish(ArtifactDeleted(artifact))
+  }
+
 
 }
