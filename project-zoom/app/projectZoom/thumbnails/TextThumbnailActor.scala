@@ -7,16 +7,19 @@ import projectZoom.core.event._
 import akka.actor.Props
 import projectZoom.util.StartableActor
 
-class ThumbnailActor extends EventSubscriber with EventPublisher{
+class TextThumbnailActor extends EventSubscriber with EventPublisher{
   
   def receive = {
     case x =>
       Logger.debug("Thumbnail Actor received: " + x.toString + " s: " + sender.path)
   }
   
+  val textThumbnailPlugin = new TextThumbnailJavaPlugin()
+  
+  
 }
 
-object ThumbnailActor extends StartableActor[ThumbnailActor]{
+object TextThumbnailActor extends StartableActor[TextThumbnailActor]{
   
-  def name = "thumbnailActor"    
+  def name = "textThumbnailActor"    
 }
