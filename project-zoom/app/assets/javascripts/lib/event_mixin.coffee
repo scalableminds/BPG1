@@ -1,13 +1,15 @@
 ### define 
 underscore : _
+./event_dispatcher : EventDispatcher
 ###
 
 class EventMixin
 
-  constructor : ->
+  constructor : (dispatcher = EventMixin.dispatcher) ->
 
     @__callbacks = {}
     @__boundObjects = {}
+    @__dispatcher = dispatcher
     EventMixin.ensureUid(this)
 
 
@@ -16,6 +18,11 @@ class EventMixin
     if _.isObject(self) and arguments.length == 1
 
       @on(null, key, value) for key, value of self
+
+
+    else if _.isString(self) and arguments.length == 2
+
+      @on(null, self, type)
 
 
     else if _.isObject(type) and arguments.length == 2
@@ -42,6 +49,8 @@ class EventMixin
         else
           @__boundObjects[self.__uid].push( boundObjectEntry )
 
+        @__dispatcher.register(boundObjectEntry)
+
 
       unless _.isArray(@__callbacks[type])
         @__callbacks[type] = [ callback ]
@@ -63,6 +72,11 @@ class EventMixin
         @off(null, key, value) for key, value of self
 
 
+    else if _.isString(self) and arguments.length == 2
+
+      @off(null, self, type)
+
+    
     else if _.isObject(type)
 
       @off(self, key, value) for key, value of type
@@ -88,39 +102,44 @@ class EventMixin
 
         delete @__boundObjects[self.__uid] if boundObjectArray.length == 0
 
+        @__dispatcher.unregister(this, self, type, callback)
 
     this
+
+
+  times : (self, type, callback, count) ->
+
+    return this if count < 1
+
+    wrappedCallback = (args...) =>
+
+      callback(args...)
+      @off(self, type, wrappedCallback) if --count == 0
+      return
+
+    @on(self, type, wrappedCallback)
 
 
   one : (self, type, callback) ->
 
-    wrapCallback = (callback) =>
-      (args...) =>
-
-        callback(args...)
-        @off(self, type, wrappedCallback)
-
-    @on(self, type, wrapCallback(callback))
+    @times(self, type, callback, 1)
 
 
   trigger : (type, args...) ->
 
-    if _.isObject(type)
-      map = type
-      @trigger(type, arg) for type, arg of map
-
-    else
-      
-      if _.isArray(@__callbacks[type])
-        for callback in @__callbacks[type]
-          callback.apply(this, args)
+    if @__callbacks[type]?
+      for callback in @__callbacks[type]
+        callback.apply(this, args)
 
     this
 
 
-  @extend : (obj) ->
+  @dispatcher : new EventDispatcher
 
-    _.extend(obj, new this())
+
+  @extend : (obj, dispatcher) ->
+
+    _.extend(obj, new this(dispatcher))
 
 
   @ensureUid : (obj) ->
