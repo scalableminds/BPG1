@@ -6,11 +6,10 @@ app : app
 
 class Model
 
-	constructor : ->
+  constructor : ->
 
 
 
-app.addInitializer (callback) ->
+app.addInitializer ->
 
-	app.model = new Model()
-	callback()
+  app.model = new Model()

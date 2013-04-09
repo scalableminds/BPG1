@@ -139,7 +139,8 @@ class EventMixin
 
   @extend : (obj, dispatcher) ->
 
-    _.extend(obj, new this(dispatcher))
+    mixin = new EventMixin(dispatcher)
+    _.extend(obj, mixin, EventMixin.prototype)
 
 
   @ensureUid : (obj) ->
