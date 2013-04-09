@@ -101,7 +101,7 @@ class Graph
     path = @paths.enter().append("svg:path")
     path
       .attr("class", "edge")
-      .attr("d", (d) -> d.getLineSegment())
+      .attr("d", (data) -> data.getLineSegment())
       .style("marker-end", (d) -> "url(#end-arrow)")
 
     #remove delte edges
