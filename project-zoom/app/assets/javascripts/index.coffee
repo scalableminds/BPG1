@@ -39,7 +39,7 @@ require.config(
 
 define(
   "app"
-  ["./lib/application", "backbone.deepmodel"]
+  ["./lib/application", "backbone.deepmodel", "./lib/core_ext"]
   (Application) -> new Application()
 )
 
@@ -51,14 +51,11 @@ require [
   "bootstrap"
   ], (Backbone, app) ->
 
-  #app.on "start" : -> alert("Test")
-
   require [
     "testGraph", "jquery.hammer"
+    "sample"
+    "model"
   ], -> app.start( test : 123 )
 
-  #require [
-  #  "testGraph", "jquery.hammer"
-  #], -> app.start()
 
 

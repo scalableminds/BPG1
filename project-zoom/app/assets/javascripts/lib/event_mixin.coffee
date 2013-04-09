@@ -1,6 +1,5 @@
 ### define 
 underscore : _
-jquery : $
 ###
 
 class EventMixin
@@ -8,53 +7,100 @@ class EventMixin
   constructor : ->
 
     @__callbacks = {}
-    @__deferreds = {}
+    @__boundObjects = {}
+    EventMixin.ensureUid(this)
 
 
-  on : (type, callback) ->
+  on : (self, type, callback) ->
 
-    unless _.isObject(type)
+    if _.isObject(self) and arguments.length == 1
+
+      @on(null, key, value) for key, value of self
+
+
+    else if _.isObject(type) and arguments.length == 2
+
+      @on(self, key, value) for key, value of type
+
+
+    else if _.isArray(callback)
+
+      @on(self, type, singleCallback) for singleCallback in callback
+
+
+    else
+
+      if self?
+
+        self = EventMixin.ensureUid(self)
+
+        boundObjectEntry = { type, callback, sender : this, target : self }
+
+        unless @__boundObjects[self.__uid]?
+          @__boundObjects[self.__uid] = [ boundObjectEntry ]
+
+        else
+          @__boundObjects[self.__uid].push( boundObjectEntry )
+
 
       unless _.isArray(@__callbacks[type])
         @__callbacks[type] = [ callback ]
+
       else
         @__callbacks[type].push(callback)
 
+    this
+
+
+  off : (self, type, callback) ->
+
+    if arguments.length == 1
+
+      if self.__uid?
+        @off(self, type, callback) for { type, callback } in @__boundObjects[self.__uid]
+
+      else
+        @off(null, key, value) for key, value of self
+
+
+    else if _.isObject(type)
+
+      @off(self, key, value) for key, value of type
+
+
+    else if _.isArray(callback)
+
+      @off(self, type, singleCallback) for singleCallback in callback
+
+
     else
 
-      map = type
-      for own type, callback of map
-        @on(type, callback)
+      callbackArray = @__callbacks[type]
+
+      if _.isArray(@__callbacks[type])
+
+        _.removeElement(@__callbacks[type], callback)
+      
+      if self?
+        
+        boundObjectArray = @__boundObjects[self.__uid]
+        _.removeElementAt(boundObjectArray, _.findIndex( (a) -> a.callback == callback ))
+
+        delete @__boundObjects[self.__uid] if boundObjectArray.length == 0
+
 
     this
 
 
-  one : (type, callback) ->
+  one : (self, type, callback) ->
 
-    wrappedCallback = (args...) =>
+    wrapCallback = (callback) =>
+      (args...) =>
 
-      callback(args...)
-      @off(type, wrappedCallback)
+        callback(args...)
+        @off(self, type, wrappedCallback)
 
-
-    unless _.isObject(type)
-
-     @on(type, wrappedCallback)
-
-    else
-
-      map = type
-      for own type, callback of map
-        @on(type, wrappedCallback)
-
-    this
-
-
-  off : (type, callback) ->
-
-    if _.isArray(@__callbacks[type])
-      _.removeElement(@__callbacks[type], callback)
-    this
+    @on(self, type, wrapCallback(callback))
 
 
   trigger : (type, args...) ->
@@ -64,9 +110,7 @@ class EventMixin
       @trigger(type, arg) for type, arg of map
 
     else
-      if deferred = @__deferreds[type]
-        deferred.resolve(args...)
-
+      
       if _.isArray(@__callbacks[type])
         for callback in @__callbacks[type]
           callback.apply(this, args)
@@ -74,47 +118,13 @@ class EventMixin
     this
 
 
-  ask : (type, args...) ->
-
-    if _.isArray(@__callbacks[type])
-      for callback in @__callbacks[type]
-        answer = callback.apply(this, args)
-        return answer unless answer == undefined
-    return
-
-
-  passthrough : (obj, type, renamedType = type) ->
-
-    if _.isArray(type)
-
-      types = type
-      for type in types
-        @passthrough(obj, type, type) 
-
-    else if _.isObject(type)
-
-      typeMap = type
-      for type, renamedType of typeMap
-        @passthrough(obj, type, renamedType) 
-
-    else
-
-      obj.on type, (args...) => 
-        @trigger(renamedType, args...)
-      
-    this
-
-
-  addDeferred : (type) ->
-
-    @__deferreds[type] = new $.Deferred()
-
-
-  deferred : (type) ->
-
-    @__deferreds[type]
-
-
   @extend : (obj) ->
 
     _.extend(obj, new this())
+
+
+  @ensureUid : (obj) ->
+
+    unless _.isString(obj.__uid)
+      obj.__uid = _.uniqueId("eventMixin")
+    obj
