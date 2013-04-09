@@ -5,14 +5,14 @@ import play.api.libs.json.JsObject
 
 case class ResourceInfo(fileName: String, typ: String)
 
-case class Resource(path: String, fileName: String, typ: String, hash: String, updatedAt: Long = System.currentTimeMillis)
+case class Resource(path: String, fileName: String, typ: String, hash: String)
 
 trait DefaultResourceTypes{
   val DEFAULT_TYP = "default"
 }
 
 trait ResourceFactory {
-  def from(ri: ResourceInfo, path: String, hash: String) =
+  def createFrom(ri: ResourceInfo, path: String, hash: String) =
     Resource(
       path,
       ri.fileName,

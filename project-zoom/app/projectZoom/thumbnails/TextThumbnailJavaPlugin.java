@@ -10,10 +10,9 @@ public class TextThumbnailJavaPlugin {
 
 	}
 	
-	public void onResourceFound() {
-		System.out.print("Hesdfllo ");
-		
-		
+	public String onResourceFound() {
+		//System.out.print("Hesdfllo ");
+		return "test";
 	}
 	
 	

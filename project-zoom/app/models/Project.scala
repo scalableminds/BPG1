@@ -1,7 +1,7 @@
 package models
 
-case class Project() 
+case class Project()
 
-object Project{
-
+object Project extends MongoJson {
+  override def collection = db("projects")
 }

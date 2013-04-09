@@ -8,12 +8,19 @@ import play.api.Logger
 import projectZoom.core.bson.Bson._
 import play.api.libs.json.JsString
 
-case class ArtifactInfo(name: String, _project: String, source: String, metadata: JsValue, updatedAt: Long = System.currentTimeMillis)
+case class ArtifactInfo(name: String, _project: String, source: String, metadata: JsValue)
 
-object Artifact extends MongoJson {
+trait ArtifactInfoFactory{
+  implicit val artifactInfoFormat = Json.format[ArtifactInfo]
+  
+  def createFrom(js: JsObject) = {
+    js.asOpt[ArtifactInfo]
+  }
+}
+
+object Artifact extends MongoJson with ArtifactInfoFactory{
   override def collection = db("artifacts")
   
-  implicit val infoWriter = Json.writes[ArtifactInfo]
   
   def findByArtifactQ(artifactInfo: ArtifactInfo): JsObject = 
     findByArtifactQ(artifactInfo.name, artifactInfo.source, artifactInfo._project)
@@ -35,8 +42,12 @@ object Artifact extends MongoJson {
         Json.obj("$set" -> Json.obj("isDeleted" -> true)))
   }
   
-  def insertRessource(artifactInfo: ArtifactInfo)(path: String, hash: String, resourceInfo: ResourceInfo) {
-    val resource = Resource.from(resourceInfo, path, hash)
+  def findAllForProject(_project: String) = {
+    collection.find(Json.obj("_project" -> _project)).cursor.toList
+  }
+  
+  def insertRessource(artifactInfo: ArtifactInfo)(path: String, hash: String, resourceInfo: ResourceInfo) = {
+    val resource = Resource.createFrom(resourceInfo, path, hash)
     Resource.update(resource).map{ lastError =>
       if(!lastError.updatedExisting){
         lastError.get("_id") match {
@@ -46,6 +57,7 @@ object Artifact extends MongoJson {
             Logger.error("insertResource: Couldn't extract id field from last error")
         }
       }
+      lastError
     }
   }
 }

@@ -1,6 +1,5 @@
 object dominic {
-	import projectZoom.thumbnails.TextThumbnailJavaPlugin
-	import akka.actor._
+	import projectZoom.thumbnails._
 	
 	/*
 	val system = ActorSystem("mysystem")
@@ -11,8 +10,8 @@ object dominic {
   */
   
   val plugin = new TextThumbnailJavaPlugin()      //> plugin  : projectZoom.thumbnails.TextThumbnailJavaPlugin = projectZoom.thumb
-                                                  //| nails.TextThumbnailJavaPlugin@c1f10e
-  plugin.onResourceFound()                        //> Hesdfllo res0: <error> = ()
+                                                  //| nails.TextThumbnailJavaPlugin@1d3c468a
+  plugin.onResourceFound()
   //plugin.onResourceFound();
   
   

@@ -35,6 +35,10 @@ trait MongoDAO[T] extends MongoJSONHelpers{
   def findHeadOption(attribute: String, value: String) = {
     collection.find(Bson.obj(attribute -> value)).one
   }
+  
+  def findAll = {
+    collection.find(Bson.obj()).cursor.toList
+  }
 
   def findById(id: String) = {
     collection.find(BSONDocument("_id" -> new BSONObjectID(id))).one
