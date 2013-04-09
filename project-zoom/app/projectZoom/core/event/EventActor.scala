@@ -1,4 +1,4 @@
-package projectZoom.event
+package projectZoom.core.event
 
 import akka.agent.Agent
 import akka.actor.Actor
@@ -6,6 +6,7 @@ import akka.actor.ActorRef
 import play.api.libs.concurrent.Akka
 import akka.actor.Props
 import play.api.Logger
+import projectZoom.util.StartableActor
 
 trait Event
 case class UnRegister()
@@ -36,8 +37,6 @@ class EventActor extends Actor {
   }
 }
 
-object EventActor {
+object EventActor extends StartableActor[EventActor]{
   def name = "eventActor"
-  def start(implicit app: play.api.Application) =
-    Akka.system(app).actorOf(Props[EventActor], name)
 }

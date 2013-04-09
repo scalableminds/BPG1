@@ -1,4 +1,4 @@
-package projectZoom
+package models
 
 import play.api.libs.json.JsValue
 import play.api.libs.json._
@@ -8,9 +8,7 @@ import play.api.libs.functional.syntax._
 import _root_.models.MongoJson
 import _root_.models.User
 
-object Graph extends MongoJson {
-  def collection = db("graphs")
-
+trait GraphTransformers {
   val nodeType: Reads[User] = User.userFormat
 
   val node = (
@@ -41,4 +39,10 @@ object Graph extends MongoJson {
 
   val removePayloadDetails = (
     (__ \ 'nodes).json.update(reducePayloadToId))
+
+}
+
+object Graph extends MongoJson with GraphTransformers {
+  def collection = db("graphs")
+
 }

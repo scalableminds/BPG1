@@ -1,4 +1,4 @@
-package projectZoom.knowledge
+package projectZoom.core.knowledge
 
 import akka.actor.Actor
 import java.io.File
@@ -8,19 +8,19 @@ import java.io.InputStream
 import play.api.libs.concurrent.Akka
 import akka.actor.Props
 import play.api.Logger
-import projectZoom.event._
+import projectZoom.core.event._
+import projectZoom.util.StartableActor
 
-class KnowledgeActor(rootDirectory: String) extends EventSubscriber with EventPublisher {
+class KnowledgeActor extends EventSubscriber with EventPublisher {
 
   def receive = {
     //case UpdateFileArtifact(info, path, file, metadata) =>
     case x =>
       Logger.debug("Knowledge Actor received: " + x.toString)
   }
+  
 }
 
-object KnowledgeActor {
+object KnowledgeActor extends StartableActor[KnowledgeActor]{
   def name = "knowledgeActor"
-  def start(implicit app: play.api.Application) =
-    Akka.system(app).actorOf(Props(new KnowledgeActor("")), name)
 }
