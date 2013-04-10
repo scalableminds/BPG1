@@ -2,9 +2,8 @@ package projectZoom.thumbnails.text;
 
 import java.io.IOException;
 import java.util.*;
-import org.eclipse.zest.cloudio.ICloudLabelProvider;
+//import org.eclipse.zest.cloudio.ICloudLabelProvider;
 import org.eclipse.zest.cloudio.TagCloud;
-import org.eclipse.zest.cloudio.TagCloudViewer;
 import org.eclipse.zest.cloudio.Word;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
