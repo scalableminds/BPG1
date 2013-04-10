@@ -21,6 +21,8 @@ define [
   require [
     "./test/event_mixin"
     "./test/event_dispatcher"
+    "./test/data_item"
+    "./test/data_collection"
   ], ->
 
     if window.mochaPhantomJS

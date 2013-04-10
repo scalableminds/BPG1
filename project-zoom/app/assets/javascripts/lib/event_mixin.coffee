@@ -78,6 +78,8 @@ class EventMixin
       if _.isArray(@__callbacks[type])
 
         _.removeElement(@__callbacks[type], callback)
+
+        delete @__callbacks[type] if @__callbacks[type].length == 0
       
       if self?
 
@@ -111,6 +113,11 @@ class EventMixin
         callback.apply(this, args)
 
     this
+
+
+  hasCallbacks : (type) ->
+
+    @__callbacks[type]?
 
 
   @extend : (obj, dispatcher) ->
