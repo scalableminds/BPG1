@@ -10,8 +10,9 @@ import akka.actor.Props
 import play.api.Logger
 import projectZoom.core.event._
 import projectZoom.util.StartableActor
-import models.Artifact
+import models.ArtifactDAO
 import models.ArtifactInfo
+import models.Artifact
 import models.ResourceInfo
 import play.api.Play
 import java.io.FileOutputStream
@@ -21,6 +22,7 @@ import java.security.MessageDigest
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
 import play.api.libs.concurrent.Execution.Implicits._
+import models.DefaultResourceTypes
 
 case class UpdateInfo(origin: String, projectName: String)
 
@@ -79,7 +81,7 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
     writeToFS(is, artifactInfo._project, resourceInfo).map {
       case (file, path) =>
         val hash = DigestUtils.md5Hex(FileUtils.readFileToByteArray(file))
-        Artifact.insertRessource(artifactInfo)(path, hash, resourceInfo).map { lastError =>
+        ArtifactDAO.insertRessource(artifactInfo)(path, hash, resourceInfo).map { lastError =>
           if (lastError.updated > 0) {
             if (lastError.updatedExisting)
               publish(ResourceUpdated(resourceInfo))
@@ -91,7 +93,7 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
   }
 
   def handleArtifactUpdate(artifactInfo: ArtifactInfo) = {
-    Artifact.update(artifactInfo).map { lastError =>
+    ArtifactDAO.update(artifactInfo).map { lastError =>
       if (lastError.updated > 0) {
         if (lastError.updatedExisting)
           publish(ArtifactUpdated(artifactInfo))
@@ -102,10 +104,10 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
   }
 
   def handleArtifactAggregation(_project: String, artifacts: List[ArtifactFound]) = {
-    Artifact.findAllForProject(_project).map { projectArtifacts =>
+    ArtifactDAO.findAllForProject(_project).map { projectArtifacts =>
       val (updatedArtifacts, deletedArtifacts) =
         projectArtifacts
-          .flatMap(Artifact.createFrom)
+          .flatMap(ArtifactDAO.createArtifactFrom)
           .partition(artifacts.contains)
 
       deletedArtifacts.map {
@@ -118,13 +120,13 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
   }
 
   def handleArtifactFound(originalStream: InputStream, artifactInfo: ArtifactInfo) = {
-    val resourceInfo = ResourceInfo(artifactInfo.name, Resource.DEFAULT_TYP)
+    val resourceInfo = ResourceInfo(artifactInfo.name, DefaultResourceTypes.DEFAULT_TYP)
     handleArtifactUpdate(artifactInfo)
     handleResourceUpdate(originalStream, artifactInfo, resourceInfo)
   }
 
   def handleArtifactDelete(artifactInfo: ArtifactInfo) = {
-    Artifact.markAsDeleted(artifactInfo).map { lastError =>
+    ArtifactDAO.markAsDeleted(artifactInfo).map { lastError =>
       if (lastError.updated > 0)
         publish(ArtifactUpdated(artifactInfo))
     }
