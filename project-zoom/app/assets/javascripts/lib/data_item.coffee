@@ -5,19 +5,28 @@ underscore : _
 
 class DataItem
 
-	constructor : ->
+  constructor : ->
 
-		EventMixin.extend(this)
+    EventMixin.extend(this)
 
-		@attributes = {}
-
-
-	get : (key, self, callback) ->
-
-		
+    @attributes = {}
 
 
-	set : (key, value) ->
+  get : (key, self, callback) ->
+
+    callback = @dispatcher.register(this, self, null, callback)
+    _.defer =>
+      callback.oneShot(@attributes[key])
 
 
-		
+  set : (key, value) ->
+
+    if _.isObject(key)
+
+      @set(k, v) for k, v of key
+
+    else
+
+      @attributes[key] = value
+
+    

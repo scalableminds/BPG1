@@ -8,7 +8,7 @@ describe "EventMixin", ->
   beforeEach ->
 
     dummyDispatcher = { register : (->) , unregister : (->) }
-    @eventMixin = new EventMixin(dummyDispatcher)
+    @eventMixin = EventMixin.extend({}, dummyDispatcher)
     @spy = chai.spy()
     @self = {}
 
@@ -19,6 +19,8 @@ describe "EventMixin", ->
 
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.trigger("test", "testArg")
+
+      @eventMixin.dispatcher = 123
 
       @spy.should.have.been.called.once
 
@@ -64,7 +66,7 @@ describe "EventMixin", ->
 
       @eventMixin.on(@self, 
         "test" : [ @spy, spy2 ]
-        "test2" : [ @spy ]
+        "test2" : @spy
       )
       @eventMixin.trigger("test", "testArg")
       @eventMixin.trigger("test2", "testArg")
@@ -74,13 +76,41 @@ describe "EventMixin", ->
 
       @eventMixin.off(@self, 
         "test" : [ @spy, spy2 ]
-        "test2" : [ @spy ]
+        "test2" : @spy
       )
       @eventMixin.trigger("test", "testArg")
       @eventMixin.trigger("test2", "testArg")
 
       @spy.should.have.been.called.twice
       spy2.should.have.been.called.once
+
+
+    it "should only remove first callback", ->
+
+      @eventMixin.on(@self, "test", @spy)
+      @eventMixin.on(@self, "test", @spy)
+      @eventMixin.trigger("test", "testArg")
+
+      @spy.should.have.been.called.twice
+
+      @eventMixin.off(@self, "test", @spy)
+      @eventMixin.trigger("test", "testArg")
+
+      @spy.should.have.been.called.exactly(3)
+
+
+    it "should work with scramled function names", ->
+
+      @eventMixin.addEventListener = @eventMixin.on
+      delete @eventMixin.on
+      delete @eventMixin.dispatcher
+
+      @eventMixin.addEventListener(@self, test : @spy )
+      @eventMixin.trigger("test", "testArg")
+      @eventMixin.off(@self, "test", @spy)
+
+      @spy.should.have.been.called.once
+
 
 
   describe "#times", ->

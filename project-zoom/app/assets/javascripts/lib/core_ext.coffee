@@ -6,7 +6,7 @@ _.mixin
 
   removeElement : (array, element) ->
 
-    if (index = _.indexOf(array, element)) != -1
+    if _.isArray(array) and (index = _.indexOf(array, element)) != -1
       array.splice(index, 1)
 
 

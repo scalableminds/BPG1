@@ -22,10 +22,10 @@ class EventDispatcher
     return
 
 
-  removeObjectEntry : (obj, similarEntry) ->
+  removeObjectEntry : (obj, entry) ->
 
     objectsEntries = @boundObjects[obj.__uid]
-    objectsEntries = _.reject(objectsEntries, similarEntry)
+    _.removeElement(objectsEntries, entry)
 
     if objectsEntries.length == 0
       delete @boundObjects[obj.__uid]
@@ -36,33 +36,51 @@ class EventDispatcher
     return
 
 
-  register : (entry) ->
-
-    if arguments.length == 4
-      entry =
-        sender : arguments[0]
-        target : arguments[1]
-        type : arguments[2]
-        callback : arguments[3]
-
-    @addObjectEntry(entry.sender, entry)
-    @addObjectEntry(entry.target, entry)
-
-    return
-
-
-  unregister : (sender, target, type, callback) ->
+  register : (sender, target, type, callback) ->
 
     if arguments.length == 1
       entry = sender
     else
       entry = { sender, target, type, callback }
 
-    @removeObjectEntry(sender, entry)
-    @removeObjectEntry(target, entry)
+    EventDispatcher.ensureUid(sender)
+    EventDispatcher.ensureUid(target)
+
+    callback = entry.callback
+    entry.off = _.once => 
+      
+      callback = ->
+      @removeObjectEntry(entry.sender, entry)
+      @removeObjectEntry(entry.target, entry)
+
+      return
+
+    @addObjectEntry(entry.sender, entry)
+    @addObjectEntry(entry.target, entry)
+
+    _.extend(
+      (args...) -> callback(args...)
+      off : entry.off
+      oneShot : (args...) -> 
+        result = callback(args...)
+        entry.off()
+        result
+    )
+
+
+  unregister : (sender, target, type, callback) ->
+
+    if arguments.length == 1
+      similarEntry = sender
+    else
+      similarEntry = { sender, target, type, callback }
+
+    senderObjectEntries = @boundObjects[sender.__uid]
+    entry = _.find(senderObjectEntries, similarEntry)
+
+    entry?.off()
 
     return
-
 
 
   unregisterAll : (self) ->
@@ -78,4 +96,11 @@ class EventDispatcher
         entry.sender.off(self, entry.type, entry.callback)
 
     return
+
+
+  @ensureUid : (obj) ->
+
+    unless _.isString(obj.__uid)
+      Object.defineProperty( obj, "__uid", value : _.uniqueId("dispatcher") )
+    obj
     

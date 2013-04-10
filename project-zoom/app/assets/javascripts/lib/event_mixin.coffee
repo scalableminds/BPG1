@@ -5,12 +5,10 @@ underscore : _
 
 class EventMixin
 
-  constructor : (dispatcher = EventMixin.dispatcher) ->
+  constructor : (@dispatcher = EventMixin.dispatcher) ->
 
     @__callbacks = {}
-    @__boundObjects = {}
-    @__dispatcher = dispatcher
-    EventMixin.ensureUid(this)
+    EventDispatcher.ensureUid(this)
 
 
   on : (self, type, callback) ->
@@ -39,17 +37,7 @@ class EventMixin
 
       if self?
 
-        self = EventMixin.ensureUid(self)
-
-        boundObjectEntry = { type, callback, sender : this, target : self }
-
-        unless @__boundObjects[self.__uid]?
-          @__boundObjects[self.__uid] = [ boundObjectEntry ]
-
-        else
-          @__boundObjects[self.__uid].push( boundObjectEntry )
-
-        @__dispatcher.register(boundObjectEntry)
+        @dispatcher.register(this, self, type, callback)
 
 
       unless _.isArray(@__callbacks[type])
@@ -65,11 +53,7 @@ class EventMixin
 
     if arguments.length == 1
 
-      if self.__uid?
-        @off(self, type, callback) for { type, callback } in @__boundObjects[self.__uid]
-
-      else
-        @off(null, key, value) for key, value of self
+      @off(null, key, value) for key, value of self
 
 
     else if _.isString(self) and arguments.length == 2
@@ -96,13 +80,8 @@ class EventMixin
         _.removeElement(@__callbacks[type], callback)
       
       if self?
-        
-        boundObjectArray = @__boundObjects[self.__uid]
-        _.removeElementAt(boundObjectArray, _.findIndex( (a) -> a.callback == callback ))
 
-        delete @__boundObjects[self.__uid] if boundObjectArray.length == 0
-
-        @__dispatcher.unregister(this, self, type, callback)
+        @dispatcher.unregister(this, self, type, callback)
 
     this
 
@@ -134,17 +113,20 @@ class EventMixin
     this
 
 
-  @dispatcher : new EventDispatcher
-
 
   @extend : (obj, dispatcher) ->
 
     mixin = new EventMixin(dispatcher)
-    _.extend(obj, mixin, EventMixin.prototype)
 
+    _.forOwn(EventMixin.prototype, (func, key) -> obj[key] = _.bind(func, mixin) )
+    
+    obj.dispatcher = mixin.dispatcher
 
-  @ensureUid : (obj) ->
+    Object.defineProperty(obj, "__uid", value : mixin.__uid )
 
-    unless _.isString(obj.__uid)
-      obj.__uid = _.uniqueId("eventMixin")
     obj
+
+
+  @dispatcher : new EventDispatcher
+
+
