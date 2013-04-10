@@ -7,8 +7,8 @@ describe "EventMixin", ->
 
   beforeEach ->
 
-    dummyDispatcher = { register : (->) , unregister : (->) }
-    @eventMixin = EventMixin.extend({}, dummyDispatcher)
+    @dummyDispatcher = { register : (->) , unregister : (->) }
+    @eventMixin = EventMixin.extend({}, @dummyDispatcher)
     @spy = chai.spy()
     @self = {}
 
@@ -19,8 +19,6 @@ describe "EventMixin", ->
 
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.trigger("test", "testArg")
-
-      @eventMixin.dispatcher = 123
 
       @spy.should.have.been.called.once
 
@@ -99,20 +97,6 @@ describe "EventMixin", ->
       @spy.should.have.been.called.exactly(3)
 
 
-    it "should work with scramled function names", ->
-
-      @eventMixin.addEventListener = @eventMixin.on
-      delete @eventMixin.on
-      delete @eventMixin.dispatcher
-
-      @eventMixin.addEventListener(@self, test : @spy )
-      @eventMixin.trigger("test", "testArg")
-      @eventMixin.off(@self, "test", @spy)
-
-      @spy.should.have.been.called.once
-
-
-
   describe "#times", ->
 
     it "should only be called 3-times", ->
@@ -124,3 +108,18 @@ describe "EventMixin", ->
 
       @spy.should.have.been.called.exactly(3)
 
+
+  describe "#isolatedExtend", ->
+
+    it "should work with scramled function names", ->
+
+      @eventMixin = EventMixin.isolatedExtend({}, @dummyDispatcher)
+      @eventMixin.addEventListener = @eventMixin.on
+      delete @eventMixin.on
+      delete @eventMixin.dispatcher
+
+      @eventMixin.addEventListener(@self, test : @spy )
+      @eventMixin.trigger("test", "testArg")
+      @eventMixin.off(@self, "test", @spy)
+
+      @spy.should.have.been.called.once

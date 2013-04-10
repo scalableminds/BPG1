@@ -113,14 +113,25 @@ class EventMixin
     this
 
 
-
   @extend : (obj, dispatcher) ->
 
     mixin = new EventMixin(dispatcher)
 
+    _.extend(obj, mixin, EventMixin.prototype)
+
+    Object.defineProperty(obj, "__uid", value : mixin.__uid )
+
+    obj
+
+
+  @isolatedExtend : (obj, dispatcher) ->
+
+    mixin = new EventMixin(dispatcher)
+
     _.forOwn(EventMixin.prototype, (func, key) -> obj[key] = _.bind(func, mixin) )
-    
+
     obj.dispatcher = mixin.dispatcher
+    obj.__callbacks = mixin.__callbacks
 
     Object.defineProperty(obj, "__uid", value : mixin.__uid )
 
