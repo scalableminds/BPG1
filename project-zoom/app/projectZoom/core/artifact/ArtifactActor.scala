@@ -10,26 +10,36 @@ import akka.actor.Props
 import play.api.Logger
 import projectZoom.core.event._
 import projectZoom.util.StartableActor
-import models.Artifact
+import models.ArtifactDAO
 import models.ArtifactInfo
+import models.Artifact
 import models.ResourceInfo
 import play.api.Play
 import java.io.FileOutputStream
 import java.io.FileInputStream
 import models.Resource
+import java.security.MessageDigest
+import org.apache.commons.codec.digest.DigestUtils
+import org.apache.commons.io.FileUtils
+import play.api.libs.concurrent.Execution.Implicits._
+import models.DefaultResourceTypes
 
 case class UpdateInfo(origin: String, projectName: String)
 
 trait ArtifactUpdate extends Event
-case class ArtifactFound(fileStream: InputStream, arifact: ArtifactInfo) extends ArtifactUpdate
+case class ArtifactFound(originalStream: InputStream, arifact: ArtifactInfo) extends ArtifactUpdate
 case class ArtifactDeleted(artifact: ArtifactInfo) extends ArtifactUpdate
-case class ArtifactAggregation(l: List[ArtifactFound]) extends ArtifactUpdate
+case class ArtifactAggregation(_project: String, l: List[ArtifactFound]) extends ArtifactUpdate
 
 case class ArtifactUpdated(artifact: ArtifactInfo) extends Event
 case class ArtifactInserted(artifact: ArtifactInfo) extends Event
 
+case class ResourceFound(inputStream: InputStream, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+
 case class ResourceUpdated(resource: ResourceInfo) extends Event
 case class ResourceInserted(resource: ResourceInfo) extends Event
+
+case class RequestResource(artifact: ArtifactInfo, resource: ResourceInfo)
 
 trait FSWriter {
   val basePath = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
@@ -38,41 +48,106 @@ trait FSWriter {
     s"$basePath/$project/$typ/$fileName"
 
   def fileFor(project: String, typ: String, fileName: String) = {
-    val file = new File(pathFor(project, typ, fileName))
+    val path = pathFor(project, typ, fileName)
+    val file = new File(path)
     if (file.getAbsolutePath().startsWith(basePath))
-      Some(file)
+      Some(file -> path)
     else
       None
   }
 
   def writeToFS(is: InputStream, _project: String, resourceInfo: ResourceInfo) = {
-    fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map { f =>
-      val os = new FileOutputStream(f)
-      val writtenBytes = org.apache.commons.io.IOUtils.copyLarge(is, os)
-      is.available()
-      os.close()
-      writtenBytes
-    } getOrElse 0
+    fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map {
+      case (file, path) =>
+        val os = new FileOutputStream(file)
+        val writtenBytes = org.apache.commons.io.IOUtils.copyLarge(is, os)
+        is.available()
+        os.close()
+        file -> path
+    }
   }
 
   def readFromFS(_project: String, resourceInfo: ResourceInfo): Option[InputStream] = {
-    fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map { f =>
-      new FileInputStream(f)
+    fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map {
+      case (file, _) =>
+        new FileInputStream(file)
     }
   }
 }
 
 class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
 
+  def handleResourceUpdate(is: InputStream, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) = {
+    writeToFS(is, artifactInfo._project, resourceInfo).map {
+      case (file, path) =>
+        val hash = DigestUtils.md5Hex(FileUtils.readFileToByteArray(file))
+        ArtifactDAO.insertRessource(artifactInfo)(path, hash, resourceInfo).map { lastError =>
+          if (lastError.updated > 0) {
+            if (lastError.updatedExisting)
+              publish(ResourceUpdated(resourceInfo))
+            else
+              publish(ResourceInserted(resourceInfo))
+          }
+        }
+    }
+  }
+
+  def handleArtifactUpdate(artifactInfo: ArtifactInfo) = {
+    ArtifactDAO.update(artifactInfo).map { lastError =>
+      if (lastError.updated > 0) {
+        if (lastError.updatedExisting)
+          publish(ArtifactUpdated(artifactInfo))
+        else
+          publish(ArtifactInserted(artifactInfo))
+      }
+    }
+  }
+
+  def handleArtifactAggregation(_project: String, artifacts: List[ArtifactFound]) = {
+    ArtifactDAO.findAllForProject(_project).map { projectArtifacts =>
+      val (updatedArtifacts, deletedArtifacts) =
+        projectArtifacts
+          .flatMap(ArtifactDAO.createArtifactFrom)
+          .partition(artifacts.contains)
+
+      deletedArtifacts.map {
+        handleArtifactDelete
+      }
+
+      artifacts.map(a =>
+        handleArtifactFound(a.originalStream, a.arifact))
+    }
+  }
+
+  def handleArtifactFound(originalStream: InputStream, artifactInfo: ArtifactInfo) = {
+    val resourceInfo = ResourceInfo(artifactInfo.name, DefaultResourceTypes.DEFAULT_TYP)
+    handleArtifactUpdate(artifactInfo)
+    handleResourceUpdate(originalStream, artifactInfo, resourceInfo)
+  }
+
+  def handleArtifactDelete(artifactInfo: ArtifactInfo) = {
+    ArtifactDAO.markAsDeleted(artifactInfo).map { lastError =>
+      if (lastError.updated > 0)
+        publish(ArtifactUpdated(artifactInfo))
+    }
+  }
+
   def receive = {
-    case ArtifactFound(inputStream, foundArtifact) =>
-      Artifact.update(foundArtifact)
-      val resourceInfo = ResourceInfo(foundArtifact.name , Resource.DEFAULT_TYP)
-      writeToFS(inputStream, foundArtifact._project, resourceInfo)
-      publish(ArtifactUpdated(foundArtifact))
-      publish(ResourceUpdated(resourceInfo))
+    case ArtifactFound(originalStream, artifactInfo) =>
+      handleArtifactFound(originalStream, artifactInfo)
+
     case ArtifactDeleted(artifactInfo) =>
-      Artifact.markAsDeleted(artifactInfo)
+      handleArtifactDelete(artifactInfo)
+
+    case ArtifactAggregation(_project, artifacts) =>
+      handleArtifactAggregation(_project, artifacts)
+
+    case ResourceFound(inputStream, artifactInfo, resourceInfo) =>
+      handleResourceUpdate(inputStream, artifactInfo, resourceInfo)
+
+    case RequestResource(artifactInfo, resourceInfo) =>
+      sender ! readFromFS(artifactInfo._project, resourceInfo)
+
     case x =>
       Logger.debug("Artifact Actor received: " + x.toString + " s: " + sender.path)
   }
