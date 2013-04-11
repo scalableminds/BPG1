@@ -16,6 +16,8 @@ import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import projectZoom.core.bson.Bson
 
+case class UserLike(firstName: String, lastName: String, email: String)
+
 case class User(
     id: UserId,
     firstName: String,
@@ -37,6 +39,10 @@ object User extends MongoDAO[User] {
 
   def findByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
 
+  def allowRegistration(userLike: UserLike) = {
+    //TODO: send email with registration information
+  }
+  
   def findByUserId(userId: UserId) = {
     collection.find(Bson.obj("userId" -> UserIdFormat.writes(userId))).one
   }

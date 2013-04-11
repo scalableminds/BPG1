@@ -5,18 +5,19 @@ underscore : _
 
 class ConnectNodesBehavior
 
-  constructor : (@container, @svg, @graph) ->
+  constructor : (@svg, @graph, @container) ->
 
     # line that is displayed when dragging a new edge between nodes
-    unless _.isEmpty( $("#dragLine") )
-      @dragLine = @container.append("svg:path")
+    if $(".dragLine").length == 0
+      @dragLine = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @dragLine
-        .attr("class", "edge hidden")
-        .attr("class", "dragLine")
+        .attr("class", "edge hidden dragLine")
         .style('marker-end', 'url(#end-arrow)')
+    else
+      @dragLine = d3.select(".dragLine")
 
 
-  active : ->
+  activate : ->
 
     @svg
       .on( "mousemove", @mouseMove )
@@ -27,13 +28,16 @@ class ConnectNodesBehavior
       .delegate( "mouseup.endDrag", "circle", @nodeMouseUp )
 
 
-  deactive : ->
+  deactivate : ->
 
+    # yes, D3 has a weird syntax using "on" to enable/disable event handlers
     @svg
-      .off( "mousemove", @mouseMove )
-      .off( "mouseup.cancelDrag", @mouseUp )
-      .off( "mousedown.beginDrag", @nodeMouseDown )
-      .off( "mouseup.endDrag", @nodeMouseUp )
+      .on( "mousemove", null )
+      .on( "mouseup.cancelDrag", null )
+      .on( "mousedown.beginDrag", null )
+      .on( "mouseup.endDrag", null )
+
+    @dragLine.classed("hidden", true)
 
 
   nodeMouseDown : (node) =>

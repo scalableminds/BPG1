@@ -8,6 +8,6 @@ import scala.reflect.ClassTag
 
 trait StartableActor[T <: Actor] {
   def name: String
-  def start(implicit app: play.api.Application, tag: ClassTag[T]) =
-    Akka.system(app).actorOf(Props[T], name)
+  def start(implicit sys: akka.actor.ActorSystem, tag: ClassTag[T]) =
+    sys.actorOf(Props[T], name)
 }

@@ -23,8 +23,10 @@ object ApplicationBuild extends Build {
     "commons-io" % "commons-io" % "1.3.2",
     "org.apache.commons" % "commons-email" % "1.2",
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",
-    "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources(),
-    "org.jvnet.hudson" % "ganymed-ssh-2" % "build260")
+    "org.jvnet.hudson" % "ganymed-ssh-2" % "build260",
+    "org.apache.tika" % "tika-bundle" % "1.3",
+    "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources())
+
 
   val dependencyResolvers = Seq(
     Resolver.url("play-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
