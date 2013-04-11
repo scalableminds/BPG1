@@ -16,37 +16,33 @@ object dominic {
   val plugin = new TextThumbnailPlugin()          //> plugin  : projectZoom.thumbnails.text.TextThumbnailPlugin = projectZoom.thum
                                                   //| bnails.text.TextThumbnailPlugin@5e176f
 
-  val s = plugin.onResourceFound()                //> onResourceFound called SLF4J: Class path contains multiple SLF4J bindings.
-                                                  //| SLF4J: Found binding in [jar:file:/home/user/dev/BPG1/project-zoom/playframe
-                                                  //| work/repository/cache/ch.qos.logback/logback-classic/jars/logback-classic-1.
-                                                  //| 0.9.jar!/org/slf4j/impl/StaticLoggerBinder.class]
-                                                  //| SLF4J: Found binding in [jar:file:/home/user/tika-app-1.3.jar!/org/slf4j/imp
-                                                  //| l/StaticLoggerBinder.class]
-                                                  //| SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanat
-                                                  //| ion.
-                                                  //| SLF4J: Actual binding is of type [ch.qos.logback.classic.util.ContextSelecto
-                                                  //| rStaticBinder]
-                                                  //| s  : String = "
-                                                  //| Receipt
-                                                  //| Account billed: scalableminds (tomh@scalableminds.com)
-                                                  //| Transaction ID: bcw7cj
+  val s = plugin.onResourceFound()                //> onResourceFound called java.lang.NoClassDefFoundError: org/eclipse/core/runt
+                                                  //| ime/Assert
+                                                  //| 	at org.eclipse.zest.cloudio.TagCloud.<init>(TagCloud.java:230)
+                                                  //| 	at org.eclipse.zest.cloudio.TagCloud.<init>(TagCloud.java:267)
+                                                  //| 	at projectZoom.thumbnails.text.TextThumbnailPlugin.createTagCloud(TextTh
+                                                  //| umbnailPlugin.java:56)
+                                                  //| 	at projectZoom.thumbnails.text.TextThumbnailPlugin.onResourceFound(TextT
+                                                  //| humbnailPlugin.java:48)
+                                                  //| 	at dominic$$anonfun$main$1.apply$mcV$sp(dominic.scala:18)
+                                                  //| 	at org.scalaide.worksheet.runtime.library.WorksheetSupport$$anonfun$$exe
+                                                  //| cute$1.apply$mcV$sp(WorksheetSupport.scala:76)
+                                                  //| 	at org.scalaide.worksheet.runtime.library.WorksheetSupport$.redirected(W
+                                                  //| orksheetSupport.scala:65)
+                                                  //| 	at org.scalaide.worksheet.runtime.library.WorksheetSupport$.$execute(Wor
+                                                  //| ksheetSupport.scala:75)
+                                                  //| 	at dominic$.main(dominic.scala:6)
+                                                  //| 	at dominic.main(dominic.scala)
+                                                  //| Caused by: java.lang.ClassNotFoundException: org.eclipse.core.runtime.Assert
                                                   //| 
-                                                  //| Date Plan Price
-                                                  //| 
-                                                  //| 11/04/12 06:39PM PST Bronze USD $25.00*
-                                                  //| 
-                                                  //| GitHub, Inc.
-                                                  //| 548 4th St.
-                                                  //| San Francisco, CA 94107
-                                                  //| 
-                                                  //| Web: http://github.com/contact
-                                                  //| Email: support@github.com
-                                                  //| 
-                                                  //| * EU customers: prices exclude VAT
-                                                  //| 
-                                                  //| 
-                                                  //| "
-  val l = s.length() > 5                          //> l  : Boolean = true
+                                                  //| 	at java.net.URLClassLoader$1.run(URLClassLoader.java:202)
+                                                  //| 	at java.security.AccessController.doPrivileged(Native Method)
+                                                  //| 	at java.net.URLClassLoader.findClass(URLClassLoader.java:190)
+                                                  //| 	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+                                                  //| 	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:301)
+                                                  //| 	at java.lang.ClassLoader.loadClass(ClassLoader.java:247)
+                                                  //| 	... 10 more
+  val l = s.length() > 5
 
   //plugin.onResourceFound();
   
