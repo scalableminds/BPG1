@@ -109,9 +109,18 @@ describe "EventMixin", ->
       @spy.should.have.been.called.exactly(3)
 
 
+  describe "#hasCallbacks", ->
+
+    it "should have callbacks", ->
+
+      @eventMixin.on(@self, "test", @spy)
+      @eventMixin.hasCallbacks("test").should.be.true
+
+
+
   describe "#isolatedExtend", ->
 
-    it "should work with scramled function names", ->
+    it "should work with scrambled function names", ->
 
       @eventMixin = EventMixin.isolatedExtend({}, @dummyDispatcher)
       @eventMixin.addEventListener = @eventMixin.on
