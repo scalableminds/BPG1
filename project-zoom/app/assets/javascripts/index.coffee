@@ -14,6 +14,7 @@ define [
   ], (Backbone, app) ->
 
   require [
+    # "testProjectsOverview", "jquery.hammer"
     "testGraph", "jquery.hammer"
     "sample"
     "model"
