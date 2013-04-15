@@ -2,14 +2,11 @@ package models
 
 import play.api.Play.current
 import play.modules.reactivemongo._
-import play.api.libs.json.JsValue
+import reactivemongo.api.collections._
+import reactivemongo.api._
+import play.api.libs.json._
 import reactivemongo.api.DefaultDB
-import reactivemongo.bson.BSONDocumentWriter
-import reactivemongo.bson.BSONDocumentReader
-import reactivemongo.bson.BSONDocument
-import reactivemongo.bson.BSONString
 import reactivemongo.bson.BSONObjectID
-import projectZoom.core.bson.Bson
 import projectZoom.util.MongoHelpers
 import play.api.libs.json.JsObject
 import play.api.libs.json.Writes
@@ -17,8 +14,9 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import play.api.Logger
-
-trait BSONDocumentHandler[T] extends BSONDocumentReader[T] with BSONDocumentWriter[T]
+import reactivemongo.bson.buffer._
+import play.modules.reactivemongo.json.collection.JSONGenericHandlers
+import play.modules.reactivemongo.json.collection.JSONCollection
 
 trait MongoJsonDAO extends MongoDAO[JsObject] {
   def insert[T](t: T)(implicit writer: Writes[T]): Future[LastError] = {
@@ -31,36 +29,40 @@ trait MongoJsonDAO extends MongoDAO[JsObject] {
         Future.successful(errorFromMsg(errorMsg))
     }
   }
-
-  implicit object handler extends BSONDocumentHandler[JsObject] {
-    def read(doc: BSONDocument) = Implicits.JsObjectReader.read(doc)
-    def write(js: JsObject) = Implicits.JsObjectWriter.write(js)
+  
+  implicit object formatter extends Format[JsObject]{
+    def writes(js: JsObject) = js
+    def reads(js: JsValue) = js match {
+      case j: JsObject => JsSuccess(j)
+      case _ => JsError()
+    }
   }
 }
 
-trait MongoDAO[T] extends MongoJSONHelpers {
+trait MongoDAO[T] {
+  import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
+  def collectionName : String
+  implicit def formatter: Format[T]
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
   def db: DefaultDB = ReactiveMongoPlugin.db
-  def collection: reactivemongo.api.collections.default.BSONCollection
-
-  implicit val handler: BSONDocumentHandler[T]
+  val collection: JSONCollection = db.collection[JSONCollection](collectionName)
 
   def errorFromMsg(msg: String) = {
     LastError(ok = false, None, None, Some(msg), None, 0, false)
   }
 
   def findHeadOption(attribute: String, value: String) = {
-    collection.find(Bson.obj(attribute -> value)).one
+    collection.find(Json.obj(attribute -> value)).one[T]
   }
 
   def findAll = {
-    collection.find(Bson.obj()).cursor.toList
+    collection.find(Json.obj()).cursor[T].toList
   }
 
   def findById(id: String) = {
-    collection.find(BSONDocument("_id" -> new BSONObjectID(id))).one
+    collection.find(Json.obj("_id" -> new BSONObjectID(id))).one[T]
   }
 
   def insert(t: T): Future[LastError] = {
@@ -68,10 +70,10 @@ trait MongoDAO[T] extends MongoJSONHelpers {
   }
 
   def removeById(id: String) = {
-    collection.remove(BSONDocument("_id" -> new BSONObjectID(id)))
+    collection.remove(Json.obj("_id" -> new BSONObjectID(id)))
   }
 
   def removeAll() = {
-    collection.remove(BSONDocument())
+    collection.remove(Json.obj())
   }
 }

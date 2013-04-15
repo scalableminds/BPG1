@@ -7,7 +7,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.modules.reactivemongo._
 
-trait MongoHelpers extends ReactiveBSONImplicits with JSONLibraryImplicits{
+trait MongoHelpers{
   /** Writes an ID in Json Extended Notation */
   val toObjectId =
     OWrites[String] { s => Json.obj("_id" -> Json.obj("$oid" -> s)) }

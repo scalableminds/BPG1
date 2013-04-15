@@ -6,15 +6,12 @@ import reactivemongo.bson.BSONWriter
 import securesocial.core._
 import reactivemongo.bson.BSONArray
 import reactivemongo.bson.BSONInteger
-import play.modules.reactivemongo.MongoJSONHelpers
-import play.modules.reactivemongo.Implicits
 import reactivemongo.bson.BSONHandler
 import reactivemongo.bson.BSONHandler
 import play.api.libs.json._
 import play.api.libs.json.util._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import projectZoom.core.bson.Bson
 
 case class UserLike(firstName: String, lastName: String, email: String)
 
@@ -33,7 +30,7 @@ case class User(
 }
 
 object User extends MongoDAO[User] {
-  override def collection = db("users")
+  val collectionName = "users"
 
   def findByEmail(email: String) = findHeadOption("email", email)
 
@@ -44,11 +41,11 @@ object User extends MongoDAO[User] {
   }
   
   def findByUserId(userId: UserId) = {
-    collection.find(Bson.obj("userId" -> UserIdFormat.writes(userId))).one
+    collection.find(Json.obj("userId" -> userId)).one[User]
   }
 
   def findByEmailAndProvider(email: String, provider: String) = {
-    collection.find(Bson.obj("email" -> email, "userId.providerId" -> provider)).one
+    collection.find(Json.obj("email" -> email, "userId.providerId" -> provider)).one[User]
   }
 
   def fromIdentity(i: Identity): User = {
@@ -77,7 +74,7 @@ object User extends MongoDAO[User] {
     (__ \ 'id).format[String] and
     (__ \ 'providerId).format[String])(UserId.apply, unlift(UserId.unapply))
 
-  val userFormat = (
+  implicit val formatter: Format[User] = (
     (__ \ 'userId).format[UserId] and
     (__ \ 'firstName).format[String] and
     (__ \ 'lastName).format[String] and
@@ -87,12 +84,4 @@ object User extends MongoDAO[User] {
     (__ \ 'oAuth2Info).formatNullable[OAuth2Info] and
     (__ \ 'passwordInfo).formatNullable[PasswordInfo] and
     (__ \ 'roles).format(list[String]))(User.apply _, unlift(User.unapply))
-
-  implicit object handler extends BSONDocumentHandler[User] {
-    def read(doc: BSONDocument): User =
-      userFormat.reads(MongoJSONHelpers.toJSON(doc)).get
-
-    def write(u: User): BSONDocument =
-      Implicits.JsObjectWriter.write(userFormat.writes(u))
-  }
 }

@@ -69,6 +69,5 @@ trait GraphTransformers extends PayloadTransformers {
 }
 
 object GraphDAO extends MongoJsonDAO with GraphTransformers {
-  def collection = db("graphs")
-
+  val collectionName = "graphs"
 }
