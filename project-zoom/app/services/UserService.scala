@@ -19,15 +19,11 @@ import models.User
  * it stores everything in memory.
  */
 class UserService(application: Application) extends UserServicePlugin(application) {
-  private var users = Map[String, Identity]()
-  private var tokens = Map[String, SocialToken]()
-
   def find(id: UserId): Option[User] = {
     Await.result(User.findByUserId(id), 5 seconds)
   }
 
   def findByEmailAndProvider(email: String, providerId: String): Option[Identity] = {
-    Logger.debug("users = %s".format(users))
     Await.result(User.findByEmailAndProvider(email, providerId), 5 seconds)
   }
 

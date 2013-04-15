@@ -1,10 +1,7 @@
-package projectZoom.thumbnails
-
-import akka.actor.Actor
-import play.api.libs.concurrent.Akka
+package projectZoom.thumbnails.text
 import play.api.Logger
 import projectZoom.core.event._
-import akka.actor.Props
+import projectZoom.thumbnails.text.TextThumbnailPlugin
 import projectZoom.util.StartableActor
 
 class TextThumbnailActor extends EventSubscriber with EventPublisher{
@@ -14,7 +11,7 @@ class TextThumbnailActor extends EventSubscriber with EventPublisher{
       Logger.debug("Thumbnail Actor received: " + x.toString + " s: " + sender.path)
   }
   
-  val textThumbnailPlugin = new TextThumbnailJavaPlugin()
+  val textThumbnailPlugin = new TextThumbnailPlugin()
   
   
 }

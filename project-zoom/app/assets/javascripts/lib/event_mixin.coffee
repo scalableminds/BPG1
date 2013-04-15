@@ -1,120 +1,150 @@
 ### define 
 underscore : _
-jquery : $
+./event_dispatcher : EventDispatcher
 ###
 
 class EventMixin
 
-  constructor : ->
+  constructor : (@dispatcher = EventMixin.dispatcher) ->
 
     @__callbacks = {}
-    @__deferreds = {}
+    EventDispatcher.ensureUid(this)
 
 
-  on : (type, callback) ->
+  on : (self, type, callback) ->
 
-    unless _.isObject(type)
+    if _.isObject(self) and arguments.length == 1
 
-      unless _.isArray(@__callbacks[type])
-        @__callbacks[type] = [ callback ]
-      else
-        @__callbacks[type].push(callback)
+      @on(null, key, value) for key, value of self
+
+
+    else if _.isString(self) and arguments.length == 2
+
+      @on(null, self, type)
+
+
+    else if _.isObject(type) and arguments.length == 2
+
+      @on(self, key, value) for key, value of type
+
+
+    else if _.isArray(callback)
+
+      @on(self, type, singleCallback) for singleCallback in callback
+
 
     else
 
-      map = type
-      for own type, callback of map
-        @on(type, callback)
+      if self?
+
+        @dispatcher.register(this, self, type, callback)
+
+
+      unless _.isArray(@__callbacks[type])
+        @__callbacks[type] = [ callback ]
+
+      else
+        @__callbacks[type].push(callback)
 
     this
 
 
-  one : (type, callback) ->
+  off : (self, type, callback) ->
+
+    if arguments.length == 1
+
+      @off(null, key, value) for key, value of self
+
+
+    else if _.isString(self) and arguments.length == 2
+
+      @off(null, self, type)
+
+    
+    else if _.isObject(type)
+
+      @off(self, key, value) for key, value of type
+
+
+    else if _.isArray(callback)
+
+      @off(self, type, singleCallback) for singleCallback in callback
+
+
+    else
+
+      callbackArray = @__callbacks[type]
+
+      if _.isArray(@__callbacks[type])
+
+        _.removeElement(@__callbacks[type], callback)
+
+        delete @__callbacks[type] if @__callbacks[type].length == 0
+      
+      if self?
+
+        @dispatcher.unregister(this, self, type, callback)
+
+    this
+
+
+  times : (self, type, callback, count) ->
+
+    return this if count < 1
 
     wrappedCallback = (args...) =>
 
       callback(args...)
-      @off(type, wrappedCallback)
+      @off(self, type, wrappedCallback) if --count == 0
+      return
+
+    @on(self, type, wrappedCallback)
 
 
-    unless _.isObject(type)
+  one : (self, type, callback) ->
 
-     @on(type, wrappedCallback)
-
-    else
-
-      map = type
-      for own type, callback of map
-        @on(type, wrappedCallback)
-
-    this
-
-
-  off : (type, callback) ->
-
-    if _.isArray(@__callbacks[type])
-      _.removeElement(@__callbacks[type], callback)
-    this
+    @times(self, type, callback, 1)
 
 
   trigger : (type, args...) ->
 
-    if _.isObject(type)
-      map = type
-      @trigger(type, arg) for type, arg of map
-
-    else
-      if deferred = @__deferreds[type]
-        deferred.resolve(args...)
-
-      if _.isArray(@__callbacks[type])
-        for callback in @__callbacks[type]
-          callback.apply(this, args)
-
-    this
-
-
-  ask : (type, args...) ->
-
-    if _.isArray(@__callbacks[type])
+    if @__callbacks[type]?
       for callback in @__callbacks[type]
-        answer = callback.apply(this, args)
-        return answer unless answer == undefined
-    return
+        callback.apply(this, args)
 
-
-  passthrough : (obj, type, renamedType = type) ->
-
-    if _.isArray(type)
-
-      types = type
-      for type in types
-        @passthrough(obj, type, type) 
-
-    else if _.isObject(type)
-
-      typeMap = type
-      for type, renamedType of typeMap
-        @passthrough(obj, type, renamedType) 
-
-    else
-
-      obj.on type, (args...) => 
-        @trigger(renamedType, args...)
-      
     this
 
 
-  addDeferred : (type) ->
+  hasCallbacks : (type) ->
 
-    @__deferreds[type] = new $.Deferred()
-
-
-  deferred : (type) ->
-
-    @__deferreds[type]
+    @__callbacks[type]?
 
 
-  @extend : (obj) ->
+  @extend : (obj, dispatcher) ->
 
-    _.extend(obj, new this())
+    mixin = new EventMixin(dispatcher)
+
+    _.extend(obj, mixin, EventMixin.prototype)
+
+    Object.defineProperty(obj, "__uid", value : mixin.__uid )
+
+    obj
+
+
+  @isolatedExtend : (obj, dispatcher) ->
+
+    mixin = new EventMixin(dispatcher)
+
+    _.forOwn(EventMixin.prototype, (func, key) -> obj[key] = _.bind(func, mixin) )
+
+    obj.dispatcher = mixin.dispatcher
+    obj.__callbacks = mixin.__callbacks
+
+    Object.defineProperty(obj, "__uid", value : mixin.__uid )
+
+    obj
+
+
+  @dispatcher : new EventDispatcher
+
+

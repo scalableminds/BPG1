@@ -38,25 +38,20 @@ require.config(
 
 define(
   "app"
-  ["./lib/application", "backbone.deepmodel"]
+  ["./lib/application", "backbone.deepmodel", "./lib/core_ext"]
   (Application) -> new Application()
 )
 
 
-require [
+define [
   "backbone",
   "app",
   "bootstrap"
   ], (Backbone, app) ->
 
-  #app.on "start" : -> alert("Test")
-
   require [
     "testGraph"
+    "sample"
+    "model"
   ], -> app.start( test : 123 )
-
-  #require [
-  #  "testGraph"
-  #], -> app.start()
-
 

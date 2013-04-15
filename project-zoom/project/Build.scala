@@ -23,6 +23,7 @@ object ApplicationBuild extends Build {
     "commons-io" % "commons-io" % "1.3.2",
     "org.apache.commons" % "commons-email" % "1.2",
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",
+    "org.apache.tika" % "tika-bundle" % "1.3",
     "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources())
 
   val dependencyResolvers = Seq(

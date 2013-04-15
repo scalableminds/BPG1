@@ -1,6 +1,8 @@
 object dominic {
-	import projectZoom.thumbnails.TextThumbnailJavaPlugin
+  
 	import akka.actor._
+	
+	import projectZoom.thumbnails.text.TextThumbnailPlugin
 	
 	/*
 	val system = ActorSystem("mysystem")
@@ -10,10 +12,10 @@ object dominic {
   println("Welcome to the Scala worksheet")
   */
   
-  val plugin = new TextThumbnailJavaPlugin()      //> plugin  : projectZoom.thumbnails.TextThumbnailJavaPlugin = projectZoom.thumb
-                                                  //| nails.TextThumbnailJavaPlugin@c1f10e
-  plugin.onResourceFound()                        //> Hesdfllo res0: <error> = ()
+  val plugin = new TextThumbnailPlugin()
+
+  val s = plugin.onResourceFound()
+  val l = s.length() > 5
+
   //plugin.onResourceFound();
-  
-  
 }

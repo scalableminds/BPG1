@@ -13,8 +13,9 @@ import play.api.Logger
 import java.util.concurrent.TimeoutException
 import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
+import models.MongoJsonDAO
 
-trait ConnectorSettings extends DBCollection with PlayActorSystem {
+trait ConnectorSettings extends MongoJsonDAO {
   def identifier: String
 
   val MAX_SETTINGS_AWAIT = 1 second
