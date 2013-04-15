@@ -1,6 +1,6 @@
 ### define
 core_ext : CoreExt
-underscore : _
+hammer : Hammer
 ###
 
 class ConnectNodesBehavior
@@ -11,7 +11,7 @@ class ConnectNodesBehavior
     if $(".dragLine").length == 0
       @dragLine = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @dragLine
-        .attr("class", "edge hidden dragLine")
+        .attr("class", "hidden dragLine")
         .style('marker-end', 'url(#end-arrow)')
     else
       @dragLine = d3.select(".dragLine")
@@ -19,57 +19,51 @@ class ConnectNodesBehavior
 
   activate : ->
 
-    @svg
-      .on( "mousemove", @mouseMove )
-      .delegate( "mouseup.cancelDrag","rect", @mouseUp )
-
-      #handler for the nodes
-      .delegate( "mousedown.beginDrag", "circle", @nodeMouseDown )
-      .delegate( "mouseup.endDrag", "circle", @nodeMouseUp )
+    @hammerContext = Hammer( $("svg")[0] )
+      .on("drag", ".node", @dragMove)
+      .on("dragend", ".node", @dragEnd)
 
 
   deactivate : ->
 
-    # yes, D3 has a weird syntax using "on" to enable/disable event handlers
-    @svg
-      .on( "mousemove", null )
-      .on( "mouseup.cancelDrag", null )
-      .on( "mousedown.beginDrag", null )
-      .on( "mouseup.endDrag", null )
+    @hammerContext
+      .off("drag", @dragMove)
+      .off("dragend", @dragEnd)
 
     @dragLine.classed("hidden", true)
 
 
-  nodeMouseDown : (node) =>
+  dragEnd : (event) =>
 
-    unless @startDrag
-      @startDrag = node
-
-
-  nodeMouseUp : (node) =>
-
-    if @startDrag == node
-      @startDrag = null
+    # checking localName is a bit of a hack
+    startEvent = event.gesture.startEvent
+    if event.target == startEvent.target or not (event.target.localName == "circle")
+      @dragLine.classed("hidden", true)
+      return
 
     else
 
-      @graph.addEdge(@startDrag.id, node.id)
-      @startDrag = null
+      nodeID = event.target.__data__.id
+      startID = startEvent.target.__data__.id
+
+      @graph.addEdge(startID, nodeID)
       @dragLine.classed("hidden", true)
 
 
-  mouseUp : =>
+  dragMove : (event) =>
 
-    if @startDrag
-      @startDrag = null
-      @dragLine.classed("hidden", true)
+    offset = $("svg").offset()
 
+    x = event.gesture.touches[0].pageX - offset.left
+    y = event.gesture.touches[0].pageY - offset.top
 
-  mouseMove : =>
+    startEvent = event.gesture.startEvent
+    lineStartX = d3.select(startEvent.target).attr("cx")
+    lineStartY = d3.select(startEvent.target).attr("cy")
 
-    if @startDrag
-      mouseContext = @container[0][0]
+    #lineStartX = startEvent.touches[0].pageX - offset.left
+    #lineStartY = startEvent.touches[0].pageY - offset.top
 
-      @dragLine
-        .classed("hidden", false)
-        .attr("d", "M #{@startDrag.x},#{@startDrag.y} L #{d3.mouse(mouseContext)[0]},#{d3.mouse(mouseContext)[1]}")
+    @dragLine
+      .classed("hidden", false)
+      .attr("d", "M #{lineStartX},#{lineStartY} L #{x},#{y}")
