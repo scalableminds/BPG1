@@ -5,7 +5,6 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.Logger
-import projectZoom.core.bson.Bson._
 import play.api.libs.json.JsString
 import play.api.libs.json.Format
 
@@ -27,8 +26,8 @@ trait ArtifactTransformers extends ResourceHelpers {
 
 }
 
-object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHelpers {
-  override def collection = db("artifacts")
+object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHelpers{
+  val collectionName = "artifacts"
 
   def findByArtifactQ(artifactInfo: ArtifactInfo): JsObject =
     findByArtifactQ(artifactInfo.name, artifactInfo.source, artifactInfo._project)
@@ -37,7 +36,7 @@ object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHe
     Json.obj("name" -> name, "source" -> source, "_project" -> project)
 
   def find(artifactInfo: ArtifactInfo) = {
-    collection.find(findByArtifactQ(artifactInfo)).one
+    collection.find(findByArtifactQ(artifactInfo)).one[JsObject]
   }
 
   def update(artifactInfo: ArtifactInfo) = {
@@ -51,7 +50,7 @@ object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHe
   }
 
   def findAllForProject(_project: String) = {
-    collection.find(Json.obj("_project" -> _project)).cursor.toList
+    collection.find(Json.obj("_project" -> _project)).cursor[JsObject].toList
   }
 
   def insertRessource(artifactInfo: ArtifactInfo)(path: String, hash: String, resourceInfo: ResourceInfo) = {

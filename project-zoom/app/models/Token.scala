@@ -3,31 +3,36 @@ package models
 import securesocial.core.providers.{ Token => SocialToken }
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import reactivemongo.bson.BSONDocument
-import reactivemongo.bson.BSONString
-import reactivemongo.bson.BSONDateTime
-import reactivemongo.bson.BSONBoolean
 import org.joda.time.DateTime
+import reactivemongo.bson.BSONDateTime
+import play.modules.reactivemongo.json.BSONFormats._
 
-object Token extends MongoDAO[SocialToken] {
-  override def collection = db("tokens")
+object Token extends MongoDAO[SocialToken]{
+  val collectionName = "tokens"
 
   def findByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
 
   override def removeById(id: String) = {
-    collection.remove(BSONDocument("uuid" -> BSONString(id)))
+    collection.remove(Json.obj("uuid" -> id))
   }
   
   override def findById(id: String)= {
-    collection.find(BSONDocument("uuid" -> BSONString(id))).one
+    collection.find(Json.obj("uuid" -> id)).one[SocialToken]
   }
   
   def removeExpiredTokens() = {
     val now = System.currentTimeMillis()
-    collection.remove(BSONDocument("expirationTime" -> BSONDocument("$lt" -> BSONDateTime(now))))
+    collection.remove(Json.obj("expirationTime" -> Json.obj("$lt" -> BSONDateTime(now))))
   }
   
-  implicit object handler extends BSONDocumentHandler[SocialToken]{
+  implicit val formatter: Format[SocialToken] = 
+    ((__ \ "uuid").format[String] and
+    (__ \ "email").format[String] and
+    (__ \ "creationTime").format[DateTime] and
+    (__ \ "expirationTime").format[DateTime] and
+    (__ \ "isSignUp").format[Boolean])(SocialToken.apply, unlift(SocialToken.unapply))
+    
+  /*implicit object handler extends BSONDocumentHandler[SocialToken]{
     def write(token: SocialToken): BSONDocument = {
       BSONDocument(
           "uuid" -> BSONString(token.uuid),
@@ -45,5 +50,5 @@ object Token extends MongoDAO[SocialToken] {
         new DateTime(doc.getAs[BSONDateTime]("expirationTime").get.value),
         doc.getAs[BSONBoolean]("isSignUp").get.value)
     }
-  }
+  }*/
 }
