@@ -46,6 +46,7 @@ object SSH extends PlayActorSystem {
       } else {
         val localPortForwarder = conn.createLocalPortForwarder(lPort, rHost, rPort)
         sshTunnels send (SSHTunnel(conn, localPortForwarder, lPort, rHost, rPort) :: _)
+        Logger.info(s"created ssh tunnel from $lPort to $rHost:$rPort")
         true
       }
     }

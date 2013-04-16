@@ -14,6 +14,10 @@ class IncomActor(incom: IncomAPI) extends ConnectorActor with PlayConfig {
 
   var updateTicker: Cancellable = null
   
+  def aggregate = {
+    
+  }
+  
   def start = {
     Logger.debug("starting incom ticker")
     updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL){

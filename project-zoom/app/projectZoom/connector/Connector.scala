@@ -1,7 +1,7 @@
 package projectZoom.connector
 
-import akka.actor.ActorRef
+import akka.actor.ActorRefFactory
 
 trait Connector {
-  def startAggregating(implicit app: play.api.Application)
+  def startAggregating(context: ActorRefFactory)
 }
