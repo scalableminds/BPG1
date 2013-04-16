@@ -5,6 +5,7 @@ d3 : d3
 ./process_view/gui : GUI
 ./process_view/behavior/connect_nodes_behavior : ConnectNodesBehavior
 ./process_view/behavior/drag_node_behavior : DragNodeBehavior
+./process_view/behavior/delete_node_behavior : DeleteNodeBehavior
 ../component/artifact_finder : ArtifactFinder
 ../component/artifact : Artifact
 ###
@@ -80,13 +81,14 @@ class ProcessView
 
   changeBehavior : (selectedTool) =>
 
-    { graphContainer, svg, graph } = @
+    { graph, graphContainer } = @
 
     toolBox = $(".navbar li")
     behavior = switch selectedTool
 
-      when toolBox[0] then new DragNodeBehavior(svg, graph)
-      when toolBox[1] then new ConnectNodesBehavior(svg, graph, graphContainer)
+      when toolBox[0] then new DragNodeBehavior()
+      when toolBox[1] then new ConnectNodesBehavior(graph, graphContainer)
+      when toolBox[2] then new DeleteNodeBehavior(graph)
 
     graph.changeBehavior( behavior )
 

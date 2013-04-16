@@ -7,6 +7,8 @@ import projectZoom.core.event.EventActor
 import projectZoom.thumbnails.text.TextThumbnailActor
 import play.api.libs.concurrent.Akka
 import projectZoom.core.settings.SettingsActor
+import play.api.Mode
+import models.User
 
 object Global extends GlobalSettings {
 
@@ -18,6 +20,12 @@ object Global extends GlobalSettings {
     KnowledgeActor.start
     TextThumbnailActor.start
     //DropboxConnector.startAggregating(app)
+    if(app.mode == Mode.Dev)
+      putSampleValuesInDB()
+  }
+  
+  def putSampleValuesInDB() = {
+    //User.insert()
   }
 
   override def onStop(app: Application) {
