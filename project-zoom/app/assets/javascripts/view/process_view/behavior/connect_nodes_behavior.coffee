@@ -5,7 +5,7 @@ hammer : Hammer
 
 class ConnectNodesBehavior
 
-  constructor : (@svg, @graph, @container) ->
+  constructor : ( @graph, @container ) ->
 
     # line that is displayed when dragging a new edge between nodes
     if $(".dragLine").length == 0

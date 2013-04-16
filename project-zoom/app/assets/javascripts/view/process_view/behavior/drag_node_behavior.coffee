@@ -4,19 +4,16 @@ hammer : Hammer
 
 class DragNodeBehavior
 
-  constructor : (@svg, @graph) ->
-
-
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on "drag", ".node", @dragMove
+      .on("drag", ".node", @dragMove)
 
 
   deactivate : ->
 
     @hammerContext
-      .off "drag", @dragMove
+      .off("drag", @dragMove)
 
 
   dragMove : (event) ->
