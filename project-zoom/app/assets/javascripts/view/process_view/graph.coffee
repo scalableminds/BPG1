@@ -41,10 +41,15 @@ class Graph
 
   addEdge : (source, target) =>
 
-    maxNodeIndex = @nodes.length - 1
-    if source <= maxNodeIndex and target <= maxNodeIndex
+    maxNode = @nodes[@nodes.length - 1]
+    if source <= maxNode.id and target <= maxNode.id
 
-      tmp = new Edge(@nodes[source], @nodes[target])
+      for node in @nodes
+        sourceNode = node if node.id == source
+        targetNode = node if node.id == target
+
+
+      tmp = new Edge(sourceNode, targetNode)
       @edges.push(tmp)
 
       @drawEdges(tmp)
@@ -58,21 +63,21 @@ class Graph
       @nodes.splice(index, 1)
 
       #remove all edges connected to the node
-      for edge,i in @edges
-        if edge.source == node or edge.target == nodeId
-          @edges.splice(i,1)
+      # for edge,i in @edges
+      #   if edge.source == node or edge.target == node
+      #     @edges.splice(i,1)
 
-      drawNodes()
-      drawEdges()
+      @drawNodes()
+      @drawEdges()
 
 
   removeEdge : (edge) ->
 
-    index = @edges.indexOf(edge)
+    index = @edges.indexOf(edge) - 1
     if index > -1
 
       @edges.splice(index, 1)
-      drawEdges()
+      @drawEdges()
 
 
   drawNodes : (node) ->
