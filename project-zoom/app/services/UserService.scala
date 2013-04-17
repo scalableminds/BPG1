@@ -20,11 +20,11 @@ import models.UserDAO
  */
 class UserService(application: Application) extends UserServicePlugin(application) {
   def find(id: UserId): Option[User] = {
-    Await.result(UserDAO.findByUserId(id), 5 seconds)
+    Await.result(UserDAO.findOneByUserId(id), 5 seconds)
   }
 
   def findByEmailAndProvider(email: String, providerId: String): Option[User] = {
-    Await.result(UserDAO.findByEmailAndProvider(email, providerId), 5 seconds)
+    Await.result(UserDAO.findOneByEmailAndProvider(email, providerId), 5 seconds)
   }
 
   def save(identity: Identity): User = {
@@ -38,7 +38,7 @@ class UserService(application: Application) extends UserServicePlugin(applicatio
   }
 
   def findToken(token: String): Option[SocialToken] = {
-    Await.result(Token.findById(token), 5 seconds)
+    Await.result(Token.findOneById(token), 5 seconds)
   }
 
   def deleteToken(uuid: String) {

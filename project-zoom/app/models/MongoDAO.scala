@@ -15,6 +15,7 @@ import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import play.api.Logger
 import reactivemongo.bson.buffer._
+import reactivemongo.api.collections.GenericQueryBuilder
 import play.modules.reactivemongo.json.collection.JSONGenericHandlers
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
@@ -26,7 +27,7 @@ trait DAO[T] {
 
   def findAll: Future[List[T]]
 
-  def findById(id: String): Future[Option[T]]
+  def findOneById(id: String): Future[Option[T]]
 
   def insert(t: T): Future[LastError]
 
@@ -79,12 +80,18 @@ trait MongoDAO[T] extends DAO[T] {
   }
 
   def findSome(offset: Int, limit: Int): Future[List[T]] = {
+    takeSome(
+      collection.find(Json.obj()),
+      offset,
+      limit)
+  }
+
+  def takeSome(q: GenericQueryBuilder[JsObject, Reads, Writes], offset: Int, limit: Int) = {
     val options = QueryOpts(skipN = offset, batchSizeN = limit)
     val document = Json.obj(
       "$oderby" -> Json.obj(
         "_id" -> 1))
-    collection
-      .find(Json.obj())
+    q
       .options(options)
       .sort(document)
       .cursor[T]
@@ -95,14 +102,14 @@ trait MongoDAO[T] extends DAO[T] {
     collection.find(Json.obj()).cursor[T].toList
   }
 
-  def findById(id: String) = {
+  def findOneById(id: String) = {
     collection.find(Json.obj("_id" -> new BSONObjectID(id))).one[T]
   }
 
   def insert(t: T): Future[LastError] = {
     collection.insert(t)(formatter, ec)
   }
-  
+
   def update(query: JsObject, t: T, upsert: Boolean, multi: Boolean) = {
     collection.update(query, t, upsert = upsert, multi = multi)
   }

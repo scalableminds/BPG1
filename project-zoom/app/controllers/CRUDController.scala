@@ -13,12 +13,23 @@ import play.api.libs.json.JsValue
 import play.api.libs.json.Reads
 import play.api.libs.json.Writes
 import play.api.libs.concurrent.Execution.Implicits._
+import securesocial.core.SecuredRequest
+import play.api.mvc.Result
 
 trait JsonCRUDController extends CRUDController[JsObject] {
   implicit def formatter = Format.apply[JsObject](Reads.JsObjectReads, Writes.JsValueWrites)
 }
 
-trait CRUDController[T] extends SecureSocial {
+trait ListPortionHelpers {
+  def withPortionInfo(js: JsValue, offset: Int, limit: Int) = {
+    Json.obj(
+      "offset" -> offset,
+      "limit" -> limit,
+      "content" -> js)
+  }
+}
+
+trait CRUDController[T] extends SecureSocial with ListPortionHelpers {
 
   def dao: DAO[T]
   implicit def formatter: Format[T]
@@ -27,7 +38,7 @@ trait CRUDController[T] extends SecureSocial {
     //TODO: restrict access
     Async {
       dao.findSome(offset, limit).map { l =>
-        Ok(Json.toJson(l))
+        Ok(withPortionInfo(Json.toJson(l), offset, limit))
       }
     }
   }
@@ -35,7 +46,7 @@ trait CRUDController[T] extends SecureSocial {
   def read(id: String) = SecuredAction { implicit request =>
     //TODO: restrict access
     Async {
-      dao.findById(id).map { l =>
+      dao.findOneById(id).map { l =>
         Ok(Json.toJson(l))
       }
     }

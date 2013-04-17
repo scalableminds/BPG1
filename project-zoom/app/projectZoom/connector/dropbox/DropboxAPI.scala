@@ -22,6 +22,7 @@ import java.io.IOException
 import play.api.Logger
 import com.dropbox.client2.DropboxAPI.DropboxInputStream
 import java.io.InputStream
+import play.api.libs.concurrent.Execution.Implicits._
 
 case class DropboxUpdates(entries: List[DeltaEntry[Entry]], lastCursor: String) {
   def ++(u: DropboxUpdates) = {

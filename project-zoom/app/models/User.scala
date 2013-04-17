@@ -32,19 +32,19 @@ case class User(
 object UserDAO extends MongoDAO[User] {
   val collectionName = "users"
 
-  def findByEmail(email: String) = findHeadOption("email", email)
+  def findOneByEmail(email: String) = findHeadOption("email", email)
 
-  def findByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
+  def findOneByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
 
   def allowRegistration(userLike: UserLike) = {
     //TODO: send email with registration information
   }
 
-  def findByUserId(userId: UserId) = {
+  def findOneByUserId(userId: UserId) = {
     collection.find(Json.obj("id" -> userId)).one[User]
   }
 
-  def findByEmailAndProvider(email: String, provider: String) = {
+  def findOneByEmailAndProvider(email: String, provider: String) = {
     collection.find(Json.obj("email" -> email, "userId.providerId" -> provider)).one[User]
   }
 

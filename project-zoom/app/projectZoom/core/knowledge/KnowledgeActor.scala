@@ -25,7 +25,7 @@ case class UserAggregation(l: List[UserFound])
 class KnowledgeActor extends EventSubscriber with EventPublisher {
 
   def handleUserFound(userLike: UserLike) = {
-    UserDAO.findByEmail(userLike.email).map {
+    UserDAO.findOneByEmail(userLike.email).map {
       case None => UserDAO.allowRegistration(userLike)
       case _    =>
     }

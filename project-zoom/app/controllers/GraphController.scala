@@ -23,7 +23,7 @@ object GraphController extends ControllerBase with JsonCRUDController with Event
   def patch(graphId: String) = SecuredAction(false, None, parse.json) { implicit request =>
     Async {
       val patch = request.body
-      GraphDAO.findById(graphId).map {
+      GraphDAO.findOneById(graphId).map {
         case Some(graph) =>
           (graph patchWith patch)
             .flatMap(graphFormat.reads)

@@ -8,6 +8,10 @@ import play.api.Logger
 import play.api.libs.json.JsString
 import play.api.libs.json.Format
 
+/* 
+ * ArtifactInfo needs to be a subset of artifact. It should contain all 
+ * necessary information to create a new artifact.
+ */
 case class ArtifactInfo(name: String, _project: String, source: String, metadata: JsValue)
 
 case class Artifact(id: String, name: String, source: String, _project: String, metadata: JsValue, resources: Map[String, Resource])
@@ -26,7 +30,7 @@ trait ArtifactTransformers extends ResourceHelpers {
 
 }
 
-object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHelpers{
+object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHelpers {
   val collectionName = "artifacts"
 
   def findByArtifactQ(artifactInfo: ArtifactInfo): JsObject =
@@ -35,23 +39,25 @@ object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHe
   def findByArtifactQ(name: String, source: String, project: String) =
     Json.obj("name" -> name, "source" -> source, "_project" -> project)
 
-  def find(artifactInfo: ArtifactInfo) = {
+  def findOne(artifactInfo: ArtifactInfo) =
     collection.find(findByArtifactQ(artifactInfo)).one[JsObject]
-  }
 
-  def update(artifactInfo: ArtifactInfo) = {
+  def update(artifactInfo: ArtifactInfo) =
     collection.update(findByArtifactQ(artifactInfo),
       Json.obj("$set" -> artifactInfo), upsert = true)
-  }
 
-  def markAsDeleted(artifactInfo: ArtifactInfo) = {
+  def markAsDeleted(artifactInfo: ArtifactInfo) =
     collection.update(findByArtifactQ(artifactInfo),
       Json.obj("$set" -> Json.obj("isDeleted" -> true)))
-  }
 
-  def findAllForProject(_project: String) = {
-    collection.find(Json.obj("_project" -> _project)).cursor[JsObject].toList
-  }
+  def findSomeForProject(_project: String, offset: Int, limit: Int) =
+    takeSome(findForProject(_project), offset, limit)
+
+  def findAllForProject(_project: String) =
+    findForProject(_project).cursor[JsObject].toList
+
+  def findForProject(_project: String) =
+    collection.find(Json.obj("_project" -> _project))
 
   def insertRessource(artifactInfo: ArtifactInfo)(path: String, hash: String, resourceInfo: ResourceInfo) = {
     val resource = resourceCreateFrom(resourceInfo, path, hash)
