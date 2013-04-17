@@ -17,8 +17,9 @@ import securesocial.core.SecureSocial
 
 case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 
-object GraphController extends ControllerBase with SecureSocial with EventPublisher with GraphTransformers {
-
+object GraphController extends ControllerBase with JsonCRUDController with EventPublisher with GraphTransformers {
+  val dao = GraphDAO
+  
   def patch(graphId: String) = SecuredAction(false, None, parse.json) { implicit request =>
     Async {
       val patch = request.body
@@ -38,15 +39,6 @@ object GraphController extends ControllerBase with SecureSocial with EventPublis
             }
         case _ =>
           NotFound
-      }
-    }
-  }
-
-  def list(offset: Int, limit: Int) = SecuredAction { implicit request =>
-    //TODO: restrict access
-    Async {
-      GraphDAO.findSome(offset, limit).map { l =>
-        Ok(Json.toJson(l))
       }
     }
   }

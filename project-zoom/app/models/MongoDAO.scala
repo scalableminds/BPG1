@@ -19,9 +19,24 @@ import play.modules.reactivemongo.json.collection.JSONGenericHandlers
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
 
+trait DAO[T] {
+  def findHeadOption(attribute: String, value: String): Future[Option[T]]
+
+  def findSome(offset: Int, limit: Int): Future[List[T]]
+
+  def findAll: Future[List[T]]
+
+  def findById(id: String): Future[Option[T]]
+
+  def insert(t: T): Future[LastError]
+
+  def removeById(id: String): Future[LastError]
+
+  def removeAll(): Future[LastError]
+}
+
 trait MongoJsonDAO extends MongoDAO[JsObject] {
   def insert[T](t: T)(implicit writer: Writes[T]): Future[LastError] = {
-    Logger.debug("INSERT: " + t)
     writer.writes(t) match {
       case j: JsObject =>
         collection.insert(j)
@@ -41,7 +56,7 @@ trait MongoJsonDAO extends MongoDAO[JsObject] {
   }
 }
 
-trait MongoDAO[T] {
+trait MongoDAO[T] extends DAO[T] {
   import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
   def collectionName: String
   implicit def formatter: Format[T]
@@ -57,6 +72,10 @@ trait MongoDAO[T] {
 
   def findHeadOption(attribute: String, value: String) = {
     collection.find(Json.obj(attribute -> value)).one[T]
+  }
+
+  def remove(attribute: String, value: String) = {
+    collection.remove(Json.obj(attribute -> value))
   }
 
   def findSome(offset: Int, limit: Int): Future[List[T]] = {
@@ -81,9 +100,11 @@ trait MongoDAO[T] {
   }
 
   def insert(t: T): Future[LastError] = {
-    val e = collection.insert(t)(formatter,ec)
-    e.map( r => println("Insertion result: " + r))
-    e
+    collection.insert(t)(formatter, ec)
+  }
+  
+  def update(query: JsObject, t: T, upsert: Boolean, multi: Boolean) = {
+    collection.update(query, t, upsert = upsert, multi = multi)
   }
 
   def removeById(id: String) = {

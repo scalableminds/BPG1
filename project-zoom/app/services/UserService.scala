@@ -20,18 +20,15 @@ import models.UserDAO
  */
 class UserService(application: Application) extends UserServicePlugin(application) {
   def find(id: UserId): Option[User] = {
-    println("called find")
     Await.result(UserDAO.findByUserId(id), 5 seconds)
   }
 
   def findByEmailAndProvider(email: String, providerId: String): Option[User] = {
-    println("called findByEmailProvider")
     Await.result(UserDAO.findByEmailAndProvider(email, providerId), 5 seconds)
   }
 
   def save(identity: Identity): User = {
     val user = UserDAO.fromIdentity(identity)
-    Logger.debug("About to insert: " + user)
     UserDAO.insert(user)
     user
   }
