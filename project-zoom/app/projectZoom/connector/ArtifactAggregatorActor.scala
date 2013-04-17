@@ -23,5 +23,4 @@ trait ArtifactAggregatorActor extends ConnectorActor with EventPublisher {
     val foundArtifacts = for (pair <- l) yield ArtifactFound(pair._1, pair._2)
     publish(ArtifactAggregation(foundArtifacts))
   }
-
 }
