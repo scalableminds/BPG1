@@ -16,10 +16,12 @@ import reactivemongo.core.commands.LastError
 import play.api.Logger
 import reactivemongo.bson.buffer._
 import play.modules.reactivemongo.json.collection.JSONGenericHandlers
+import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
 
 trait MongoJsonDAO extends MongoDAO[JsObject] {
   def insert[T](t: T)(implicit writer: Writes[T]): Future[LastError] = {
+    Logger.debug("INSERT: " + t)
     writer.writes(t) match {
       case j: JsObject =>
         collection.insert(j)
@@ -29,25 +31,25 @@ trait MongoJsonDAO extends MongoDAO[JsObject] {
         Future.successful(errorFromMsg(errorMsg))
     }
   }
-  
-  implicit object formatter extends Format[JsObject]{
+
+  implicit object formatter extends Format[JsObject] {
     def writes(js: JsObject) = js
     def reads(js: JsValue) = js match {
       case j: JsObject => JsSuccess(j)
-      case _ => JsError()
+      case _           => JsError()
     }
   }
 }
 
 trait MongoDAO[T] {
   import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
-  def collectionName : String
+  def collectionName: String
   implicit def formatter: Format[T]
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
   def db: DefaultDB = ReactiveMongoPlugin.db
-  val collection: JSONCollection = db.collection[JSONCollection](collectionName)
+  lazy val collection = db.collection[JSONCollection](collectionName)
 
   def errorFromMsg(msg: String) = {
     LastError(ok = false, None, None, Some(msg), None, 0, false)
@@ -55,6 +57,19 @@ trait MongoDAO[T] {
 
   def findHeadOption(attribute: String, value: String) = {
     collection.find(Json.obj(attribute -> value)).one[T]
+  }
+
+  def findSome(offset: Int, limit: Int): Future[List[T]] = {
+    val options = QueryOpts(skipN = offset, batchSizeN = limit)
+    val document = Json.obj(
+      "$oderby" -> Json.obj(
+        "_id" -> 1))
+    collection
+      .find(Json.obj())
+      .options(options)
+      .sort(document)
+      .cursor[T]
+      .collect[List](limit)
   }
 
   def findAll = {
@@ -66,7 +81,9 @@ trait MongoDAO[T] {
   }
 
   def insert(t: T): Future[LastError] = {
-    collection.insert(t)
+    val e = collection.insert(t)(formatter,ec)
+    e.map( r => println("Insertion result: " + r))
+    e
   }
 
   def removeById(id: String) = {

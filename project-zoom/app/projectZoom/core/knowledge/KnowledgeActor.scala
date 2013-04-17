@@ -14,6 +14,7 @@ import models.Project
 import models.UserLike
 import models.User
 import play.api.libs.concurrent.Execution.Implicits._
+import models.UserDAO
 
 case class ProjectFound(project: Project)
 case class ProjectAggregation(l: List[ProjectFound])
@@ -24,8 +25,8 @@ case class UserAggregation(l: List[UserFound])
 class KnowledgeActor extends EventSubscriber with EventPublisher {
 
   def handleUserFound(userLike: UserLike) = {
-    User.findByEmail(userLike.email).map {
-      case None => User.allowRegistration(userLike)
+    UserDAO.findByEmail(userLike.email).map {
+      case None => UserDAO.allowRegistration(userLike)
       case _    =>
     }
   }

@@ -6,6 +6,16 @@
 GET    /                         controllers.Application.index
 GET    /test                     controllers.Application.test
 
+# CRUD Urls
+GET    /projects                 controllers.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
+
+GET    /tags                     controllers.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
+
+GET    /users                    controllers.UserController.list(offset: Int ?= 0, limit: Int ?= 50)
+
+GET    /graphs                   controllers.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
+PATCH  /graphs/:id               controllers.GraphController.patch(id: String)
+
 
 # Login page
 GET    /login                    securesocial.controllers.LoginPage.login
