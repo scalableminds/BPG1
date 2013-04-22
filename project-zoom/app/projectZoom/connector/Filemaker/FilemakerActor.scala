@@ -13,6 +13,7 @@ class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor{
   
   def aggregate() = {
     publishProfiles(filemaker.extractStudents)
+    publishProjects(filemaker.extractProjects)
   }
 
   def start = {

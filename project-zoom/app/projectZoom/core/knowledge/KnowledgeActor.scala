@@ -10,13 +10,13 @@ import akka.actor.Props
 import play.api.Logger
 import projectZoom.core.event._
 import projectZoom.util.StartableActor
-import models.Project
+import models.ProjectLike
 import models.User
 import play.api.libs.concurrent.Execution.Implicits._
 import models.Profile
 import models.ProfileDAO
 
-case class ProjectFound(project: Project) extends Event
+case class ProjectFound(project: ProjectLike) extends Event
 case class ProjectAggregation(l: List[ProjectFound]) extends Event
 
 case class ProfileFound(profile: Profile) extends Event
