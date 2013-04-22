@@ -8,6 +8,9 @@ class GUI
 
     @initToolbar()
 
+    $("svg").on "mousedown", "img", (evt) ->
+      return false;
+
 
   initToolbar : ->
 

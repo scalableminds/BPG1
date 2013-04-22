@@ -4,8 +4,6 @@ require.config(
     "lib/sinon" : 
       exports : "sinon"
 
-  paths :
-    "lib/request" : "test/mocks/request"
 )
 
 define [

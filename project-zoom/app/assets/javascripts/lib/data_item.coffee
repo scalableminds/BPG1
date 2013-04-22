@@ -2,11 +2,11 @@
 underscore : _
 ./event_mixin : EventMixin
 async : async
+./request : Request
 ###
 
 ###
 TODO:
-  * nested DataCollection
   * change sets/events
   * Lazy loading/schema
   * json patch support
@@ -72,7 +72,7 @@ class DataItem
       if key.indexOf("/") == -1
 
         if _.isArray(value)
-          @attributes[key] = new DataCollection(value, this)
+          @attributes[key] = new DataItem.Collection(value, this)
 
         else if _.isObject(value)
           @attributes[key] = new DataItem(value, this)
@@ -88,4 +88,113 @@ class DataItem
 
 
 
+
+class DataItem.Collection
+
+  DEFAULT_LIMIT : 50
+
+  constructor : (items = [], parent) ->
+
+    EventMixin.extend(this)
+
+    @items = []
+    @parts = []
+
+    @items.push(new DataItem(item, this)) for item in items
+
+    Object.defineProperty( this, "length", get : => @items.length )
+
+
+  cloneShadow : ->
+
+
+  fetch : (offset, limit) ->
+
+    Request.send(
+      url : "#{@url}?limit=#{limit}&offset=#{offset}"
+      method : "GET"
+      dataType : "json"
+    ).then(
+
+      @dispatcher.register this, (result) =>
+
+        for item, i in result.items when i < result.limit
+          @items[result.offset + i] = new DataItem(item, this)
+
+        @extendParts(result.offset, result.limit)
+        return
+
+    )
+
+
+  fetchNext : ->
+
+    if lastPart = _.last(@parts)
+      @fetch(lastPart.end, @DEFAULT_LIMIT)
+
+    else
+      @fetch(0, @DEFAULT_LIMIT)
+
+
+  extendParts : (offset, count) ->
+
+    { parts } = this
+    lastPart = null
+    for part, i in parts
       
+      if offset <= part.start <= offset + count or offset <= part.end <= offset + count
+
+        part.start = Math.min(part.start, offset)
+        part.end = Math.max(part.end, offset + count)
+
+        if i + 1 < parts.length and parts[i + 1].start <= part.end
+          part.end = Math.max(parts[i + 1].end, part.end)
+          parts.splice(i + 1, 1)
+
+        return
+
+      if part.start > offset + count
+
+        parts.splice(i, 0, start : offset, end : offset + count)
+        return
+
+      lastPart = part
+
+    parts.push( start : offset, end : offset + count )
+    return
+
+
+  get : (key, self, callback) ->
+
+    callback = @dispatcher.register(this, self, null, callback)
+    
+    if key.indexOf("/") == -1
+      _.defer => callback.oneShot( @at(parseInt(key)) )
+
+    else
+      remainingKey = key.substring(key.indexOf("/") + 1)
+      key = key.substring(0, key.indexOf("/"))
+
+      @at( parseInt(key) ).get(remainingKey, self, (value) -> callback.oneShot( value ))
+
+    return
+
+
+  at : (index) ->
+
+    @items[index]
+
+
+  add : (items...) ->
+
+    @items.push(items...)
+    return
+
+    
+  remove : (items...) ->
+
+    @items = _.without(@items, items...)
+    return
+
+
+DataItem

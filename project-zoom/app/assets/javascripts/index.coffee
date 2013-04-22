@@ -15,6 +15,7 @@ require.config(
     async : "lib/async-0.2.6"
     d3 : "lib/d3-3.0.8"
     hammer : "lib/hammer"
+    "jquery.mousewheel" : "lib/jquery.mousewheel"
 
 
 
@@ -32,6 +33,8 @@ require.config(
     "backbone.deepmodel" :
       deps : [ "backbone", "underscore" ]
       exports : "Backbone.DeepModel"
+    "jquery.mousewheel" :
+      deps: [ "jquery" ]
 
 
 )
