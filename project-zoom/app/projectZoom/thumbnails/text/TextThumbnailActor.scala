@@ -8,7 +8,7 @@ class TextThumbnailActor extends EventSubscriber with EventPublisher{
   
   def receive = {
     case x =>
-      Logger.debug("Thumbnail Actor received: " + x.toString + " s: " + sender.path)
+    //  Logger.debug("Thumbnail Actor received: " + x.toString + " s: " + sender.path)
   }
   
   val textThumbnailPlugin = new TextThumbnailPlugin()

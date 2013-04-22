@@ -6,15 +6,13 @@ import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Logger
 
-class CreatingTunnelFailed extends RuntimeException
-
 class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor{
   val TICKER_INTERVAL = 1 minute
 
   var updateTicker: Cancellable = null
   
   def aggregate() = {
-    publishUsers(filemaker.extractStudents)
+    publishProfiles(filemaker.extractStudents)
   }
 
   def start = {

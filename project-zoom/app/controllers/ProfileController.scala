@@ -2,16 +2,13 @@ package controllers
 
 import play.api.mvc.Controller
 import securesocial.core.SecureSocial
-import models.UserDAO
-import models.UserDAO._
 import play.api.libs.json.Json
 import projectZoom.util.PlayActorSystem
 import models.User
+import models.ProfileDAO
 
-object UserController extends ControllerBase with SecureSocial with CRUDController[User] {
-  val dao = UserDAO
-  
-  val formatter = UserDAO.formatter
+object ProfileController extends ControllerBase with SecureSocial with JsonCRUDController {
+  val dao = ProfileDAO
   
   def index = SecuredAction { implicit request =>
     Ok(views.html.index())
