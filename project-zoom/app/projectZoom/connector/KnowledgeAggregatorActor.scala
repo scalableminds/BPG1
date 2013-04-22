@@ -1,17 +1,15 @@
 package projectZoom.connector
 
 import projectZoom.core.event.{EventPublisher, Event}
-import models.{Project, UserLike}
-
-case class ProjectFound(project: Project) extends Event
-case class ProjectAggregation(l: List[ProjectFound]) extends Event
-case class UserFound(user: UserLike) extends Event
-case class UserAggregation(l: List[UserFound]) extends Event
+import models.Project
+import projectZoom.core.knowledge.ProfileAggregation
+import models.Profile
+import projectZoom.core.knowledge.ProfileFound
 
 trait KnowledgeAggregatorActor extends ConnectorActor with EventPublisher {
   
-  def publishUsers(l: List[UserLike]) = {
-    publish(UserAggregation(l.map(user => UserFound(user))))
+  def publishProfiles(l: List[Profile]) = {
+    publish(ProfileAggregation(l.map(user => ProfileFound(user))))
   }
   
 }

@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException
 import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import models.MongoJsonDAO
+import play.api.libs.concurrent.Execution.Implicits._
 
 trait ConnectorSettings extends MongoJsonDAO {
   def identifier: String

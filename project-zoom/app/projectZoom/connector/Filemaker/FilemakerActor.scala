@@ -14,7 +14,7 @@ class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor{
   var updateTicker: Cancellable = null
   
   def aggregate() = {
-    publishUsers(filemaker.extractStudents)
+    publishProfiles(filemaker.extractStudents)
   }
 
   def start = {

@@ -6,6 +6,7 @@ import play.api.libs.functional.syntax._
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDateTime
 import play.modules.reactivemongo.json.BSONFormats._
+import play.api.libs.concurrent.Execution.Implicits._
 
 object Token extends MongoDAO[SocialToken]{
   val collectionName = "tokens"

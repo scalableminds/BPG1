@@ -11,9 +11,13 @@ import reactivemongo.bson.BSONHandler
 import play.api.libs.json._
 import play.api.libs.json.util._
 import play.api.libs.functional.syntax._
+import play.api.libs.concurrent.Execution.Implicits._
 
-case class UserLike(firstName: String, lastName: String, email: String)
-
+/**
+ * Part of the information stored in user is a duplicated in profile. 
+ * This is due to the interface requirements of ´´Identity´´. A User instance
+ * stores all the information needed to authenticate and authorize a user.
+ */
 case class User(
     id: UserId,
     firstName: String,
@@ -29,24 +33,9 @@ case class User(
   val avatarUrl = None
 }
 
-object UserDAO extends MongoDAO[User] {
-  val collectionName = "users"
+object UserHelpers extends UserHelpers
 
-  def findOneByEmail(email: String) = findHeadOption("email", email)
-
-  def findOneByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
-
-  def allowRegistration(userLike: UserLike) = {
-    //TODO: send email with registration information
-  }
-
-  def findOneByUserId(userId: UserId) = {
-    collection.find(Json.obj("id" -> userId)).one[User]
-  }
-
-  def findOneByEmailAndProvider(email: String, provider: String) = {
-    collection.find(Json.obj("email" -> email, "userId.providerId" -> provider)).one[User]
-  }
+trait UserHelpers{
 
   def fromIdentity(i: Identity): User = {
     User(i.id, i.firstName, i.lastName, i.email, i.authMethod, i.oAuth1Info, i.oAuth2Info, i.passwordInfo, Nil)
@@ -55,8 +44,6 @@ object UserDAO extends MongoDAO[User] {
   implicit val AuthenticationMethodFormat: Format[AuthenticationMethod] =
     Format(Reads.StringReads.map(AuthenticationMethod.apply), Writes{am: AuthenticationMethod => Writes.StringWrites.writes(am.method)})
   
-  //.apply(inmap((m: String) => AuthenticationMethod(m), (a: AuthenticationMethod) => a.method)
-
   implicit val OAuth1InfoFormat: Format[OAuth1Info] = Json.format[OAuth1Info]
 
   implicit val OAuth2InfoFormat: Format[OAuth2Info] = Json.format[OAuth2Info]
@@ -65,5 +52,5 @@ object UserDAO extends MongoDAO[User] {
 
   implicit val UserIdFormat: Format[UserId] = Json.format[UserId]
 
-  implicit val formatter: Format[User] = Json.format[User]
+  implicit val userFormat: Format[User] = Json.format[User]
 }

@@ -10,6 +10,9 @@ import play.api.libs.concurrent.Akka
 import projectZoom.core.settings.SettingsActor
 import play.api.Mode
 import models.User
+import models.Profile
+import play.api.Logger
+import models.ProfileDAO
 
 object Global extends GlobalSettings {
 
@@ -23,6 +26,8 @@ object Global extends GlobalSettings {
     SupervisorActor.start
     if(app.mode == Mode.Dev)
       putSampleValuesInDB()
+      
+    Logger.info("Serialize: " + ProfileDAO.profileFormat.writes(Profile("test", "penis", "lala"))) 
   }
   
   def putSampleValuesInDB() = {

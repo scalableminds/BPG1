@@ -7,6 +7,7 @@ import play.api.libs.json.Json
 import play.api.Logger
 import play.api.libs.json.JsString
 import play.api.libs.json.Format
+import play.api.libs.concurrent.Execution.Implicits._
 
 /* 
  * ArtifactInfo needs to be a subset of artifact. It should contain all 

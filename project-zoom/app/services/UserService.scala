@@ -10,7 +10,9 @@ import models.Token
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import models.User
-import models.UserDAO
+import models.ProfileDAO
+import play.api.libs.concurrent.Execution.Implicits._
+import models.UserHelpers
 
 /**
  * A Sample In Memory user service in Scala
@@ -20,16 +22,29 @@ import models.UserDAO
  */
 class UserService(application: Application) extends UserServicePlugin(application) {
   def find(id: UserId): Option[User] = {
-    Await.result(UserDAO.findOneByUserId(id), 5 seconds)
+    Await.result(
+      ProfileDAO
+        .findOneByUserId(id)
+        .map(_.flatMap(_.user)), 5 seconds)
   }
 
   def findByEmailAndProvider(email: String, providerId: String): Option[User] = {
-    Await.result(UserDAO.findOneByEmailAndProvider(email, providerId), 5 seconds)
+    Await.result(
+      ProfileDAO
+        .findOneByEmailAndProvider(email, providerId)
+        .map(_.flatMap(_.user)), 5 seconds)
   }
 
   def save(identity: Identity): User = {
-    val user = UserDAO.fromIdentity(identity)
-    UserDAO.insert(user)
+    val user = UserHelpers.fromIdentity(identity)
+    user.email.map { email =>
+      ProfileDAO.findOneByConnectedEmail(email).map {
+        case Some(p) =>
+          ProfileDAO.update(p, p.copy(user = Some(user)))
+        case _ =>
+          Logger.error("Couldn't insert user because no corresponding profile was found")
+      }
+    }
     user
   }
 
