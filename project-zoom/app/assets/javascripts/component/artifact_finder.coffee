@@ -14,7 +14,7 @@ class ArtifactFinder
   groups : null
   artifacts : null
 
-  SAMPLE_ARTIFACT : { 
+  SAMPLE_ARTIFACT : {
     name:"test1"
     source : "Dropbox"
     resources : [
@@ -62,7 +62,7 @@ class ArtifactFinder
     slider.on(
       "change"
       => artifactC.resize()
-    )    
+    )
 
     domElement.append(artifactC.domElement)
 
@@ -85,7 +85,7 @@ class ArtifactFinder
 
 
   pluginDocTemplate : _.template """
-    <div class="tabbable tabs-left">
+    <div class="tabbable tabs-top">
       <ul class="nav nav-tabs">
         <% groupNames.forEach(function (group) { %>
           <li>
@@ -106,7 +106,7 @@ class ArtifactFinder
         <% }) %>
       </div>
     </div>
-  """  
+  """
 
 
   createGroups : (parent, groupNames) ->
@@ -114,6 +114,6 @@ class ArtifactFinder
     { groups } = @
 
     tabs = @pluginDocTemplate { groupNames }
-    parent.append(tabs)  
+    parent.append(tabs)
     for name in groupNames
-      groups.push { name: name, div: parent.find("#tab#{name}")}    
+      groups.push { name: name, div: parent.find("#tab#{name}")}
