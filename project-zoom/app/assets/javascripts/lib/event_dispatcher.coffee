@@ -40,7 +40,14 @@ class EventDispatcher
 
     if arguments.length == 1
       entry = sender
+
+    else if arguments.length == 2
+      callback = target
+      target = sender
+      entry = { sender, target, type, callback }
+
     else
+      sender = target if sender == null
       entry = { sender, target, type, callback }
 
     EventDispatcher.ensureUid(sender)
@@ -72,7 +79,14 @@ class EventDispatcher
 
     if arguments.length == 1
       similarEntry = sender
+
+    else if arguments.length == 2
+      callback = target
+      target = sender
+      similarEntry = { sender, target, type, callback }
+      
     else
+      sender = target if sender == null
       similarEntry = { sender, target, type, callback }
 
     senderObjectEntries = @boundObjects[sender.__uid]

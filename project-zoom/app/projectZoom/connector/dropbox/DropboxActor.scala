@@ -18,7 +18,11 @@ class DropboxActor(dropbox: DropboxAPI) extends ConnectorActor with PlayConfig {
   val TICKER_INTERVAL = 1 minute
 
   var updateTicker: Cancellable = null
-
+  
+  def aggregate = {
+    
+  }
+  
   def start = {
     Logger.debug("Starting update ticker")
     updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL) {

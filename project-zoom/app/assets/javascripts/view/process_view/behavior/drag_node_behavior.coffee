@@ -1,58 +1,36 @@
 ### define
+hammer : Hammer
 ###
 
 class DragNodeBehavior
 
-  constructor : (@svg, @graph) ->
-
-
   activate : ->
 
-    context = this
-    @dragMoveClosure = (node) ->
-
-      if context.dragging
-        context.dragMove(node, this)
-
-    @svg
-      .delegate("mousedown", "circle", @dragStart)
-      .delegate("mousemove", "circle", @dragMoveClosure)
-      .on("mouseup", @dragEnd)
+    @hammerContext = Hammer( $("svg")[0] )
+      .on("drag", ".node", @dragMove)
 
 
   deactivate : ->
 
-    # yes, D3 has a weird syntax using "on" to enable/disable event handlers
-    @svg
-      .on("mousedown", null)
-      .on("mouseup", null)
-      .on("mousemove", null)
+    @hammerContext
+      .off("drag", @dragMove)
 
 
-  dragStart : (node) =>
+  dragMove : (event) ->
 
-    unless @dragging
-      @dragging = true
+    offset = $("svg").offset()
 
+    x = event.gesture.touches[0].pageX - offset.left
+    y = event.gesture.touches[0].pageY - offset.top
 
-  dragEnd : =>
-
-    if @dragging
-      @dragging = false
-
-
-  dragMove : (node, svgContext) ->
-
-    node.x = d3.mouse(svgContext)[0]
-    node.y = d3.mouse(svgContext)[1]
-
-    d3.select(svgContext)
-      .attr("cx", node.x)
-      .attr("cy", node.y)
+    d3.select(this)
+      .attr("cx", (data) -> data.x = x)
+      .attr("cy", (data) -> data.y = y)
 
     # update edges when node are dragged around
     edges = d3.selectAll(".edge")
     edges.attr("d", (data) ->
       if data
         data.getLineSegment())
+
 
