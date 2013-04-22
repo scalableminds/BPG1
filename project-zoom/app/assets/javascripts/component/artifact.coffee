@@ -35,6 +35,7 @@ class Artifact
     @domElement.append(images[0])
 
     @images = images
+    #@resize()
 
 
   resize : () =>
@@ -47,9 +48,11 @@ class Artifact
     width = @domElement[0].getBoundingClientRect().width
 
     @domElement.empty()
-    if width > 200
+    if width > 192
+      @domElement.append(@images[3])    
+    else if width > 96
       @domElement.append(@images[2])
-    else if width > 100
+    else if width > 48
       @domElement.append(@images[1])
     else
       @domElement.append(@images[0])
