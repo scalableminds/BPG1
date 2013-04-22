@@ -1,6 +1,6 @@
 ### define
 lib/event_mixin : EventMixin
-lib/chai : chai
+lib/sinon : sinon
 ###
 
 describe "EventMixin", ->
@@ -9,7 +9,7 @@ describe "EventMixin", ->
 
     @dummyDispatcher = { register : (->) , unregister : (->) }
     @eventMixin = EventMixin.extend({}, @dummyDispatcher)
-    @spy = chai.spy()
+    @spy = sinon.spy()
     @self = {}
 
 
@@ -43,7 +43,7 @@ describe "EventMixin", ->
 
     it "should work with an array of callbacks", ->
 
-      spy2 = chai.spy()
+      spy2 = sinon.spy()
 
       @eventMixin.on(@self, "test", [ @spy, spy2 ])
       @eventMixin.trigger("test", "testArg")
@@ -60,7 +60,7 @@ describe "EventMixin", ->
 
     it "should work with a map of callbacks", ->
 
-      spy2 = chai.spy()
+      spy2 = sinon.spy()
 
       @eventMixin.on(@self, 
         "test" : [ @spy, spy2 ]
@@ -69,8 +69,8 @@ describe "EventMixin", ->
       @eventMixin.trigger("test", "testArg")
       @eventMixin.trigger("test2", "testArg")
 
-      @spy.should.have.been.called.twice
-      spy2.should.have.been.called.once
+      @spy.should.have.been.calledTwice
+      spy2.should.have.been.calledOnce
 
       @eventMixin.off(@self, 
         "test" : [ @spy, spy2 ]
@@ -79,8 +79,8 @@ describe "EventMixin", ->
       @eventMixin.trigger("test", "testArg")
       @eventMixin.trigger("test2", "testArg")
 
-      @spy.should.have.been.called.twice
-      spy2.should.have.been.called.once
+      @spy.should.have.been.calledTwice
+      spy2.should.have.been.calledOnce
 
 
     it "should only remove first callback", ->
@@ -89,12 +89,12 @@ describe "EventMixin", ->
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.trigger("test", "testArg")
 
-      @spy.should.have.been.called.twice
+      @spy.should.have.been.calledTwice
 
       @eventMixin.off(@self, "test", @spy)
       @eventMixin.trigger("test", "testArg")
 
-      @spy.should.have.been.called.exactly(3)
+      @spy.should.have.been.calledThrice
 
 
   describe "#times", ->
@@ -106,7 +106,7 @@ describe "EventMixin", ->
       for i in [1..4]
         @eventMixin.trigger("test", "testArg")
 
-      @spy.should.have.been.called.exactly(3)
+      @spy.should.have.been.calledThrice
 
 
   describe "#hasCallbacks", ->

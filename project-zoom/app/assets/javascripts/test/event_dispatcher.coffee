@@ -1,7 +1,7 @@
 ### define
 lib/event_mixin : EventMixin
 lib/event_dispatcher : EventDispatcher
-lib/chai : chai
+lib/sinon : sinon
 ###
 
 describe "EventDispatcher", ->
@@ -10,7 +10,7 @@ describe "EventDispatcher", ->
 
     @dispatcher = new EventDispatcher()
     @eventMixin = new EventMixin(@dispatcher)
-    @spy = chai.spy()
+    @spy = sinon.spy()
     @self = {}
 
 
@@ -18,7 +18,7 @@ describe "EventDispatcher", ->
 
     it "should create entries", ->
 
-      @dispatcher.register = chai.spy(@dispatcher.register)
+      @dispatcher.register = sinon.spy(@dispatcher.register)
       @eventMixin.on(@self, "test", @spy)
 
       @dispatcher.boundObjects
@@ -37,6 +37,7 @@ describe "EventDispatcher", ->
       @spy.should.have.been.called.once
 
       @dispatcher.unregister(@eventMixin, @self, null, @spy)
+
       callback("test")
       @spy.should.have.been.called.once
 
@@ -52,12 +53,25 @@ describe "EventDispatcher", ->
       @spy.should.have.been.called.once
 
 
+    it "should work without a sender", ->
+
+      callback = @dispatcher.register(@self, @spy)
+
+      callback("test")
+      @spy.should.have.been.called.once
+      
+      @dispatcher.unregister(@self, @spy)
+
+      callback("test")
+      @spy.should.have.been.called.once
+
+
 
   describe "#unregister", ->
 
     it "should remove entries", ->
 
-      @dispatcher.unregister = chai.spy(@dispatcher.unregister)
+      @dispatcher.unregister = sinon.spy(@dispatcher.unregister)
 
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.off(@self, "test", @spy)
@@ -72,7 +86,7 @@ describe "EventDispatcher", ->
 
     it "should only remove the first entry", ->
 
-      @dispatcher.unregister = chai.spy(@dispatcher.unregister)
+      @dispatcher.unregister = sinon.spy(@dispatcher.unregister)
 
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.on(@self, "test", @spy)
@@ -92,7 +106,7 @@ describe "EventDispatcher", ->
 
     it "should work with already deleted entries", ->
 
-      @dispatcher.unregister = chai.spy(@dispatcher.unregister)
+      @dispatcher.unregister = sinon.spy(@dispatcher.unregister)
 
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.off(@self, "test", @spy)
@@ -103,7 +117,7 @@ describe "EventDispatcher", ->
 
     it "should work", ->
 
-      @dispatcher.unregister = chai.spy(@dispatcher.unregister)
+      @dispatcher.unregister = sinon.spy(@dispatcher.unregister)
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.trigger("test", "testArg")
 
