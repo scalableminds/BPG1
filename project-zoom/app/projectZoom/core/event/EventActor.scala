@@ -28,7 +28,7 @@ class EventActor extends Actor {
       listeners.send(_ + (eventSelector -> s))
       Logger.debug("[Event] Registered: " + s.path)
     case e: Event =>
-      Logger.debug("[Event] Event: " + e + " Sender: " + sender.path)
+      Logger.debug("[Event] Event: " + e.getClass.toString + " Sender: " + sender.path)
       listeners().foreach {
         case (eventSelector, s) =>
           if (eventSelector.isDefinedAt(e))

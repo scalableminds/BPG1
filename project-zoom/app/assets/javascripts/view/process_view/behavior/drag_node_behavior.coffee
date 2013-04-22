@@ -18,19 +18,26 @@ class DragNodeBehavior
 
   dragMove : (event) ->
 
-    offset = $("svg").offset()
+    $svg = $("svg")
+    offset = $svg.offset()
+    scaleValue = $(".zoomSlider input").val()
 
     x = event.gesture.touches[0].pageX - offset.left
     y = event.gesture.touches[0].pageY - offset.top
 
-    d3.select(this)
-      .attr("cx", (data) -> data.x = x)
-      .attr("cy", (data) -> data.y = y)
+    x /= scaleValue
+    y /= scaleValue
 
-    # update edges when node are dragged around
-    edges = d3.selectAll(".edge")
-    edges.attr("d", (data) ->
-      if data
-        data.getLineSegment())
+    if 0 < x < $svg.width() and 0 < y < $svg.height()
+
+      d3.select(this)
+        .attr("cx", (data) -> data.x = x)
+        .attr("cy", (data) -> data.y = y)
+
+      # update edges when node are dragged around
+      edges = d3.selectAll(".edge")
+      edges.attr("d", (data) ->
+        if data
+          data.getLineSegment())
 
 

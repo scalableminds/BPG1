@@ -26,8 +26,6 @@ object Global extends GlobalSettings {
     SupervisorActor.start
     if(app.mode == Mode.Dev)
       putSampleValuesInDB()
-      
-    Logger.info("Serialize: " + ProfileDAO.profileFormat.writes(Profile("test", "penis", "lala"))) 
   }
   
   def putSampleValuesInDB() = {

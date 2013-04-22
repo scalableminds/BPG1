@@ -24,7 +24,9 @@ describe "DataItem", ->
           done()
       )
 
-    it "should get/set a nested data structure", (done) ->
+
+
+    it "should get/set nested data structures", (done) ->
 
       @dataItem.set(
         test :
@@ -35,7 +37,7 @@ describe "DataItem", ->
       @dataItem.attributes.test.attributes.test1.should.equal("test")
 
       @dataItem.set("test/test2", "test2")
-      
+
       @dataItem.attributes.test.attributes.test2.should.equal("test2")
 
       async.parallel [
@@ -53,5 +55,42 @@ describe "DataItem", ->
           )
 
       ], done
+
+
+
+    it "should get/set nested collections", (done) ->
+
+      @dataItem.set(
+        test : [
+          { test1 : "test" }
+          { test2 : "test" }
+        ]
+      )
+
+      async.parallel([
+
+        (callback) =>
+          @dataItem.get("test", this, (value) =>
+
+            value.should.be.instanceof(DataItem.Collection)
+            value.should.have.length(2)
+
+            value.at(0).should.be.instanceof(DataItem)
+
+            value.at(0).get("test1", this, (value) ->
+              value.should.eql("test")
+              callback()
+            )
+          )
+
+        (callback) =>
+          @dataItem.get("test/1/test2", this, (value) ->
+            value.should.eql("test")
+            callback()
+          )
+
+      ], done)
+
+
 
 
