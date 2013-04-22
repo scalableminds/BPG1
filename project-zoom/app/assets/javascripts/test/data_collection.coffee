@@ -1,13 +1,14 @@
 ### define
-lib/data_collection : DataCollection
-lib/request : MockRequest
+lib/data_item : DataItem
+lib/request : Request
+jquery : $
 ###
 
 describe "DataCollection", ->
 
   beforeEach ->
 
-    @dataCollection = new DataCollection()
+    @dataCollection = new DataItem.Collection()
 
 
   describe "#length", ->
@@ -84,41 +85,56 @@ describe "DataCollection", ->
 
     it "should insert data", (done) ->
 
-      @dataCollection.fetch(0, 10).then(
-        =>
-          @dataCollection.should.have.length(2)
-
-          @dataCollection.fetch(3, 10).then(
-            =>
-              @dataCollection.should.have.length(4)
-              @dataCollection.parts.should.have.length(2)
-              done()
-          )
-          MockRequest.trigger( offset : 3, limit : 1, items : [ { test : "3" }, { test : "4" } ] )
+      sinon.stub(Request, "send").returns( 
+        (new $.Deferred()).resolve( offset : 0, limit : 2, items : [ { test : "1" }, { test : "2" } ] ).promise()
       )
 
-      MockRequest.trigger( offset : 0, limit : 2, items : [ { test : "1" }, { test : "2" } ] )
+      @dataCollection.fetch(0, 10).then(
+        =>
+          Request.send.restore()
+
+          @dataCollection.should.have.length(2)
+
+          sinon.stub(Request, "send").returns(
+            (new $.Deferred()).resolve( offset : 3, limit : 1, items : [ { test : "3" }, { test : "4" } ] ).promise()
+          )
+          @dataCollection.fetch(3, 10).then(
+            =>
+              Request.send.restore()
+
+              @dataCollection.should.have.length(4)
+              @dataCollection.parts.should.have.length(2)
+
+              done()
+          )
+
+      )
 
 
   describe "#fetchNext", ->
 
     it "should load continous data", (done) ->
 
+      sinon.stub(Request, "send").returns( 
+        (new $.Deferred()).resolve( offset : 0, limit : 2, items : [ { test : "1" }, { test : "2" } ] ).promise()
+      )
       @dataCollection.fetchNext().then(
         =>
+          Request.send.restore()
           @dataCollection.should.have.length(2)
 
+          sinon.stub(Request, "send").returns(
+            (new $.Deferred()).resolve( offset : 2, limit : 2, items : [ { test : "3" }, { test : "4" } ] ).promise()
+          )
           @dataCollection.fetchNext().then(
             =>
+              Request.send.restore()
               @dataCollection.should.have.length(4)
               @dataCollection.parts.should.have.length(1)
               done()
           )
 
-          MockRequest.trigger( offset : 2, limit : 2, items : [ { test : "3" }, { test : "4" } ] )
       )
-
-      MockRequest.trigger( offset : 0, limit : 2, items : [ { test : "1" }, { test : "2" } ] )
 
 
 
