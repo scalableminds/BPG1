@@ -35,20 +35,26 @@ object SSH extends PlayActorSystem {
     userName: String, password: String,
     lPort: Int, rHost: String, rPort: Int) = {
     
-    if(doesTunnelExist(lPort, rHost, lPort))
-      true
-    else{
-      val conn = new Connection(sshdHost, sshdPort)
-      conn.connect()
-      if (!conn.authenticateWithPassword(userName, password)) {
-        Logger.error("authentication with password failed")
-        false
-      } else {
-        val localPortForwarder = conn.createLocalPortForwarder(lPort, rHost, rPort)
-        sshTunnels send (SSHTunnel(conn, localPortForwarder, lPort, rHost, rPort) :: _)
-        Logger.info(s"created ssh tunnel from $lPort to $rHost:$rPort")
+    try{
+      if(doesTunnelExist(lPort, rHost, lPort))
         true
+      else{
+        val conn = new Connection(sshdHost, sshdPort)
+        conn.connect()
+        if (!conn.authenticateWithPassword(userName, password)) {
+          Logger.error("authentication with password failed")
+          false
+        } else {
+          val localPortForwarder = conn.createLocalPortForwarder(lPort, rHost, rPort)
+          sshTunnels send (SSHTunnel(conn, localPortForwarder, lPort, rHost, rPort) :: _)
+          Logger.info(s"created ssh tunnel from $lPort to $rHost:$rPort")
+          true
+        }
       }
     }
+    catch {
+      case e: Exception => false
+    }
+    
   }
 }
