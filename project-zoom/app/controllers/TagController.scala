@@ -2,16 +2,16 @@ package controllers
 
 import play.api.mvc.Controller
 import securesocial.core.SecureSocial
-import models.Project
-import models.ProjectDAO
+import models.Tag
+import models.TagDAO
 import play.api.libs.json.Json
 import projectZoom.util.PlayActorSystem
+import play.api.libs.json.JsObject
 
-object ProjectController extends ControllerBase with JsonCRUDController{
-  val dao = ProjectDAO
+object TagController extends ControllerBase with JsonCRUDController{
+  val dao = TagDAO
   
   def index = SecuredAction { implicit request =>
     Ok(views.html.index())
-  
-  }  
+  }
 }

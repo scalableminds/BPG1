@@ -31,8 +31,8 @@ case class Graph(
 trait PayloadTransformers {
 
   val payloadTypMapping: Map[String, String => Future[Option[JsValue]]] = Map(
-    "project" -> ProjectDAO.findById _,
-    "artifact" -> ArtifactDAO.findById _)
+    "project" -> ProjectDAO.findOneById _,
+    "artifact" -> ArtifactDAO.findOneById _)
 
   implicit val nodePayloadFormat: Format[NodePayload] = Json.format[NodePayload]
 }

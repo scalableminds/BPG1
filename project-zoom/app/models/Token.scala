@@ -16,7 +16,7 @@ object Token extends MongoDAO[SocialToken]{
     collection.remove(Json.obj("uuid" -> id))
   }
   
-  override def findById(id: String)= {
+  override def findOneById(id: String)= {
     collection.find(Json.obj("uuid" -> id)).one[SocialToken]
   }
   

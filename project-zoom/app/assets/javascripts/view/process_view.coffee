@@ -1,6 +1,7 @@
 ### define
 lib/event_mixin : EventMixin
 d3 : d3
+hammer: Hammer
 ./process_view/interactive_graph : InteractiveGraph
 ./process_view/gui : GUI
 ./process_view/behavior/connect_nodes_behavior : ConnectNodesBehavior
@@ -55,6 +56,7 @@ class ProcessView
           .attr("width", WIDTH)
           .attr("height", HEIGHT)
           .attr("fill", "white")
+          .classed("hitbox", true)
 
 
   initGraph : ->
@@ -72,18 +74,28 @@ class ProcessView
 
   initEventHandlers : ->
 
-    graphContainer = @graphContainer[0][0]
-    @hitbox.on "click", => @graph.addNode(d3.mouse(graphContainer)[0], d3.mouse(graphContainer)[1])
+
+    Hammer( $("svg")[0] )
+      .on("tap", ".hitbox", (event) =>
+        offset = $("svg").offset()
+        touch = event.gesture.touches[0]
+        @graph.addNode(touch.pageX - offset.left, touch.pageY - offset.top)
+      )
 
     processView = this
-    $(".navbar li").on "click", (event) -> processView.changeBehavior(this)
+    $(".btn-group button").on "click", (event) -> processView.changeBehavior(this)
+
+    $("#zoomSlider")
+      .on("change", "input", @zoom)
+      .on("click", "plus", => @changeZoomSlider(0.1) )
+      .on("click", "minus", => @changeZoomSlider(-0.1) )
 
 
   changeBehavior : (selectedTool) =>
 
     { graph, graphContainer } = @
 
-    toolBox = $(".navbar li")
+    toolBox = $(".btn-group button")
     behavior = switch selectedTool
 
       when toolBox[0] then new DragNodeBehavior()
@@ -93,8 +105,14 @@ class ProcessView
     graph.changeBehavior( behavior )
 
 
-  zoom : ->
+  zoom : (event) ->
 
     @graphContainer.attr("transform", "scale( #{d3.event.scale} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
     console.log "zooming"
+
+
+  changeZoomSlider : (delta) ->
+
+    $slider = $("#zoomSlider input")
+    $slider.val( $slider.val() + delta )
