@@ -27,7 +27,7 @@ import models.DefaultResourceTypes
 case class UpdateInfo(origin: String, projectName: String)
 
 trait ArtifactUpdate extends Event
-case class ArtifactFound(originalStream: InputStream, arifact: ArtifactInfo) extends ArtifactUpdate
+case class ArtifactFound(originalStream: InputStream, artifact: ArtifactInfo) extends ArtifactUpdate
 case class ArtifactDeleted(artifact: ArtifactInfo) extends ArtifactUpdate
 case class ArtifactAggregation(_project: String, l: List[ArtifactFound]) extends ArtifactUpdate
 
@@ -103,19 +103,16 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
     }
   }
 
-  def handleArtifactAggregation(_project: String, artifacts: List[ArtifactFound]) = {
+  def handleArtifactAggregation(_project: String, foundArtifacts: List[ArtifactFound]) = {
     ArtifactDAO.findAllForProject(_project).map { projectArtifacts =>
-      val (updatedArtifacts, deletedArtifacts) =
-        projectArtifacts
-          .flatMap(ArtifactDAO.createArtifactFrom)
-          .partition(artifacts.contains)
+      val found = foundArtifacts.map(_.artifact)
+      projectArtifacts
+        .flatMap(ArtifactDAO.createArtifactFrom)
+        .filterNot(found.contains)
+        .map(handleArtifactDelete)
 
-      deletedArtifacts.map {
-        handleArtifactDelete
-      }
-
-      artifacts.map(a =>
-        handleArtifactFound(a.originalStream, a.arifact))
+      foundArtifacts.map(a =>
+        handleArtifactFound(a.originalStream, a.artifact))
     }
   }
 

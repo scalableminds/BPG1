@@ -1,7 +1,6 @@
 package projectZoom.thumbnails.text
 import play.api.Logger
 import projectZoom.core.event._
-import projectZoom.thumbnails.text.TextThumbnailPlugin
 import projectZoom.util.StartableActor
 
 class TextThumbnailActor extends EventSubscriber with EventPublisher{

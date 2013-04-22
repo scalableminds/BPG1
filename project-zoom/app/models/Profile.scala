@@ -14,7 +14,7 @@ case class Profile(firstName: String, lastName: String, email: String, linkedEma
 
 object ProfileDAO extends MongoJsonDAO with UserHelpers {
   val collectionName = "profiles"
-    
+
   implicit val profileFormat = Json.format[Profile]
 
   def allowRegistration(profile: Profile) = {
@@ -31,6 +31,10 @@ object ProfileDAO extends MongoJsonDAO with UserHelpers {
   def findOneByUserId(userId: UserId) = {
     collection.find(Json.obj("user.id" -> userId)).one[Profile]
   }
+  
+  def update(p: Profile) =
+    collection.update(Json.obj("email" -> p.email),
+      Json.obj("$set" -> p), upsert = true)
 
   def update(p: Profile, u: Profile) = {
     collection.update(Json.obj("email" -> p.email), u, upsert = true, multi = false)
