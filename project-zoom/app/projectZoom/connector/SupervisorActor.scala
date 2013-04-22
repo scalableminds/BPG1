@@ -19,7 +19,6 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem{
   val SSHPassword = "toor"
   if (! SSH.createTunnel(rHost, 22, SSHUserName, SSHPassword, fmPort, "127.0.0.1", fmPort)){
       Logger.error("Could not create tunnel!")
-      throw new CreatingTunnelFailed()
   }
 
   val filemaker = context.actorOf(Props(new FilemakerActor(FilemakerAPI.create(FileMakerDBInfo("127.0.0.1", "dschoolDB.fmp12", "admin", "admin")))))

@@ -1,18 +1,23 @@
 require.config(
   shim :
-    "lib/chai-spies" : [ "lib/chai" ]
+    "lib/sinon-chai" : [ "lib/sinon" ]
+    "lib/sinon" : 
+      exports : "sinon"
+
+  paths :
+    "lib/request" : "test/mocks/request"
 )
 
 define [
   "lib/chai"
-  "lib/chai-spies"
+  "lib/sinon-chai"
   "lib/mocha"
   "lib/core_ext"
-], (chai, chaiSpies) ->
+], (chai, chaiSinon) ->
 
   # Chai
   chai.should()
-  chai.use(chaiSpies)
+  chai.use(chaiSinon)
 
   # Mocha
   mocha.setup("bdd")

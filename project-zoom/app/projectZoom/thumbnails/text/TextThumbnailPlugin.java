@@ -33,7 +33,7 @@ import cue.lang.stop.StopWords;
 public class TextThumbnailPlugin {
 	
 	private List<TextReader> readers;
-	int[] widths = {64, 128, 256};
+	int[] widths = {64, 128};
 
 	public TextThumbnailPlugin() {
 		

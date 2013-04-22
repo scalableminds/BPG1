@@ -305,7 +305,7 @@ public class MyWordle
 								current.bounds.getX()+cx - 20,
 								current.bounds.getY()+cy - 20 ,
 								current.bounds.getWidth() + 40,
-								current.bounds.getHeight() + 50
+								current.bounds.getHeight() + 40
 								);
 						}
 					//any collision ?
@@ -457,9 +457,11 @@ public class MyWordle
 			if(width > 0)
 				{
 				double ratio=width/dim.getWidth();
+				double ratio2=width/dim.getHeight();
+				double minRatio = Math.min(ratio, ratio2);
 				dim.width=width;
-				dim.height=(int)(dim.getHeight()*ratio);
-				scale=AffineTransform.getScaleInstance(ratio, ratio);
+				dim.height=width; //(int)(dim.getHeight()*ratio);
+				scale=AffineTransform.getScaleInstance(minRatio, minRatio);
 				}
 			
 			BufferedImage img=new BufferedImage(
