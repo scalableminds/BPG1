@@ -39,7 +39,7 @@ case class ResourceFound(inputStream: InputStream, artifact: ArtifactInfo, resou
 case class ResourceUpdated(resource: ResourceInfo) extends Event
 case class ResourceInserted(resource: ResourceInfo) extends Event
 
-case class RequestResource(artifact: ArtifactInfo, resource: ResourceInfo)
+case class RequestResource(_project: String, resource: ResourceInfo)
 
 trait FSWriter {
   val basePath = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
@@ -145,11 +145,8 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
     case ResourceFound(inputStream, artifactInfo, resourceInfo) =>
       handleResourceUpdate(inputStream, artifactInfo, resourceInfo)
 
-    case RequestResource(artifactInfo, resourceInfo) =>
-      sender ! readFromFS(artifactInfo._project, resourceInfo)
-
-    case x =>
-      Logger.debug("Artifact Actor received: " + x.toString + " s: " + sender.path)
+    case RequestResource(_project, resourceInfo) =>
+      sender ! readFromFS(_project, resourceInfo)
   }
 }
 

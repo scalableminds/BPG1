@@ -21,6 +21,7 @@ class ArtifactFinder
       {type :"thumbnail", path : "assets/images/thumbnails/0.png"}
       {type :"thumbnail", path : "assets/images/thumbnails/1.png"}
       {type :"thumbnail", path : "assets/images/thumbnails/2.png"}
+      {type :"thumbnail", path : "assets/images/thumbnails/3.png"}
       {type :"original", path : "assets/images/thumbnails/fail.png"}
     ]
   }
@@ -39,6 +40,7 @@ class ArtifactFinder
       type : "range"
       min : "1"
       max : "500"
+      value: "40"
     })
 
     domElement.append(slider)

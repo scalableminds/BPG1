@@ -41,7 +41,7 @@ object JsonPatch {
 
   val addPatch: Reads[JsonPatch] =
     (verifyOperation("add") andKeep path and value)(JsonAdd)
-
+ 
   val removePatch: Reads[JsonPatch] =
     (verifyOperation("remove") andKeep path).map(JsonRemove)
 

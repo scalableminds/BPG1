@@ -9,11 +9,23 @@ import akka.pattern.ask
 import projectZoom.core.artifact.RequestResource
 import models.ArtifactInfo
 import models.ResourceInfo
+import models.ArtifactDAO._
 import play.api.libs.concurrent.Execution.Implicits._
+import models.ProjectDAO
+import projectZoom.util.PlayConfig
+import projectZoom.util.ExtendedTypes.ExtendedFuture
+import akka.util.Timeout
+import scala.concurrent.duration._
+import java.io.InputStream
+import play.api.libs.iteratee.Enumerator
+import akka.pattern.AskTimeoutException
+import scala.concurrent.Future
 
-object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem {
+object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem with PlayConfig {
 
   lazy val artifactActor = userActorFor(ArtifactActor.name)
+
+  implicit val timeout = Timeout(config.getInt("artifact.timeout").getOrElse(5) seconds)
 
   val dao = ArtifactDAO
 
@@ -21,7 +33,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
     Ok(views.html.index())
   }
 
-  def list(project: String, offset: Int, limit: Int) = SecuredAction { implicit request =>
+  def listForProject(project: String, offset: Int, limit: Int) = SecuredAction { implicit request =>
     //TODO: restrict access
     Async {
       dao.findSomeForProject(project, offset, limit).map { l =>
@@ -30,12 +42,31 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
     }
   }
 
-  def download() = SecuredAction { implicit request =>
+  def download(_project: String, artifactId: String, resourceType: String) = SecuredAction { implicit request =>
     Async {
-      //val artifactInfo = ArtifactInfo()
-      //val resourceInfo = ResourceInfo()
-???
-      //artifactActor ? RequestResource(artifactInfo, resourceInfo)
+      (for {
+        project <- ProjectDAO.findOneByName(_project)
+        artifact <- ArtifactDAO.findOneById(artifactId)
+      } yield {
+        artifact.flatMap(a => (a \ "resources" \ resourceType).asOpt[ResourceInfo]) match {
+          case Some(resource) =>
+            val r: Future[play.api.mvc.Result] = (artifactActor ? RequestResource(_project, resource))
+              .mapTo[Option[InputStream]]
+              .map {
+                case Some(stream) =>
+                  Ok.feed(Enumerator.fromStream(stream))
+                case _ =>
+                  NotFound
+              }
+              .recover {
+                case a: AskTimeoutException =>
+                  NotFound
+              }
+            r
+          case _ =>
+            Future.successful(NotFound)
+        }
+      }).flatten
     }
   }
 }

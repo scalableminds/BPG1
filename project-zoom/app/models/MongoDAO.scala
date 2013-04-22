@@ -19,6 +19,7 @@ import reactivemongo.api.collections.GenericQueryBuilder
 import play.modules.reactivemongo.json.collection.JSONGenericHandlers
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
+import play.api.libs.concurrent.Execution.Implicits._
 
 trait DAO[T] {
   def findHeadOption(attribute: String, value: String): Future[Option[T]]
@@ -62,8 +63,6 @@ trait MongoDAO[T] extends DAO[T] {
   def collectionName: String
   implicit def formatter: Format[T]
 
-  implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-
   def db: DefaultDB = ReactiveMongoPlugin.db
   lazy val collection = db.collection[JSONCollection](collectionName)
 
@@ -72,9 +71,13 @@ trait MongoDAO[T] extends DAO[T] {
   }
 
   def findHeadOption(attribute: String, value: String) = {
-    collection.find(Json.obj(attribute -> value)).one[T]
+    find(attribute, value).one[T]
   }
 
+  def find(attribute: String, value: String) = {
+    collection.find(Json.obj(attribute -> value))
+  }
+  
   def remove(attribute: String, value: String) = {
     collection.remove(Json.obj(attribute -> value))
   }
@@ -107,7 +110,7 @@ trait MongoDAO[T] extends DAO[T] {
   }
 
   def insert(t: T): Future[LastError] = {
-    collection.insert(t)(formatter, ec)
+    collection.insert(t)
   }
 
   def update(query: JsObject, t: T, upsert: Boolean, multi: Boolean) = {

@@ -16,7 +16,9 @@ object DefaultResourceTypes extends DefaultResourceTypes
 
 trait ResourceHelpers {
   implicit val resourceFormat: Format[Resource] = Json.format[Resource]
-  
+
+  implicit val resourceInfoFormat: Format[ResourceInfo] = Json.format[ResourceInfo]
+
   def resourceCreateFrom(ri: ResourceInfo, path: String, hash: String) =
     Resource(
       path,

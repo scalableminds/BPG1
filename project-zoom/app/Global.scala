@@ -10,6 +10,9 @@ import play.api.libs.concurrent.Akka
 import projectZoom.core.settings.SettingsActor
 import play.api.Mode
 import models.User
+import models.Profile
+import play.api.Logger
+import models.ProfileDAO
 
 object Global extends GlobalSettings {
 

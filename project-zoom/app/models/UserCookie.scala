@@ -15,7 +15,7 @@ object UserCookieDAO extends MongoDAO[Authenticator] {
     update(Json.obj("id" -> a.id), a, true, false)
   }  
     
-  import UserDAO._
+  import UserHelpers._
   val formatter = 
     ((__ \ "id").format[String] and
     (__ \ "userId").format[UserId] and
