@@ -6,13 +6,13 @@ class GUI
 
   constructor : ->
 
-    @initNavbar()
+    @initToolbar()
 
 
-  initNavbar : ->
+  initToolbar : ->
 
-    $('.navbar li').on "click", (event) ->
-      $('.navbar li').removeClass('active')
+    $('.btn-group button').on "click", (event) ->
+      $('.btn-group button').removeClass('active')
 
       $this = $(@)
       unless $this.hasClass('active')
