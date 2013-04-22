@@ -9,34 +9,45 @@ import play.api.Logger
 import projectZoom.util.StartableActor
 
 trait Event
-case class UnRegister()
-case class RegisterAsHandlerWithFilter(pf: PartialFunction[Any, Unit])
+case class Unsubscribe(key: String)
+case class UnsubscribeAll()
+case class SubscribeWithFilter(pf: PartialFunction[Any, Unit], key: String)
 
 class EventActor extends Actor {
+  case class EventSubscription(f: PartialFunction[Event, Unit], actor: ActorRef)
 
   implicit val sys = context.system
 
-  val listeners = Agent[Map[PartialFunction[Event, Unit], ActorRef]](Map())
+  val listeners = Agent[Map[String, EventSubscription]](Map())
 
   def receive = {
-    case UnRegister() =>
+    case Unsubscribe(key) =>
       val s = sender
-      listeners.send(_.filter(_._2 == s))
-      Logger.debug("[Event] Unregistered: " + s.path)
-    case RegisterAsHandlerWithFilter(eventSelector) =>
+      listeners.send(_ - key)
+      Logger.debug("[Event] Unregistered one of: " + s.path)
+
+    case UnsubscribeAll() =>
       val s = sender
-      listeners.send(_ + (eventSelector -> s))
+      listeners.send(_.filter {
+        case (_, EventSubscription(_, a)) => a == s
+      })
+      Logger.debug("[Event] Unregistered from everything: " + s.path)
+
+    case SubscribeWithFilter(eventSelector, key) =>
+      val s = sender
+      listeners.send(_ + (key -> EventSubscription(eventSelector, s)))
       Logger.debug("[Event] Registered: " + s.path)
+
     case e: Event =>
       Logger.debug("[Event] Event: " + e.getClass.toString + " Sender: " + sender.path)
       listeners().foreach {
-        case (eventSelector, s) =>
+        case (_, EventSubscription(eventSelector, subscriber)) =>
           if (eventSelector.isDefinedAt(e))
-            s.forward(e)
+            subscriber.forward(e)
       }
   }
 }
 
-object EventActor extends StartableActor[EventActor]{
+object EventActor extends StartableActor[EventActor] {
   def name = "eventActor"
 }

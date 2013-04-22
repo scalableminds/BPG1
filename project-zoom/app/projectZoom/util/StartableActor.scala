@@ -8,6 +8,14 @@ import scala.reflect.ClassTag
 
 trait StartableActor[T <: Actor] {
   def name: String
-  def start(implicit sys: akka.actor.ActorSystem, tag: ClassTag[T]) =
-    sys.actorOf(Props[T], name)
+
+  def postStart(actor: ActorRef) {
+
+  }
+
+  def start(implicit sys: akka.actor.ActorSystem, tag: ClassTag[T]) = {
+    val actor = sys.actorOf(Props[T], name)
+    postStart(actor)
+    actor
+  }
 }
