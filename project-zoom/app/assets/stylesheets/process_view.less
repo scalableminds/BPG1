@@ -1,34 +1,38 @@
 #artifactFinder {
 
-  width : 25%;
-  float: left;
-
   background-color: #fafafa;
+}
+
+#toolBar {
+
+  margin-bottom: 20px;
 }
 
 #mainBody {
 
-  width: 75%;
-  float: left;
-  position: relative;
 
-  #toolBar {
+}
 
-    position: absolute;
-    top: 0px;
-    left: 0px;
+.zoomSlider {
+
+  button {
+    display: block;
   }
 
-  #graph{
+  input {
 
-    position: absolute;
-    top: 40px;
-    left: 0px;
-    width: 100%;
+    margin: 5px 0 5px 20px;
+    width: 0px;
+
+    -webkit-appearance: slider-vertical;
+
+    // -webkit-transform: rotate(-90deg);
+    // -ms-transform: rotate(-90deg);
+    // -moz-transform: rotate(-90deg);
   }
 }
 
-#clearFix {
+.container-fluid {
 
-  clear: both;
+  padding: 10px;
 }
