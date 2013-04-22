@@ -53,9 +53,13 @@ class ConnectNodesBehavior
   dragMove : (event) =>
 
     offset = $("svg").offset()
+    scaleValue = $(".zoomSlider input").val()
 
     x = event.gesture.touches[0].pageX - offset.left
     y = event.gesture.touches[0].pageY - offset.top
+
+    x /= scaleValue
+    y /= scaleValue
 
     startEvent = event.gesture.startEvent
     lineStartX = d3.select(startEvent.target).attr("cx")

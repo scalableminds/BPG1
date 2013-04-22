@@ -2,6 +2,7 @@
 lib/event_mixin : EventMixin
 d3 : d3
 hammer: Hammer
+jquery.mousewheel : Mousewheel
 ./process_view/interactive_graph : InteractiveGraph
 ./process_view/gui : GUI
 ./process_view/behavior/connect_nodes_behavior : ConnectNodesBehavior
@@ -47,10 +48,6 @@ class ProcessView
       .attr("WIDTH", WIDTH)
       .attr("HEIGHT", HEIGHT)
       .attr("pointer-events", "all")
-      # .call(
-      #   d3.behavior.zoom()
-      #     .on("zoom", ( => @zoom()) )
-      # )
 
     @hitbox = @svg.append("svg:rect")
           .attr("width", WIDTH)
@@ -78,8 +75,15 @@ class ProcessView
     Hammer( $("svg")[0] )
       .on("tap", ".hitbox", (event) =>
         offset = $("svg").offset()
-        touch = event.gesture.touches[0]
-        @graph.addNode(touch.pageX - offset.left, touch.pageY - offset.top)
+        scaleValue = $(".zoomSlider input").val()
+
+        x = event.gesture.touches[0].pageX - offset.left
+        y = event.gesture.touches[0].pageY - offset.top
+
+        x /= scaleValue
+        y /= scaleValue
+
+        @graph.addNode(x, y)
       )
 
     processView = this
@@ -90,6 +94,13 @@ class ProcessView
       .on("click", ".plus", => @changeZoomSlider(0.1) )
       .on("click", ".minus", => @changeZoomSlider(-0.1) )
 
+    $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+
+      evt.preventDefault()
+      if deltaY > 0
+        @changeZoomSlider(0.1)
+      else
+        @changeZoomSlider(-0.1)
 
   changeBehavior : (selectedTool) =>
 
@@ -111,7 +122,6 @@ class ProcessView
 
     @graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
-    console.log "zooming"
 
 
   changeZoomSlider : (delta) ->
