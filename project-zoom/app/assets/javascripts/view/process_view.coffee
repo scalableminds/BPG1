@@ -85,10 +85,10 @@ class ProcessView
     processView = this
     $(".btn-group button").on "click", (event) -> processView.changeBehavior(this)
 
-    $("#zoomSlider")
+    $(".zoomSlider")
       .on("change", "input", @zoom)
-      .on("click", "plus", => @changeZoomSlider(0.1) )
-      .on("click", "minus", => @changeZoomSlider(-0.1) )
+      .on("click", ".plus", => @changeZoomSlider(0.1) )
+      .on("click", ".minus", => @changeZoomSlider(-0.1) )
 
 
   changeBehavior : (selectedTool) =>
@@ -105,14 +105,19 @@ class ProcessView
     graph.changeBehavior( behavior )
 
 
-  zoom : (event) ->
+  zoom : (event) =>
 
-    @graphContainer.attr("transform", "scale( #{d3.event.scale} )") #"translate(" + d3.event.translate + ")
+    scaleValue = $(".zoomSlider input").val()
+
+    @graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
     console.log "zooming"
 
 
   changeZoomSlider : (delta) ->
 
-    $slider = $("#zoomSlider input")
-    $slider.val( $slider.val() + delta )
+    $slider = $(".zoomSlider input")
+    sliderValue = parseFloat($slider.val())
+    $slider.val( sliderValue + delta )
+
+    @zoom()
