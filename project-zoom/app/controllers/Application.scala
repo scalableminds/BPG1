@@ -4,13 +4,21 @@ import play.api._
 import play.api.mvc._
 
 object Application extends Controller {
-  
+
   def index = Action {
-    Ok(views.html.index())
+    Redirect(controllers.routes.Application.processView)
+  }
+
+  def processView = Action {
+    Ok(views.html.processView())
+  }
+
+  def overview = Action {
+    Ok(views.html.projectsOverview())
   }
 
   def test = Action {
-  	Ok(views.html.test())
+    Ok(views.html.test())
   }
-  
+
 }

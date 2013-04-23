@@ -1,4 +1,4 @@
-@()
+@(content: Html)
 
 <!DOCTYPE html>
 
@@ -23,35 +23,8 @@
   <script src="@routes.Assets.at("javascripts/config.js")" type="text/javascript"></script>
   <script src="@routes.Assets.at("javascripts/lib/require-2.1.5.js")" data-main="index" type="text/javascript"></script>
 
-  <div class="container-fluid">
-
-    <div class="row-fluid">
-      <div id="artifactFinder" class="span4"></div>
-
-      <div id="mainBody" class="span8">
-
-        <div class="row-fluid">
-          <div id="toolBar" class="span12">
-            <div class="btn-group">
-              <button class="btn active"><a href="#"><i class="icon-move"></i>Drag Node</a></button>
-              <button class="btn"><a href="#"><i class="icon-arrow-left"></i>Connect Nodes</a></button>
-              <button class="btn"><a href="#"><i class="icon-trash"></i>Delete Node</a></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="row-fluid">
-          <div id="graph" class="span11"></div>
-
-          <div class="zoomSlider span1">
-            <button class="btn plus"><i class="icon-plus"></i></button>
-            <input type="range" min="0.5" max="3" step=".1" value="1">
-            <button class="btn minus"><i class="icon-minus"></i></button>
-          </div>
-        </div>
-
-      </div>
-    </div>
+  <div class="content">
+    @content
 
   </div>
 
