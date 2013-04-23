@@ -12,17 +12,65 @@ TODO:
   * json patch support
 ###
 
+class ChangeAccumulator
+
+  constructor : ->
+
+    @changes = []
+
+
+  addChange : (change) =>
+
+    change = _.object(
+      _.pairs(change).map( ( [key, value] ) ->
+        [key, if value?.toJSON then value.toJSON() else value]
+      )
+    )
+    Object.defineProperty(change, "__timestamp", value : Date.now())
+    @changes.push(change)
+    return
+
+
+  flush : ->
+
+    merge = (source, target) ->
+      
+      _.forOwn(source, (value, key) -> 
+        if _.isObject(value)
+          target[key] = {} unless target[key]?
+          merge(value, target[key])
+        else
+          target[key] = value
+      )
+      target
+
+    changeSet = {}
+    merge(change, changeSet) for change in @changes
+    Object.defineProperty(changeSet, "__timestamp", value : _.max(@changes, "__timestamp").__timestamp)
+    @changes.length = 0
+    changeSet
+
+
 
 class DataItem
 
   constructor : (json = {}, @parent) ->
 
     EventMixin.extend(this)
+    @trackChanges = _.memoize(@trackChanges)
+    @changeAcc = new ChangeAccumulator()
+
+    @on(@changeAcc, "change", @changeAcc.addChange)
 
     @attributes = {}
     @lazyAttributes = {}
 
     @set(json)
+
+
+  trackChanges : (key) -> (changeSet) =>
+
+    @trigger("change", _.object([key], [changeSet]), this)
 
 
   get : (key, self, callback) ->
@@ -72,23 +120,64 @@ class DataItem
       if key.indexOf("/") == -1
 
         if _.isArray(value)
-          @attributes[key] = new DataItem.Collection(value, this)
+          @_set(key, new DataItem.Collection(value, this))
 
         else if _.isObject(value)
-          @attributes[key] = new DataItem(value, this)
+          
+          @_set(key, new DataItem(value, this))
 
         else
-          @attributes[key] = value
-
-          @trigger("change:#{key}", value, this)
-
-          @trigger("change", _.object([key],[value]), this)
+          @_set(key, value)
 
       else
 
         remainingKey = key.substring(key.indexOf("/") + 1)
         key = key.substring(0, key.indexOf("/"))
         this.attributes[key].set(remainingKey, value)
+
+
+
+  _set : (key, value) ->
+
+    if oldValue = @attributes[key]
+      if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
+        oldValue.off(this, "change", @trackChanges(key))
+
+    @attributes[key] = value
+
+    if value instanceof DataItem or value instanceof DataItem.Collection
+      value.on(this, "change", @trackChanges(key))
+
+    @trigger("change:#{key}", value, this)
+    @trigger("change", _.object([key], [value]), this)
+
+
+  unset : (key) ->
+
+    if oldValue = @attributes[key]
+      if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
+        oldValue.off(this, "change", @trackChanges(key))
+
+      delete @attributes[key]
+
+      @trigger("change:#{key}", undefined, this)
+      @trigger("change", _.object([key], [undefined]), this)
+
+    return
+
+
+  toJSON : ->
+
+    _.object(
+      _.pairs(@attributes).map( ( [key, value] ) ->
+        if value instanceof DataItem or value instanceof DataItem.Collection
+          [key, value.toJSON()]
+        else
+          [key, value]
+      )
+    )
+
+
 
 
 
@@ -109,7 +198,10 @@ class DataItem.Collection
     Object.defineProperty( this, "length", get : => @items.length )
 
 
-  cloneShadow : ->
+  trackChanges : (changeSet, item) =>
+
+    index = _.findIndex(@items, item)
+    @trigger("change", _.object([index], [changeSet]), this)
 
 
   fetch : (offset, limit) ->
@@ -193,6 +285,8 @@ class DataItem.Collection
 
     for item in items
       index = @length
+      if item instanceof DataItem or item instanceof DataItem.Collection
+        item.on(this, "change", @trackChanges)
       @items.push(item)
       @trigger("add", item, this)
       @trigger("change:#{index}", item, this)
@@ -204,11 +298,23 @@ class DataItem.Collection
 
     for item in items
       index = _.findIndex(@items, item)
+      if item instanceof DataItem or item instanceof DataItem.Collection
+        item.off(this, "change", @trackChanges)
       @items.splice(index, 1)
       @trigger("remove", item, this) 
       @trigger("change:#{index}", undefined, this)
       @trigger("change", _.object([index], [undefined]), this)
     return
+
+
+  toJSON : ->
+
+    @items.map( (item) ->
+      if item instanceof DataItem or item instanceof DataItem.Collection
+        item.toJSON()
+      else
+        item
+    )
 
 
 DataItem
