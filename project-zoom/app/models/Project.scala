@@ -7,7 +7,7 @@ import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits._
 import play.modules.reactivemongo.json.BSONFormats._
 
-case class ProjectLike(name: String, participants: List[Participant], _tags: List[String])
+case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String])
 
 case class Participant(duty: String, _user: String)
 
