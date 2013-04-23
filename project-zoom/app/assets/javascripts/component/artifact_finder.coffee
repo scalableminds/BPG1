@@ -12,17 +12,18 @@ class ArtifactFinder
 
   domElement : null
   groups : null
-  artifacts : null
+  artifacts : []
 
   SAMPLE_ARTIFACT : {
     name:"test1"
+    id : 12345
     source : "Dropbox"
     resources : [
-      {type :"thumbnail", path : "assets/images/thumbnails/0.png"}
-      {type :"thumbnail", path : "assets/images/thumbnails/1.png"}
-      {type :"thumbnail", path : "assets/images/thumbnails/2.png"}
-      {type :"thumbnail", path : "assets/images/thumbnails/3.png"}
-      {type :"original", path : "assets/images/thumbnails/fail.png"}
+      {type :"thumbnail", id : 123, path : "assets/images/thumbnails/0.png"}
+      {type :"thumbnail", id : 456, path : "assets/images/thumbnails/1.png"}
+      {type :"thumbnail", id : 789, path : "assets/images/thumbnails/2.png"}
+      {type :"thumbnail", id : 112, path : "assets/images/thumbnails/3.png"}
+      {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
     ]
   }
 
@@ -45,13 +46,13 @@ class ArtifactFinder
 
     domElement.append(slider)
 
+    @artifacts.push new Artifact( @SAMPLE_ARTIFACT, -> 64 )
     artifact = @SAMPLE_ARTIFACT
 
     @createGroups(domElement, @GROUP_NAMES)
 
     func = -> this.value
     x = _.bind(func, slider[0])
-
 
     artifactC = new Artifact(
       artifact
@@ -69,6 +70,7 @@ class ArtifactFinder
     group = _.find(@groups, (g) => g.name is artifact.source)
     group.div.append(artifactC.domElement)
 
+
     @domElement = domElement
 
 
@@ -82,6 +84,12 @@ class ArtifactFinder
   activate : ->
 
   deactivate : ->
+
+  getArtifact : (id) =>
+
+    for artifact in @artifacts
+      if artifact.id = id
+        return _.cloneDeep(artifact)
 
 
   pluginDocTemplate : _.template """
@@ -117,3 +125,4 @@ class ArtifactFinder
     parent.append(tabs)
     for name in groupNames
       groups.push { name: name, div: parent.find("#tab#{name}")}
+

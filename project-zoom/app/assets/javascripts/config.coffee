@@ -1,4 +1,4 @@
-window.require = 
+window.require =
 
   baseUrl : "/assets/javascripts"
   waitSeconds : 15
@@ -14,11 +14,12 @@ window.require =
     jquery : "lib/jquery-1.9.1"
     async : "lib/async-0.2.6"
     d3 : "lib/d3-3.0.8"
-    "jquery.hammer" : "lib/jquery.hammer-1.0.3"
+    hammer : "lib/hammer"
+    "jquery.mousewheel" : "lib/jquery.mousewheel"
 
 
   shim :
-    bootstrap : 
+    bootstrap :
       deps : [ "jquery" ]
       exports : "Bootstrap"
     underscore :
@@ -31,5 +32,5 @@ window.require =
     "backbone.deepmodel" :
       deps : [ "backbone", "underscore" ]
       exports : "Backbone.DeepModel"
-    "jquery.hammer" :
-      deps : [ "jquery" ]
+    "jquery.mousewheel" :
+      deps: [ "jquery" ]

@@ -29,9 +29,9 @@ class ProcessView
     @initEventHandlers()
 
     @gui = new GUI()
-    artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, -> 64
-    @graph.addForeignObject(artifact.domElement)
-    @on "view:zooming", artifact.resize
+    # artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, -> 64
+    # @graph.addForeignObject(artifact.domElement)
+    # @on "view:zooming", artifact.resize
 
 
 
@@ -39,6 +39,9 @@ class ProcessView
 
     @artifactFinder = new ArtifactFinder()
     $("#artifactFinder").append( @artifactFinder.domElement )
+
+    #make first tab activate
+    $("a[data-toggle=tab]").first().tab("show")
 
 
   initD3 : ->
@@ -71,7 +74,7 @@ class ProcessView
 
   initEventHandlers : ->
 
-
+    # add new node
     Hammer( $("svg")[0] )
       .on("tap", ".hitbox", (event) =>
         offset = $("svg").offset()
@@ -86,9 +89,14 @@ class ProcessView
         @graph.addNode(x, y)
       )
 
+    # drag artifact into graph
+    Hammer($("#artifactFinder")[0]).on "dragend", ".artifact-image", @addArtifact
+
+    # change tool from toolbox
     processView = this
     $(".btn-group button").on "click", (event) -> processView.changeBehavior(this)
 
+    # zooming
     $(".zoomSlider")
       .on("change", "input", @zoom)
       .on("click", ".plus", => @changeZoomSlider(0.1) )
@@ -101,6 +109,21 @@ class ProcessView
         @changeZoomSlider(0.1)
       else
         @changeZoomSlider(-0.1)
+
+
+  addArtifact : (evt) =>
+
+    artifact = evt.gesture.startEvent.target
+    dropTarget = evt.gesture.target
+
+    if $("svg").has(dropTarget).length > 0
+
+      id = $(artifact).data("id")
+      artifact = @artifactFinder.getArtifact(id)
+
+      @graph.addForeignObject(artifact.domElement)
+
+
 
   changeBehavior : (selectedTool) =>
 

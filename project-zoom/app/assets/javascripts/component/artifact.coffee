@@ -24,11 +24,7 @@ class Artifact
       if resource.type isnt "thumbnail"
         continue
 
-      image = $('<img/>', {
-        title: "#{artifact.name}"
-        class: "artifact-image"
-        src: resource.path
-      })
+      image = $("""<img draggable="false" title="#{artifact.name}" class="artifact-image" src="#{resource.path}" data-id="#{artifact.id}"/>""")
 
       images.push image
 
@@ -49,7 +45,7 @@ class Artifact
 
     @domElement.empty()
     if width > 192
-      @domElement.append(@images[3])    
+      @domElement.append(@images[3])
     else if width > 96
       @domElement.append(@images[2])
     else if width > 48
