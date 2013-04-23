@@ -46,7 +46,7 @@ class KnowledgeActor extends EventSubscriber with EventPublisher {
       val found = foundProjects.map(_.project)
 
       dbProjects
-        .flatMap(ProjectDAO.projectFormat.reads(_).asOpt)
+        .flatMap(ProjectDAO.projectLikeFormat.reads(_).asOpt)
         .filterNot(found.contains)
         .map(handleProjectDelete)
 
@@ -60,7 +60,7 @@ class KnowledgeActor extends EventSubscriber with EventPublisher {
   def handleProfileDelete(profile: Profile) = {
     // TODO: handle
   }
-  def handleProjectDelete(project: Project) = {
+  def handleProjectDelete(project: ProjectLike) = {
     // TODO: handle
   }
 
@@ -75,11 +75,11 @@ class KnowledgeActor extends EventSubscriber with EventPublisher {
     }
   }
 
-  def handleProjectFound(project: Project) = {
+  def handleProjectFound(project: ProjectLike) = {
     handleProjectUpdate(project)
   }
 
-  def handleProjectUpdate(project: Project) = {
+  def handleProjectUpdate(project: ProjectLike) = {
     ProjectDAO.update(project).map { lastError =>
       if (lastError.updated > 0) {
         // TODO: do something?
