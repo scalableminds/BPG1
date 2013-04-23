@@ -1,7 +1,9 @@
 ### define
 lib/data_item : DataItem
 lib/request : Request
+lib/chai : chai
 jquery : $
+async : async
 ###
 
 describe "DataCollection", ->
@@ -15,7 +17,7 @@ describe "DataCollection", ->
 
     it "should have a length", ->
 
-      @dataCollection.add("test")
+      @dataCollection.add(new DataItem(test : "test"))
       @dataCollection.length.should.be.equal(1)
 
 
@@ -23,11 +25,79 @@ describe "DataCollection", ->
 
     it "should add and remove many elements", ->
 
-      @dataCollection.add("test1", "test2")
+      dataItem1 = new DataItem(test : "test1")
+      dataItem2 = new DataItem(test : "test2")
+
+      @dataCollection.add(dataItem1, dataItem2)
       @dataCollection.length.should.be.equal(2)
 
-      @dataCollection.remove("test1", "test2")
+      @dataCollection.remove(dataItem1, dataItem2)
       @dataCollection.length.should.be.equal(0)
+
+
+    it "should trigger add events", (done) ->
+
+      dataItem = new DataItem(test : "test")
+
+      async.parallel([
+
+        (callback) =>
+          @dataCollection.on(this, "add", (value, collection) =>
+            value.should.equal(dataItem)
+            collection.should.equal(@dataCollection)
+            callback()
+          )
+
+        (callback) =>
+          @dataCollection.on(this, "change:0", (value, collection) =>
+            value.should.equal(dataItem)
+            collection.should.equal(@dataCollection)
+            callback()
+          )
+
+        (callback) =>
+          @dataCollection.on(this, "change", (set, collection) =>
+            set[0].should.equal(dataItem)
+            collection.should.equal(@dataCollection)
+            callback()
+          )
+
+      ], done)
+
+      @dataCollection.add(dataItem)
+
+
+    it "should trigger remove events", (done) ->
+
+      dataItem = new DataItem(test : "test")
+      @dataCollection.add(dataItem)
+
+      async.parallel([
+
+        (callback) =>
+          @dataCollection.on(this, "remove", (value, collection) =>
+            value.should.equal(dataItem)
+            collection.should.equal(@dataCollection)
+            callback()
+          )
+
+        (callback) =>
+          @dataCollection.on(this, "change:0", (value, collection) =>
+            chai.expect(value).to.be.undefined
+            collection.should.equal(@dataCollection)
+            callback()
+          )
+
+        (callback) =>
+          @dataCollection.on(this, "change", (set, collection) =>
+            chai.expect(set[0]).to.be.undefined
+            collection.should.equal(@dataCollection)
+            callback()
+          )
+
+      ], done)
+
+      @dataCollection.remove(dataItem)
 
 
   describe "#at", ->

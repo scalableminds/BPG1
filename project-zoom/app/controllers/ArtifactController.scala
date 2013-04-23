@@ -29,9 +29,6 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
 
   val dao = ArtifactDAO
 
-  def index = SecuredAction { implicit request =>
-    Ok(views.html.index())
-  }
 
   def listForProject(project: String, offset: Int, limit: Int) = SecuredAction { implicit request =>
     //TODO: restrict access

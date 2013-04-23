@@ -11,7 +11,4 @@ import play.api.libs.json.JsObject
 object TagController extends ControllerBase with JsonCRUDController{
   val dao = TagDAO
   
-  def index = SecuredAction { implicit request =>
-    Ok(views.html.index())
-  }
 }
