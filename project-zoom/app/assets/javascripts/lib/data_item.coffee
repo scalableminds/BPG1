@@ -80,6 +80,10 @@ class DataItem
         else
           @attributes[key] = value
 
+          @trigger("change:#{key}", value, this)
+
+          @trigger("change", _.object([key],[value]), this)
+
       else
 
         remainingKey = key.substring(key.indexOf("/") + 1)
@@ -187,13 +191,23 @@ class DataItem.Collection
 
   add : (items...) ->
 
-    @items.push(items...)
+    for item in items
+      index = @length
+      @items.push(item)
+      @trigger("add", item, this)
+      @trigger("change:#{index}", item, this)
+      @trigger("change", _.object([index], [item]), this)
     return
 
     
   remove : (items...) ->
 
-    @items = _.without(@items, items...)
+    for item in items
+      index = _.findIndex(@items, item)
+      @items.splice(index, 1)
+      @trigger("remove", item, this) 
+      @trigger("change:#{index}", undefined, this)
+      @trigger("change", _.object([index], [undefined]), this)
     return
 
 
