@@ -1,6 +1,7 @@
 ### define
 lib/data_item : DataItem
 lib/sinon : sinon
+lib/chai : chai
 async : async
 ###
 
@@ -92,21 +93,23 @@ describe "DataItem", ->
       ], done)
 
 
+  describe "changes", ->
+
 
     it "should trigger local change events", (done) ->
 
       async.parallel([
         
         (callback) =>
-          @dataItem.on(this, "change:test", (value, obj) => 
+          @dataItem.one(this, "change:test", (value, obj) => 
             value.should.equal("test2")
             obj.should.equal(@dataItem)
             callback()
           )
 
         (callback) =>
-          @dataItem.on(this, "change", (set, obj) => 
-            set.should.deep.equal({ test : "test2" })
+          @dataItem.one(this, "change", (changeSet, obj) => 
+            changeSet.should.deep.equal({ test : "test2" })
             obj.should.equal(@dataItem)
             callback()
           )
@@ -117,4 +120,81 @@ describe "DataItem", ->
 
 
 
+    it "should propagate change events", (done) ->
+
+      @dataItem.set(
+        test :
+          test1 : "test"
+      )
+
+      @dataItem.one(this, "change", (changeSet, obj) =>
+        changeSet.test.test1.should.equal("test2")
+        obj.should.equal(@dataItem)
+        done()
+      )
+
+      @dataItem.set("test/test1", "test2")
+
+
+
+    it "should trigger unset events and remove change tracking", (done) ->
+
+      @dataItem.set(
+        test :
+          test1 : "test"
+      )
+
+      @dataItem.get("test", this, (subDataItem) =>
+
+        @dataItem.one(this, "change:test", (value, obj) =>
+          chai.expect(value).to.be.undefined
+          obj.should.equal(@dataItem)
+          @dataItem.attributes.should.not.have.property("test")
+
+          subDataItem.__callbacks.change.should.have.length(changeCallbackCount - 1)
+
+          done()
+        )
+
+        changeCallbackCount = subDataItem.__callbacks.change.length
+        @dataItem.unset("test")
+      )
+
+
+    it "should accumulate changes", (done) ->
+
+      @dataItem.set(
+        test :
+          test1 : "test"
+      )
+
+      @dataItem.set("test2", "test2")
+
+      @dataItem.unset("test2")
+
+      changeSet = @dataItem.changeAcc.flush()
+      changeSet.should.deep.equal(
+        test :
+          test1 : "test"
+        test2 : undefined
+      )
+
+      changeSet.__timestamp.should.be.closeTo(Date.now(), 10)
+      done()
+
+
+
+  describe "#toJSON", ->
+
+    it "should export a plain object", ->
+
+      @dataItem.set(
+        test :
+          test2 : "test2"
+      )
+
+      @dataItem.toJSON().should.deep.equal(
+        test :
+          test2 : "test2"
+      )
 

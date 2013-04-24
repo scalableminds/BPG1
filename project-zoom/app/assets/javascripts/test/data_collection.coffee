@@ -35,6 +35,8 @@ describe "DataCollection", ->
       @dataCollection.length.should.be.equal(0)
 
 
+  describe "changes", ->
+
     it "should trigger add events", (done) ->
 
       dataItem = new DataItem(test : "test")
@@ -56,8 +58,8 @@ describe "DataCollection", ->
           )
 
         (callback) =>
-          @dataCollection.on(this, "change", (set, collection) =>
-            set[0].should.equal(dataItem)
+          @dataCollection.on(this, "change", (changeSet, collection) =>
+            changeSet[0].should.equal(dataItem)
             collection.should.equal(@dataCollection)
             callback()
           )
@@ -89,14 +91,41 @@ describe "DataCollection", ->
           )
 
         (callback) =>
-          @dataCollection.on(this, "change", (set, collection) =>
-            chai.expect(set[0]).to.be.undefined
+          @dataCollection.on(this, "change", (changeSet, collection) =>
+            chai.expect(changeSet[0]).to.be.undefined
             collection.should.equal(@dataCollection)
             callback()
           )
 
       ], done)
 
+      @dataCollection.remove(dataItem)
+
+
+    it "should propagate change events", (done) ->
+
+      dataItem = new DataItem(test : "test1")
+      @dataCollection.add(dataItem)
+
+      @dataCollection.on(this, "change", (changeSet, obj) =>
+        changeSet[0].test.should.equal("test2")
+        obj.should.equal(@dataCollection)
+        done()
+      )
+      dataItem.set("test", "test2")
+
+
+    it "should remove change tracking on remove", (done) ->
+
+      dataItem = new DataItem(test : "test")
+      @dataCollection.add(dataItem)
+
+      @dataCollection.one(this, "remove", (value) =>
+        value.should.equal(dataItem)
+        dataItem.__callbacks.change.should.have.length(changeCallbackCount - 1)
+        done()
+      )
+      changeCallbackCount = dataItem.__callbacks.change.length
       @dataCollection.remove(dataItem)
 
 
@@ -205,6 +234,16 @@ describe "DataCollection", ->
           )
 
       )
+
+
+  describe "#toJSON", ->
+
+    it "should export a plain object", ->
+
+      @dataCollection.add(new DataItem(test : "test2"))
+
+      @dataCollection.toJSON().should.deep.equal([{test : "test2"}])
+
 
 
 

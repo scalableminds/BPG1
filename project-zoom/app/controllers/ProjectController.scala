@@ -10,8 +10,4 @@ import projectZoom.util.PlayActorSystem
 object ProjectController extends ControllerBase with JsonCRUDController{
   val dao = ProjectDAO
   
-  def index = SecuredAction { implicit request =>
-    Ok(views.html.index())
-  
-  }  
 }
