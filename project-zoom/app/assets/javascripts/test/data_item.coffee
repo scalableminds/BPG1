@@ -2,6 +2,7 @@
 lib/data_item : DataItem
 lib/sinon : sinon
 lib/chai : chai
+lib/request : Request
 async : async
 ###
 
@@ -13,7 +14,7 @@ describe "DataItem", ->
     @spy = sinon.spy()
 
 
-  describe "#set/#get", ->
+  describe "set/get", ->
 
     it "should set a property", (done) ->
 
@@ -184,7 +185,28 @@ describe "DataItem", ->
 
 
 
-  describe "#toJSON", ->
+  describe "lazy attributes", ->
+
+    it "should fetch lazy attributes", (done) ->
+
+      sinon.stub(Request, "send").returns( 
+        (new $.Deferred()).resolve( { test2 : "test2" } ).promise()
+      )
+
+      @dataItem.lazyAttributes.test = url : "test"
+
+      @dataItem.get("test/test2", this, (value) =>
+
+        Request.send.restore()
+        value.should.equal("test2")
+        @dataItem.attributes.should.have.property("test")
+        @dataItem.lazyAttributes.should.not.have.property("test")
+        done()
+      )
+
+
+
+  describe "export", ->
 
     it "should export a plain object", ->
 
@@ -193,7 +215,7 @@ describe "DataItem", ->
           test2 : "test2"
       )
 
-      @dataItem.toJSON().should.deep.equal(
+      @dataItem.toObject().should.deep.equal(
         test :
           test2 : "test2"
       )
