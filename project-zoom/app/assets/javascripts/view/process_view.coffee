@@ -31,7 +31,6 @@ class ProcessView
     @gui = new GUI()
     # artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, -> 64
     # @graph.addForeignObject(artifact.domElement)
-    # @on "view:zooming", artifact.resize
 
 
 
@@ -75,22 +74,10 @@ class ProcessView
   initEventHandlers : ->
 
     # add new node
-    Hammer( $("svg")[0] )
-      .on("tap", ".hitbox", (event) =>
-        offset = $("svg").offset()
-        scaleValue = $(".zoomSlider input").val()
-
-        x = event.gesture.touches[0].pageX - offset.left
-        y = event.gesture.touches[0].pageY - offset.top
-
-        x /= scaleValue
-        y /= scaleValue
-
-        @graph.addNode(x, y)
-      )
+    Hammer( $("svg")[0] ).on "tap", ".hitbox", @addNode
 
     # drag artifact into graph
-    Hammer($("#artifactFinder")[0]).on "dragend", ".artifact-image", @addArtifact
+    Hammer($("body")[0]).on "dragend", "#artifactFinder .artifact-image", @addArtifact
 
     # change tool from toolbox
     processView = this
@@ -113,16 +100,30 @@ class ProcessView
 
   addArtifact : (evt) =>
 
-    artifact = evt.gesture.startEvent.target
-    dropTarget = evt.gesture.target
+    artifact = evt.gesture.target
+    dropTarget = evt.target
 
     if $("svg").has(dropTarget).length > 0
 
       id = $(artifact).data("id")
       artifact = @artifactFinder.getArtifact(id)
+      @on "view:zooming", artifact.resize
 
-      @graph.addForeignObject(artifact.domElement)
+      @addNode(evt, artifact)
 
+
+  addNode : (evt, artifact = null) =>
+
+    offset = $("svg").offset()
+    scaleValue = $(".zoomSlider input").val()
+
+    x = event.gesture.touches[0].pageX - offset.left
+    y = event.gesture.touches[0].pageY - offset.top
+
+    x /= scaleValue
+    y /= scaleValue
+
+    @graph.addNode(x, y, artifact)
 
 
   changeBehavior : (selectedTool) =>
