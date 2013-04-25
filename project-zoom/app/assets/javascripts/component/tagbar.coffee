@@ -13,7 +13,6 @@ class Tagbar
 
   constructor : () ->
     @tags = []
-    @selectedTags = []
 
     domElement = $('<div/>', {})
 
@@ -26,22 +25,6 @@ class Tagbar
 
 
   arrangeProjectGraph : () ->
-
-
-  observeCheckboxes : () ->
-
-    arr = $("input[type=checkbox]:checked").map( ->
-      @value
-    ).get()
-
-    console.log arr
-
-
-    # $("#my_checkbox").click ->
-    #   if $(this).is(":checked")
-    #     $("input[name=\"totalCost\"]").val 10
-    #   else
-    #     calculate()
 
 
   destroy : ->

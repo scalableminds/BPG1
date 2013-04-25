@@ -24,6 +24,8 @@ class ProjectsOverviewView
 
   constructor : ->
 
+    @selectedTags = []
+
     EventMixin.extend(this)
     @initTagbar()
     @initD3()
@@ -36,7 +38,6 @@ class ProjectsOverviewView
 
     @tagbar = new Tagbar()
     $("#tagbar").append( @tagbar.domElement )
-    @tagbar.observeCheckboxes()
 
 
   initD3 : ->
@@ -102,6 +103,41 @@ class ProjectsOverviewView
 
     graphContainer = @graphContainer[0][0]
     # @hitbox.on "click", => @graph.addNode(d3.mouse(graphContainer)[0], d3.mouse(graphContainer)[1])
+
+    projectsOverviewView = this
+    $(".checkbox-group input").on "click", (event) -> projectsOverviewView.collectSelectedTags()
+
+    # # zooming
+    # $(".zoomSlider")
+    #   .on("change", "input", @zoom)
+    #   .on("click", ".plus", => @changeZoomSlider(0.1) )
+    #   .on("click", ".minus", => @changeZoomSlider(-0.1) )
+
+    # $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+
+    #   evt.preventDefault()
+    #   if deltaY > 0
+    #     @changeZoomSlider(0.1)
+    #   else
+    #     @changeZoomSlider(-0.1)
+
+
+    # $("#my_checkbox").click ->
+    #   if $(this).is(":checked")
+    #     $("input[name=\"totalCost\"]").val 10
+    #   else
+    #     calculate()
+
+   # onclick="observeCheckboxes()"
+
+
+  collectSelectedTags : ->
+
+    @selectedTags = $("input[type=checkbox]:checked").map( ->
+      @value
+    ).get()
+
+    console.log @selectedTags
 
 
   zoom : ->
