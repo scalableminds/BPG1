@@ -1,7 +1,8 @@
 ### define
 lib/event_mixin : EventMixin
 d3 : d3
-./interactive_graph : InteractiveGraph
+./process_view/interactive_graph : InteractiveGraph
+../component/tagbar : Tagbar
 ###
 
 class ProjectsOverviewView
@@ -10,6 +11,15 @@ class ProjectsOverviewView
   HEIGHT = 500
   time : null
 
+  SAMPLE_PROJECT : {
+    name:"test1"
+    tags : [
+      {type :"project_partner", name : "SAP"}
+      {type :"date", name : "2013"}
+      {type :"topic", name : "Health"}
+      {type :"topic", name : "Energy"}
+    ]
+  }
 
 
   constructor : ->
@@ -24,8 +34,9 @@ class ProjectsOverviewView
 
   initTagbar : ->
 
-    # @tagbar = new Tagbar()
-    # $("#tagbar").append( @tagbar.domElement )
+    @tagbar = new Tagbar()
+    $("#tagbar").append( @tagbar.domElement )
+    @tagbar.observeCheckboxes()
 
 
   initD3 : ->
