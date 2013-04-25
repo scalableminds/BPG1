@@ -25,6 +25,7 @@ class ProjectsOverviewView
   constructor : ->
 
     @selectedTags = []
+    @clusters = []
 
     EventMixin.extend(this)
     @initTagbar()
@@ -113,8 +114,6 @@ class ProjectsOverviewView
       @value
     ).get()
 
-    console.log @selectedTags
-
 
   zoom : ->
 
@@ -125,6 +124,11 @@ class ProjectsOverviewView
 
   drawClusters : ->
 
+    for circ in @clusters
+      console.log circ
+      console.log @clusters
+      # circ.parentNode.removeChild(circ)
+
     @collectSelectedTags()
 
     switch @selectedTags.length
@@ -134,14 +138,13 @@ class ProjectsOverviewView
       else @noVenn()
 
 
-    @svg.append("svg:circle")
-      .attr("r", 300)
-      .attr("cx", 40)
-      .attr("cy", 30)
-      .attr("fill", "steelblue")
-
-
   venn1 : ->
+
+    # @clusters.
+    console.log @selectedTags[0]
+
+    @drawCircle(300, 200, "steelblue")
+
 
   venn2 : ->
 
@@ -151,6 +154,18 @@ class ProjectsOverviewView
     console.log "no Venn Diagramm possible."
 
 
+  drawCircle : (cx, cy, color) ->
+
+    circle = @svg.append("svg:circle")
+      .attr({
+        "r": 200,
+        "cx": cx,
+        "cy": cy,
+        "fill": color,
+        "fill-opacity": .5,
+      })
+
+    @clusters.push circle
 
 
 
