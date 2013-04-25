@@ -127,11 +127,28 @@ class ProjectsOverviewView
 
     @collectSelectedTags()
 
+    switch @selectedTags.length
+      when 1 then @venn1()
+      when 2 then @venn2()
+      when 3 then @venn3()
+      else @noVenn()
+
+
     @svg.append("svg:circle")
       .attr("r", 300)
       .attr("cx", 40)
       .attr("cy", 30)
       .attr("fill", "steelblue")
+
+
+  venn1 : ->
+
+  venn2 : ->
+
+  venn3 : ->
+
+  noVenn : ->
+    console.log "no Venn Diagramm possible."
 
 
 
