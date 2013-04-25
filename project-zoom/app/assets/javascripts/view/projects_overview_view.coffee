@@ -102,33 +102,9 @@ class ProjectsOverviewView
   initEventHandlers : ->
 
     graphContainer = @graphContainer[0][0]
-    # @hitbox.on "click", => @graph.addNode(d3.mouse(graphContainer)[0], d3.mouse(graphContainer)[1])
 
     projectsOverviewView = this
-    $(".checkbox-group input").on "click", (event) -> projectsOverviewView.collectSelectedTags()
-
-    # # zooming
-    # $(".zoomSlider")
-    #   .on("change", "input", @zoom)
-    #   .on("click", ".plus", => @changeZoomSlider(0.1) )
-    #   .on("click", ".minus", => @changeZoomSlider(-0.1) )
-
-    # $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
-
-    #   evt.preventDefault()
-    #   if deltaY > 0
-    #     @changeZoomSlider(0.1)
-    #   else
-    #     @changeZoomSlider(-0.1)
-
-
-    # $("#my_checkbox").click ->
-    #   if $(this).is(":checked")
-    #     $("input[name=\"totalCost\"]").val 10
-    #   else
-    #     calculate()
-
-   # onclick="observeCheckboxes()"
+    $(".checkbox-group input").on "click", (event) -> projectsOverviewView.drawClusters()
 
 
   collectSelectedTags : ->
@@ -145,3 +121,20 @@ class ProjectsOverviewView
     @graphContainer.attr("transform", "scale( #{d3.event.scale} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
     console.log "zooming"
+
+
+  drawClusters : ->
+
+    @collectSelectedTags()
+
+    @svg.append("svg:circle")
+      .attr("r", 300)
+      .attr("cx", 40)
+      .attr("cy", 30)
+      .attr("fill", "steelblue")
+
+
+
+
+
+
