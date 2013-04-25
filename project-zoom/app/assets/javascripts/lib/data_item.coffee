@@ -1,8 +1,9 @@
 ### define
 underscore : _
-./event_mixin : EventMixin
 async : async
+./event_mixin : EventMixin
 ./request : Request
+./change_accumulator : ChangeAccumulator
 ###
 
 ###
@@ -12,49 +13,9 @@ TODO:
   * json patch support
 ###
 
-class ChangeAccumulator
-
-  constructor : ->
-
-    @changes = []
-
-
-  addChange : (change) =>
-
-    change = _.object(
-      _.pairs(change).map( ( [key, value] ) ->
-        [key, if value?.toJSON then value.toJSON() else value]
-      )
-    )
-    Object.defineProperty(change, "__timestamp", value : Date.now())
-    @changes.push(change)
-    return
-
-
-  flush : ->
-
-    merge = (source, target) ->
-      
-      _.forOwn(source, (value, key) -> 
-        if _.isObject(value)
-          target[key] = {} unless target[key]?
-          merge(value, target[key])
-        else
-          target[key] = value
-      )
-      target
-
-    changeSet = {}
-    merge(change, changeSet) for change in @changes
-    Object.defineProperty(changeSet, "__timestamp", value : _.max(@changes, "__timestamp").__timestamp)
-    @changes.length = 0
-    changeSet
-
-
-
 class DataItem
 
-  constructor : (json = {}, @parent) ->
+  constructor : (json = {}, options = {}) ->
 
     EventMixin.extend(this)
     @trackChanges = _.memoize(@trackChanges)
@@ -63,7 +24,7 @@ class DataItem
     @on(@changeAcc, "change", @changeAcc.addChange)
 
     @attributes = {}
-    @lazyAttributes = {}
+    @lazyAttributes = options.lazy ? {}
 
     @set(json)
 
@@ -89,7 +50,31 @@ class DataItem
         value.get(remainingKey, self, (value) -> callback.oneShot(value) )
       )
 
-    return  
+    return
+
+
+  getLazy : (key, self, callback) ->
+
+    callback = @dispatcher.register(this, self, null, callback)
+
+    Request.send(
+      url : "#{@lazyAttributes[key].url}"
+      method : "GET"
+      dataType : "json"
+    ).then(
+
+      @dispatcher.register this, (result) =>
+
+        item = @set(key, result)
+        delete @lazyAttributes[key]
+        callback.oneShot(item)
+
+
+      @dispatcher.register this, (result) =>
+
+        callback.oneShot(undefined)
+
+    )
 
 
   getDirect : (key, self, callback) ->
@@ -98,10 +83,7 @@ class DataItem
 
     if @lazyAttributes[key]
       # TODO
-      _.defer =>
-        delete @lazyAttributes[key]
-        @attributes[key] = value = "dummy"
-        callback.oneShot(value)
+      @getLazy(key, self, callback.oneShot)
     
     else
       _.defer =>
@@ -114,20 +96,13 @@ class DataItem
     if _.isObject(key)
 
       @set(k, v) for k, v of key
+      return
 
     else
 
       if key.indexOf("/") == -1
 
-        if _.isArray(value)
-          @_set(key, new DataItem.Collection(value, this))
-
-        else if _.isObject(value)
-          
-          @_set(key, new DataItem(value, this))
-
-        else
-          @_set(key, value)
+        @_set(key, DataItem.prepareValue(value))
 
       else
 
@@ -151,6 +126,8 @@ class DataItem
     @trigger("change:#{key}", value, this)
     @trigger("change", _.object([key], [value]), this)
 
+    value
+
 
   unset : (key) ->
 
@@ -166,19 +143,29 @@ class DataItem
     return
 
 
-  toJSON : ->
+  toObject : ->
 
     _.object(
       _.pairs(@attributes).map( ( [key, value] ) ->
         if value instanceof DataItem or value instanceof DataItem.Collection
-          [key, value.toJSON()]
+          [key, value.toObject()]
         else
           [key, value]
       )
     )
 
 
+  @prepareValue : (value) ->
 
+    if _.isArray(value)
+      new DataItem.Collection(value)
+
+    else if _.isObject(value) and not (value instanceof DataItem) and not (value instanceof DataItem.Collection)
+      
+      new DataItem(value)
+
+    else
+      value
 
 
 
@@ -215,9 +202,10 @@ class DataItem.Collection
       @dispatcher.register this, (result) =>
 
         for item, i in result.items when i < result.limit
-          @items[result.offset + i] = new DataItem(item, this)
+          @set(result.offset + i, item)
 
-        @extendParts(result.offset, result.limit)
+        @addParts(result.offset, result.limit)
+
         return
 
     )
@@ -232,7 +220,7 @@ class DataItem.Collection
       @fetch(0, @DEFAULT_LIMIT)
 
 
-  extendParts : (offset, count) ->
+  addParts : (offset, count) ->
 
     { parts } = this
     lastPart = null
@@ -260,6 +248,11 @@ class DataItem.Collection
     return
 
 
+  removeParts : (offset, count) ->
+
+
+
+
   get : (key, self, callback) ->
 
     callback = @dispatcher.register(this, self, null, callback)
@@ -283,15 +276,23 @@ class DataItem.Collection
 
   add : (items...) ->
 
-    for item in items
-      index = @length
-      if item instanceof DataItem or item instanceof DataItem.Collection
-        item.on(this, "change", @trackChanges)
-      @items.push(item)
-      @trigger("add", item, this)
-      @trigger("change:#{index}", item, this)
-      @trigger("change", _.object([index], [item]), this)
+    offset = @length - 1
+    @set(@length, item) for item in items
+    @addParts(offset, items.length)
+
     return
+
+
+  set : (index = @length, item) ->
+
+    item = DataItem.prepareValue(item)
+    if item instanceof DataItem or item instanceof DataItem.Collection
+      item.on(this, "change", @trackChanges)
+
+    @items[index] = item
+    @trigger("add", item, index, this)
+    @trigger("change:#{index}", item, this)
+    @trigger("change", _.object([index], [item]), this)
 
     
   remove : (items...) ->
@@ -301,17 +302,18 @@ class DataItem.Collection
       if item instanceof DataItem or item instanceof DataItem.Collection
         item.off(this, "change", @trackChanges)
       @items.splice(index, 1)
-      @trigger("remove", item, this) 
+      @removeParts(index, 1)
+      @trigger("remove", item, index, this) 
       @trigger("change:#{index}", undefined, this)
       @trigger("change", _.object([index], [undefined]), this)
     return
 
 
-  toJSON : ->
+  toObject : ->
 
     @items.map( (item) ->
       if item instanceof DataItem or item instanceof DataItem.Collection
-        item.toJSON()
+        item.toObject()
       else
         item
     )

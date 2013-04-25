@@ -6,14 +6,14 @@ jquery : $
 async : async
 ###
 
-describe "DataCollection", ->
+describe "DataItem.Collection", ->
 
   beforeEach ->
 
     @dataCollection = new DataItem.Collection()
 
 
-  describe "#length", ->
+  describe "length", ->
 
     it "should have a length", ->
 
@@ -21,7 +21,7 @@ describe "DataCollection", ->
       @dataCollection.length.should.be.equal(1)
 
 
-  describe "#add/#remove", ->
+  describe "add/remove", ->
 
     it "should add and remove many elements", ->
 
@@ -40,18 +40,20 @@ describe "DataCollection", ->
     it "should trigger add events", (done) ->
 
       dataItem = new DataItem(test : "test")
+      @dataCollection.add("test")
 
       async.parallel([
 
         (callback) =>
-          @dataCollection.on(this, "add", (value, collection) =>
+          @dataCollection.on(this, "add", (value, index, collection) =>
             value.should.equal(dataItem)
+            index.should.equal(1)
             collection.should.equal(@dataCollection)
             callback()
           )
 
         (callback) =>
-          @dataCollection.on(this, "change:0", (value, collection) =>
+          @dataCollection.on(this, "change:1", (value, collection) =>
             value.should.equal(dataItem)
             collection.should.equal(@dataCollection)
             callback()
@@ -59,7 +61,7 @@ describe "DataCollection", ->
 
         (callback) =>
           @dataCollection.on(this, "change", (changeSet, collection) =>
-            changeSet[0].should.equal(dataItem)
+            changeSet[1].should.equal(dataItem)
             collection.should.equal(@dataCollection)
             callback()
           )
@@ -72,19 +74,21 @@ describe "DataCollection", ->
     it "should trigger remove events", (done) ->
 
       dataItem = new DataItem(test : "test")
+      @dataCollection.add("test")
       @dataCollection.add(dataItem)
 
       async.parallel([
 
         (callback) =>
-          @dataCollection.on(this, "remove", (value, collection) =>
+          @dataCollection.on(this, "remove", (value, index, collection) =>
             value.should.equal(dataItem)
+            index.should.equal(1)
             collection.should.equal(@dataCollection)
             callback()
           )
 
         (callback) =>
-          @dataCollection.on(this, "change:0", (value, collection) =>
+          @dataCollection.on(this, "change:1", (value, collection) =>
             chai.expect(value).to.be.undefined
             collection.should.equal(@dataCollection)
             callback()
@@ -92,7 +96,7 @@ describe "DataCollection", ->
 
         (callback) =>
           @dataCollection.on(this, "change", (changeSet, collection) =>
-            chai.expect(changeSet[0]).to.be.undefined
+            chai.expect(changeSet[1]).to.be.undefined
             collection.should.equal(@dataCollection)
             callback()
           )
@@ -129,7 +133,7 @@ describe "DataCollection", ->
       @dataCollection.remove(dataItem)
 
 
-  describe "#at", ->
+  describe "at", ->
 
     it "should retrieve elements", ->
 
@@ -137,16 +141,16 @@ describe "DataCollection", ->
       @dataCollection.at(1).should.equal("test2")
 
 
-  describe "#extendParts", ->
+  describe "parts management", ->
 
     it "should merge with before part", ->
 
-      @dataCollection.extendParts(0, 10)
+      @dataCollection.addParts(0, 10)
 
       @dataCollection.parts.should.have.length(1)
       @dataCollection.parts[0].should.eql( start : 0, end : 10 )
 
-      @dataCollection.extendParts(10, 10)
+      @dataCollection.addParts(10, 10)
 
       @dataCollection.parts.should.have.length(1)
       @dataCollection.parts[0].should.eql( start : 0, end : 20 )
@@ -154,12 +158,12 @@ describe "DataCollection", ->
 
     it "should merge with after part", ->
 
-      @dataCollection.extendParts(10, 10)
+      @dataCollection.addParts(10, 10)
 
       @dataCollection.parts.should.have.length(1)
       @dataCollection.parts[0].should.eql( start : 10, end : 20 )
 
-      @dataCollection.extendParts(0, 10)
+      @dataCollection.addParts(0, 10)
 
       @dataCollection.parts.should.have.length(1)
       @dataCollection.parts[0].should.eql( start : 0, end : 20 )
@@ -167,20 +171,20 @@ describe "DataCollection", ->
 
     it "should merge in between", ->
 
-      @dataCollection.extendParts(0, 5)
-      @dataCollection.extendParts(10, 5)
+      @dataCollection.addParts(0, 5)
+      @dataCollection.addParts(10, 5)
 
       @dataCollection.parts.should.have.length(2)
       @dataCollection.parts[0].should.eql( start : 0, end : 5 )
       @dataCollection.parts[1].should.eql( start : 10, end : 15 )
 
-      @dataCollection.extendParts(5, 5)
+      @dataCollection.addParts(5, 5)
 
       @dataCollection.parts.should.have.length(1)
       @dataCollection.parts[0].should.eql( start : 0, end : 15 )
 
 
-  describe "#fetch", ->
+  describe "fetching", ->
 
     it "should insert data", (done) ->
 
@@ -209,9 +213,6 @@ describe "DataCollection", ->
 
       )
 
-
-  describe "#fetchNext", ->
-
     it "should load continous data", (done) ->
 
       sinon.stub(Request, "send").returns( 
@@ -236,13 +237,13 @@ describe "DataCollection", ->
       )
 
 
-  describe "#toJSON", ->
+  describe "export", ->
 
     it "should export a plain object", ->
 
       @dataCollection.add(new DataItem(test : "test2"))
 
-      @dataCollection.toJSON().should.deep.equal([{test : "test2"}])
+      @dataCollection.toObject().should.deep.equal([{test : "test2"}])
 
 
 
