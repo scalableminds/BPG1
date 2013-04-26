@@ -124,12 +124,9 @@ class ProjectsOverviewView
 
   drawClusters : ->
 
-    for circ in @clusters
-      console.log circ
-      console.log @clusters
-      $("circle").each( ->
-        @remove()
-      )
+    $("circle").each( ->
+      @remove()
+    )
 
     @collectSelectedTags()
 
@@ -141,16 +138,17 @@ class ProjectsOverviewView
 
 
   venn1 : ->
-
-    # @clusters.
-    console.log @selectedTags[0]
-
     @drawCircle(300, 200, "steelblue")
 
 
   venn2 : ->
+    @drawCircle(300, 200, "steelblue")
+    @drawCircle(550, 200, "yellow")
 
   venn3 : ->
+    @drawCircle(300, 200, "steelblue")
+    @drawCircle(550, 200, "yellow")
+    @drawCircle(425, 400, "forestgreen")
 
   noVenn : ->
     console.log "no Venn Diagramm possible."
