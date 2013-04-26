@@ -1,7 +1,8 @@
 ### define
 lib/event_mixin : EventMixin
 d3 : d3
-./interactive_graph : InteractiveGraph
+./process_view/interactive_graph : InteractiveGraph
+../component/tagbar : Tagbar
 ###
 
 class ProjectsOverviewView
@@ -10,9 +11,21 @@ class ProjectsOverviewView
   HEIGHT = 500
   time : null
 
+  SAMPLE_PROJECT : {
+    name:"test1"
+    tags : [
+      {type :"project_partner", name : "SAP"}
+      {type :"date", name : "2013"}
+      {type :"topic", name : "Health"}
+      {type :"topic", name : "Energy"}
+    ]
+  }
 
 
   constructor : ->
+
+    @selectedTags = []
+    @clusters = []
 
     EventMixin.extend(this)
     @initTagbar()
@@ -24,8 +37,8 @@ class ProjectsOverviewView
 
   initTagbar : ->
 
-    # @tagbar = new Tagbar()
-    # $("#tagbar").append( @tagbar.domElement )
+    @tagbar = new Tagbar()
+    $("#tagbar").append( @tagbar.domElement )
 
 
   initD3 : ->
@@ -90,7 +103,16 @@ class ProjectsOverviewView
   initEventHandlers : ->
 
     graphContainer = @graphContainer[0][0]
-    # @hitbox.on "click", => @graph.addNode(d3.mouse(graphContainer)[0], d3.mouse(graphContainer)[1])
+
+    projectsOverviewView = this
+    $(".checkbox-group input").on "click", (event) -> projectsOverviewView.drawClusters()
+
+
+  collectSelectedTags : ->
+
+    @selectedTags = $("input[type=checkbox]:checked").map( ->
+      @value
+    ).get()
 
 
   zoom : ->
@@ -98,3 +120,53 @@ class ProjectsOverviewView
     @graphContainer.attr("transform", "scale( #{d3.event.scale} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
     console.log "zooming"
+
+
+  drawClusters : ->
+
+    $("circle").each( ->
+      @remove()
+    )
+
+    @collectSelectedTags()
+
+    switch @selectedTags.length
+      when 1 then @venn1()
+      when 2 then @venn2()
+      when 3 then @venn3()
+      else @noVenn()
+
+
+  venn1 : ->
+    @drawCircle(300, 200, "steelblue")
+
+
+  venn2 : ->
+    @drawCircle(300, 200, "steelblue")
+    @drawCircle(550, 200, "yellow")
+
+  venn3 : ->
+    @drawCircle(300, 200, "steelblue")
+    @drawCircle(550, 200, "yellow")
+    @drawCircle(425, 400, "forestgreen")
+
+  noVenn : ->
+    console.log "no Venn Diagramm possible."
+
+
+  drawCircle : (cx, cy, color) ->
+
+    circle = @svg.append("svg:circle")
+      .attr({
+        "r": 200,
+        "cx": cx,
+        "cy": cy,
+        "fill": color,
+        "fill-opacity": .5,
+      })
+
+    @clusters.push circle
+
+
+
+
