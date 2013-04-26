@@ -20,6 +20,7 @@ import play.modules.reactivemongo.json.collection.JSONGenericHandlers
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
 import play.api.libs.concurrent.Execution.Implicits._
+import scala.util.Success
 
 trait DAO[T] {
   def findHeadOption(attribute: String, value: String): Future[Option[T]]
@@ -77,7 +78,7 @@ trait MongoDAO[T] extends DAO[T] {
   def find(attribute: String, value: String) = {
     collection.find(Json.obj(attribute -> value))
   }
-  
+
   def remove(attribute: String, value: String) = {
     collection.remove(Json.obj(attribute -> value))
   }
@@ -104,9 +105,33 @@ trait MongoDAO[T] extends DAO[T] {
   def findAll = {
     collection.find(Json.obj()).cursor[T].toList
   }
+  
+  def toMongoObjectIdString(id: String) = 
+    BSONObjectID.parse(id).map(oid => Json.toJson(oid).toString).toOption
+
+  def withId[T](id: String, errorValue: => T)(f: BSONObjectID => Future[T]) = {
+    BSONObjectID.parse(id) match {
+      case Success(bid) =>
+        f(bid)
+      case _ =>
+        Logger.error(s"Failed to parse objectId: $id")
+        Future.successful(errorValue)
+    }
+  }
+  
+  
+  def findByEither(fields: (String, Function[String, Option[String]])*)(query: String) = {
+    collection.find(Json.obj(
+      "$or" -> fields.flatMap {
+        case (field, mapper) =>
+          mapper(query).map(value => Json.obj(field -> value))
+      }))
+  }
 
   def findOneById(id: String) = {
-    collection.find(Json.obj("_id" -> new BSONObjectID(id))).one[T]
+    withId[Option[T]](id, errorValue = None) { bid =>
+      collection.find(Json.obj("_id" -> bid)).one[T]
+    }
   }
 
   def insert(t: T): Future[LastError] = {
@@ -118,7 +143,9 @@ trait MongoDAO[T] extends DAO[T] {
   }
 
   def removeById(id: String) = {
-    collection.remove(Json.obj("_id" -> new BSONObjectID(id)))
+    withId(id, errorValue = LastError(false, None, None, Some(s"failed to parse objectId $id"), None, 0, false)) { bid =>
+      collection.remove(Json.obj("_id" -> new BSONObjectID(id)))
+    }
   }
 
   def removeAll() = {

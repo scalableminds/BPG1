@@ -21,6 +21,10 @@ object ProfileDAO extends MongoJsonDAO with UserHelpers {
     //TODO: send email with registration information
   }
 
+  override def findOneById(id: String) = {
+    findByEither("email" -> Some.apply _, "_id" -> toMongoObjectIdString _)(id).one[JsObject]
+  }
+
   def findOneByConnectedEmail(email: String) = {
     collection.find(Json.obj(
       "$or" -> Json.arr(
@@ -31,7 +35,7 @@ object ProfileDAO extends MongoJsonDAO with UserHelpers {
   def findOneByUserId(userId: UserId) = {
     collection.find(Json.obj("user.id" -> userId)).one[Profile]
   }
-  
+
   def update(p: Profile) =
     collection.update(Json.obj("email" -> p.email),
       Json.obj("$set" -> p), upsert = true)

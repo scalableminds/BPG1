@@ -50,9 +50,11 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
   def read(id: String) = SecuredAction { implicit request =>
     //TODO: restrict access
     Async {
-      dao.findOneById(id).map { l =>
-        Logger.warn(Json.toJson(l).transform(beautifyObjectId).toString)
-        Ok(Json.toJson(l).transform(beautifyObjectId).get)
+      dao.findOneById(id).map {
+        case Some(obj) =>
+          Ok(Json.toJson(obj).transform(beautifyObjectId).get)
+        case _ =>
+          Ok(Json.obj())
       }
     }
   }
