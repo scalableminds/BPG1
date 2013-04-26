@@ -205,6 +205,61 @@ describe "DataItem", ->
       )
 
 
+    it "should detect and load lazy attributes", (done) ->
+
+      sinon.stub(Request, "send").returns( 
+        (new $.Deferred()).resolve( { test2 : "test2" } ).promise()
+      )
+
+      @dataItem.set(
+        _test : "id123"
+      )
+
+      @dataItem.get("test", this, (value) =>
+
+        Request.send.should.have.been.calledWithMatch( url : "/tests/id123" )
+        Request.send.restore()
+        value.should.be.instanceof(DataItem)
+        value.get("test2", this, (value) ->
+          value.should.equal("test2")
+          done()
+        )
+      )
+
+
+    it "should detect and load lazy collections", (done) ->
+
+      do ->
+        i = 0
+        sinon.stub(Request, "send", ->
+          (new $.Deferred()).resolve( { test2 : "test#{i++}" } ).promise()
+        )
+
+      @dataItem.set(
+        _tests : ("id#{i}" for i in [0..2])
+      )
+
+      @dataItem.get("tests", this, (value) =>
+
+        Request.send.should.have.been.calledThrice
+        for i in [0..2]
+          Request.send.getCall(i).should.have.been.calledWithMatch( url : "/tests/id#{i}" )
+        Request.send.restore()
+
+        value.should.be.instanceof(DataItem.Collection)
+        async.parallel(
+          [0..2].map (i) =>
+            (callback) => 
+              value.at(i).get("test2", this, (value) ->
+                value.should.equal("test#{i}")
+                callback()
+              )
+          done
+        )
+
+      )
+
+
 
   describe "export", ->
 
