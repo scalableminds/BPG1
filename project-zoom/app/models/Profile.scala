@@ -37,11 +37,12 @@ object ProfileDAO extends MongoJsonDAO with UserHelpers {
       Json.obj("$set" -> p), upsert = true)
 
   def update(p: Profile, u: Profile) = {
+    Logger.warn(Json.toJson(u).toString)
     collection.update(Json.obj("email" -> p.email), u, upsert = true, multi = false)
   }
 
   def findOneByEmailAndProvider(email: String, provider: String) = {
-    collection.find(Json.obj("user.email" -> email, "user.userId.providerId" -> provider)).one[Profile]
+    collection.find(Json.obj("user.email" -> email, "user.id.providerId" -> provider)).one[Profile]
   }
 
 }

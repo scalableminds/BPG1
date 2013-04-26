@@ -14,10 +14,11 @@ GET    /projects/:_project/artifacts/:id/:artifactType/download   controllers.Ar
 
 GET    /tags                                                      controllers.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
 
-GET    /profiles                                                  controllers.ProfileController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /users                                                     controllers.ProfileController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /users/:name                                               controllers.ProfileController.read(name)
 
 GET    /graphs                                                    controllers.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
-PATCH  /graphs/:id               controllers.GraphController.patch(id: String)
+PATCH  /graphs/:id                                                controllers.GraphController.patch(id: String)
 
 
 # Login page

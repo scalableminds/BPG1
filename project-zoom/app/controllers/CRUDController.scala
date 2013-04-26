@@ -15,6 +15,10 @@ import play.api.libs.json.Writes
 import play.api.libs.concurrent.Execution.Implicits._
 import securesocial.core.SecuredRequest
 import play.api.mvc.Result
+import projectZoom.util.MongoHelpers
+import play.api.http.Writeable
+import play.api.libs.json.JsResult
+import play.api.Logger
 
 trait JsonCRUDController extends CRUDController[JsObject] {
   implicit def formatter = Format.apply[JsObject](Reads.JsObjectReads, Writes.JsValueWrites)
@@ -29,7 +33,7 @@ trait ListPortionHelpers {
   }
 }
 
-trait CRUDController[T] extends SecureSocial with ListPortionHelpers {
+trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoHelpers {
 
   def dao: DAO[T]
   implicit def formatter: Format[T]
@@ -38,7 +42,7 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers {
     //TODO: restrict access
     Async {
       dao.findSome(offset, limit).map { l =>
-        Ok(withPortionInfo(Json.toJson(l), offset, limit))
+        Ok(withPortionInfo(Json.toJson(l.map(e => Json.toJson(e).transform(beautifyObjectId).get)), offset, limit))
       }
     }
   }
@@ -47,7 +51,8 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers {
     //TODO: restrict access
     Async {
       dao.findOneById(id).map { l =>
-        Ok(Json.toJson(l))
+        Logger.warn(Json.toJson(l).transform(beautifyObjectId).toString)
+        Ok(Json.toJson(l).transform(beautifyObjectId).get)
       }
     }
   }
