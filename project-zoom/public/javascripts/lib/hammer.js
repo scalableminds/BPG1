@@ -1,4 +1,4 @@
-/*! Hammer.JS - v1.0.5 - 2013-04-15
+/*! Hammer.JS - v1.0.5 - 2013-04-23
  * http://eightmedia.github.com/hammer.js
  *
  * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
@@ -165,12 +165,17 @@ Hammer.Instance.prototype = {
 
                 var eventTarget = (evt.gesture.startEvent.target) ? evt.gesture.startEvent.target : evt.gesture.target;
 
-                if (Hammer.utils.matchesSelector(eventTarget, selector))
-                    handler.call(eventTarget, evt);
-            };
+                if (Hammer.utils.matchesSelector(eventTarget, selector)){
 
-            if (!this.delegation)
-                this.delegation = [];
+
+                    evt.target = evt.gesture.target = eventTarget;
+                    handler.call(eventTarget, evt);
+                }
+            };
+        }
+
+        if (!this.delegation){
+            this.delegation = [];
         }
 
 
@@ -789,7 +794,7 @@ Hammer.utils = {
             function (selector) {
                 var node = this, nodes = (node.parentNode || node.document).querySelectorAll(selector), i = -1;
 
-                while (nodes[++i] && nodes[i] != node);
+                while (nodes[++i] && nodes[i] != node){}
 
                 return !!nodes[i];
             };

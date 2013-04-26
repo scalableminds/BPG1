@@ -29,9 +29,9 @@ class Graph
     $("g:first").append(foreignObject)
 
 
-  addNode : (x, y) =>
+  addNode : (x, y, artifact) =>
 
-    tmp = new Node(x, y, @nodeId++)
+    tmp = new Node(x, y, @nodeId++, artifact)
     @nodes.push(tmp)
 
     @drawNodes(tmp)
@@ -80,17 +80,28 @@ class Graph
 
   drawNodes : (node) ->
 
+    HTML = ""
     @circles = @circles.data(@nodes, (d) -> d.id)
 
     #add new nodes or update existing one
-    circle = @circles.enter().append("svg:circle")
-    circle
-      .attr("class", "node")
-      .attr("r", NODE_SIZE)
-      .attr("cx", (d) -> d.x)
-      .attr("cy", (d) -> d.y)
-      .style("fill", (d) => @colors(d.id))
-      .style("stroke", (d) => d3.rgb(@colors(d.id)).darker().toString())
+    circle = @circles.enter()
+      .append("svg:foreignObject")
+        .attr("class", "node")
+        #.attr("r", NODE_SIZE)
+        .attr("x", (d) -> d.x)
+        .attr("y", (d) -> d.y)
+        .attr("width", 68)
+        .attr("height", 68)
+      .append("xhtml:div")
+        .attr("workaround", (d, i) ->
+          if d.artifact?
+            HTML = d.artifact.domElement
+          else
+            HTML = """<div class="nodeElement" style="background-color:#{d3.scale.category10()(d.id)}">""" #return HTML element
+
+          $(this).append(HTML)
+          return ""
+        )
 
     #remove deleted nodes
     @circles.exit().remove()

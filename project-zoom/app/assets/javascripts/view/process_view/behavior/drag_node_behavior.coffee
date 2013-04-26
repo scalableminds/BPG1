@@ -7,7 +7,7 @@ class DragNodeBehavior
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".node", @dragMove)
+      .on("drag", ".nodeElement", @dragMove)
 
 
   deactivate : ->
@@ -17,6 +17,8 @@ class DragNodeBehavior
 
 
   dragMove : (event) ->
+
+    svgContainer = this.parentNode.parentNode
 
     $svg = $("svg")
     offset = $svg.offset()
@@ -28,16 +30,17 @@ class DragNodeBehavior
     x /= scaleValue
     y /= scaleValue
 
-    if 0 < x < $svg.width() and 0 < y < $svg.height()
 
-      d3.select(this)
-        .attr("cx", (data) -> data.x = x)
-        .attr("cy", (data) -> data.y = y)
+    halfWidth = 34
 
-      # update edges when node are dragged around
-      edges = d3.selectAll(".edge")
-      edges.attr("d", (data) ->
-        if data
-          data.getLineSegment())
+    d3.select(svgContainer)
+      .attr("x", (data) -> data.x = x - halfWidth)
+      .attr("y", (data) -> data.y = y - halfWidth)
+
+    # update edges when node are dragged around
+    edges = d3.selectAll(".edge")
+    edges.attr("d", (data) ->
+      if data
+        data.getLineSegment())
 
 
