@@ -127,7 +127,9 @@ class ProjectsOverviewView
     for circ in @clusters
       console.log circ
       console.log @clusters
-      # circ.parentNode.removeChild(circ)
+      $("circle").each( ->
+        @remove()
+      )
 
     @collectSelectedTags()
 
