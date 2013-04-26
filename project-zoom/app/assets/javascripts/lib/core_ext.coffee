@@ -12,4 +12,9 @@ _.mixin
 
   removeElementAt : (array, index) ->
 
-  	array.splice(index, 1)
+    array.splice(index, 1)
+
+
+  pluralize : (string) ->
+
+    string.replace(/[^s]$/, (a) -> "#{a}s") 

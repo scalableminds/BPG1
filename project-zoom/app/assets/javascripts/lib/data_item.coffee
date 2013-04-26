@@ -57,15 +57,36 @@ class DataItem
 
     callback = @dispatcher.register(this, self, null, callback)
 
-    Request.send(
-      url : "#{@lazyAttributes[key].url}"
-      method : "GET"
-      dataType : "json"
-    ).then(
+    if _.isArray(@lazyAttributes[key])
 
-      @dispatcher.register this, (result) =>
+      promise = $.when( @lazyAttributes[key].map( (url) ->
 
-        item = @set(key, result)
+          Request.send(
+            url : url
+            method : "GET"
+            dataType : "json"
+          )
+
+        )...
+      )
+
+    else
+
+      promise = Request.send(
+        url : @lazyAttributes[key]
+        method : "GET"
+        dataType : "json"
+      )
+
+    promise.then(
+
+      @dispatcher.register this, (result...) =>
+
+        if _.isArray(@lazyAttributes[key])
+          item = @set(key, result)
+        else
+          item = @set(key, result[0])
+          
         delete @lazyAttributes[key]
         callback.oneShot(item)
 
@@ -102,7 +123,7 @@ class DataItem
 
       if key.indexOf("/") == -1
 
-        @_set(key, DataItem.prepareValue(value))
+        @_set(key, value)
 
       else
 
@@ -118,13 +139,26 @@ class DataItem
       if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
         oldValue.off(this, "change", @trackChanges(key))
 
-    @attributes[key] = value
+    if key[0] == "_"
 
-    if value instanceof DataItem or value instanceof DataItem.Collection
-      value.on(this, "change", @trackChanges(key))
+      if _.isArray(value)
+        @lazyAttributes[key.substring(1)] = value.map( (a) ->
+          "/#{_.pluralize(key.substring(1))}/#{a}"
+        )
 
-    @trigger("change:#{key}", value, this)
-    @trigger("change", _.object([key], [value]), this)
+      else
+        @lazyAttributes[key.substring(1)] = "/#{_.pluralize(key.substring(1))}/#{value}"
+
+    else
+
+      value = DataItem.prepareValue(value)
+      @attributes[key] = value
+
+      if value instanceof DataItem or value instanceof DataItem.Collection
+        value.on(this, "change", @trackChanges(key))
+
+      @trigger("change:#{key}", value, this)
+      @trigger("change", _.object([key], [value]), this)
 
     value
 
