@@ -90,14 +90,14 @@ class Graph
         #.attr("r", NODE_SIZE)
         .attr("x", (d) -> d.x)
         .attr("y", (d) -> d.y)
-        .attr("width", 64)
-        .attr("height", 64)
+        .attr("width", 68)
+        .attr("height", 68)
       .append("xhtml:div")
         .attr("workaround", (d, i) ->
           if d.artifact?
             HTML = d.artifact.domElement
           else
-            HTML = """<div class="circle" style="background-color:#{d3.scale.category10()(d.id)}">""" #return HTML element
+            HTML = """<div class="nodeElement" style="background-color:#{d3.scale.category10()(d.id)}">""" #return HTML element
 
           $(this).append(HTML)
           return ""

@@ -29,10 +29,6 @@ class ProcessView
     @initEventHandlers()
 
     @gui = new GUI()
-    # artifact = new Artifact @artifactFinder.SAMPLE_ARTIFACT, -> 64
-    # @graph.addForeignObject(artifact.domElement)
-
-
 
   initArtifactFinder : ->
 
@@ -64,7 +60,7 @@ class ProcessView
 
     @graph = new InteractiveGraph(@graphContainer, @svg)
     for i in [0..5]
-      @graph.addNode(i*50, i*50)
+      @graph.addNode(i*70, i*70)
 
     @graph.addEdge(0,1)
     @graph.addEdge(2,3)
