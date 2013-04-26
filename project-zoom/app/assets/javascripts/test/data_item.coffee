@@ -11,6 +11,7 @@ describe "DataItem", ->
   beforeEach ->
 
     @dataItem = new DataItem()
+    DataItem.lazyCache = {}
     @spy = sinon.spy()
 
 
@@ -193,7 +194,7 @@ describe "DataItem", ->
         (new $.Deferred()).resolve( { test2 : "test2" } ).promise()
       )
 
-      @dataItem.lazyAttributes.test = url : "test"
+      @dataItem.lazyAttributes.test = "/test"
 
       @dataItem.get("test/test2", this, (value) =>
 
@@ -259,6 +260,59 @@ describe "DataItem", ->
 
       )
 
+
+    it "should make sure two equal lazy attributes are equal objects", (done) ->
+
+      sinon.stub(Request, "send", ->
+        (new $.Deferred()).resolve( { test2 : "test2" } ).promise()
+      )
+
+      @dataItem.set(
+        _test : "id321"
+      )
+
+      dataItem2 = new DataItem(
+        _test : "id321"
+      )
+
+      async.parallel([
+
+        (callback) =>
+          @dataItem.get("test", this, (value) ->
+            callback(null, value)
+          )
+
+        (callback) =>
+          dataItem2.get("test", this, (value) ->
+            callback(null, value)
+          )
+
+      ], (err, [a, b]) ->
+        Request.send.should.have.been.calledOnce
+        Request.send.restore()
+        a.should.equal(b)
+        done()
+      )
+
+
+  describe "prepare DataItem", ->
+
+    it "should be prepare items twice", ->
+
+      value = { test : "test2" }
+
+      dataItem = DataItem.prepareValue(value)
+      dataItem.should.be.instanceof(DataItem)
+      dataItem.should.equal(DataItem.prepareValue(dataItem))
+
+
+    it "should prepare colletions twice", ->
+
+      value = [ { test : "test2" }, { test : "test2" } ]
+
+      dataItem = DataItem.prepareValue(value)
+      dataItem.should.be.instanceof(DataItem.Collection)
+      dataItem.should.equal(DataItem.prepareValue(dataItem))
 
 
   describe "export", ->

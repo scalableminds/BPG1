@@ -26,6 +26,7 @@ define [
     "./test/event_dispatcher"
     "./test/data_item"
     "./test/data_collection"
+    "./test/integration"
   ], ->
 
     if window.mochaPhantomJS
