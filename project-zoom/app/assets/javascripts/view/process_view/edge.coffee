@@ -37,24 +37,16 @@ class Edge
       x : @source.x + HALF_SIZE
       y : @source.y + HALF_SIZE
 
+    targetSourceAngle = @calcAngle(target, source)
+    target = @getSnapPoint(targetSourceAngle, target)
 
-    # deltaX = target.x - source.x
-    # deltaY = target.y - source.y
-    # dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-    # return if dist == 0
+    # sourceTargetAngle = @calcAngle(source, target)
+    # source = @getSnapPoint(sourceTargetAngle, source)
 
-    # normX = deltaX / dist
-    # normY = deltaY / dist
+    return "M#{source.x},#{source.y} L#{target.x},#{target.y}"
 
-    # sourcePadding = NODE_SIZE
-    # targetPadding = NODE_SIZE + 2
 
-    # sourceX = source.x + (sourcePadding * normX)
-    # sourceY = source.y + (sourcePadding * normY)
-    # targetX = target.x - (targetPadding * normX)
-    # targetY = target.y - (targetPadding * normY)
-
-    # return "M#{sourceX},#{sourceY}L#{targetX},#{targetY}"
+  calcAngle : (target, source) ->
 
     distX = Math.abs(target.x - source.x)
     distY = Math.abs(target.y - source.y)
@@ -64,31 +56,31 @@ class Edge
     if target.x <= source.x and target.y >= source.y
       angle = Math.asin(distX / hypothenuse)
 
-    if target.x <= source.x and target.y < source.y
+    else if target.x <= source.x and target.y < source.y
       angle = PI - Math.asin(distX / hypothenuse)
 
-    if target.x > source.x and target.y <= source.y
+    else if target.x > source.x and target.y <= source.y
       angle = PI + Math.asin(distX / hypothenuse)
 
-    if target.x > source.x and target.y > source.y
+    else if target.x > source.x and target.y > source.y
       angle = PI2 - Math.asin(distX / hypothenuse)
 
+    return angle
 
-    #snap points
+
+  getSnapPoint : (angle, point) ->
+
     if PI2 - PI_QUARTER < angle or angle <= PI_HALF - PI_QUARTER
-      target.y -= HALF_SIZE
+      point.y -= HALF_SIZE
 
-    if PI_HALF - PI_QUARTER < angle <= PI - PI_QUARTER
-      target.x += HALF_SIZE
+    else if PI_HALF - PI_QUARTER < angle <= PI - PI_QUARTER
+      point.x += HALF_SIZE
 
-    if PI - PI_QUARTER < angle <= PI + PI_QUARTER
-      target.y += HALF_SIZE
+    else if PI - PI_QUARTER < angle <= PI + PI_QUARTER
+      point.y += HALF_SIZE
 
-    if PI + PI_QUARTER < angle <= PI2 - PI_QUARTER
-      target.x -= HALF_SIZE
+    else if PI + PI_QUARTER < angle <= PI2 - PI_QUARTER
+      point.x -= HALF_SIZE
 
-
-
-
-    return "M#{source.x},#{source.y} L#{target.x},#{target.y}"
+    return point
 
