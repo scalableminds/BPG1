@@ -14,8 +14,8 @@ object ApplicationBuild extends Build {
     conf.getString("application.revision"))
 
   val projectZoomDependencies = Seq(
-    "org.reactivemongo" %% "play2-reactivemongo" % "0.9-SNAPSHOT",
-    "org.reactivemongo" %% "reactivemongo-bson-macros" % "0.9-SNAPSHOT",
+    "org.reactivemongo" %% "play2-reactivemongo" % "0.9",
+    "org.reactivemongo" %% "reactivemongo-bson-macros" % "0.9",
     "org.mongodb" %% "casbah-commons" % "2.5.0",
     "org.mongodb" %% "casbah-core" % "2.5.0",
     "org.mongodb" %% "casbah-query" % "2.5.0",
@@ -42,7 +42,7 @@ object ApplicationBuild extends Build {
     //templatesImport += "",
     coffeescriptOptions := Seq("native", "coffee -p"),
     resolvers ++= dependencyResolvers
-    //playAssetsDirectories += file("") 
+    //playAssetsDirectories += file("")
   )
 
 }
