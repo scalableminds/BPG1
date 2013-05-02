@@ -8,6 +8,7 @@ jquery.mousewheel : Mousewheel
 ./process_view/behavior/connect_nodes_behavior : ConnectNodesBehavior
 ./process_view/behavior/drag_node_behavior : DragNodeBehavior
 ./process_view/behavior/delete_node_behavior : DeleteNodeBehavior
+./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
 ../component/artifact_finder : ArtifactFinder
 ../component/artifact : Artifact
 ###
@@ -97,12 +98,17 @@ class ProcessView
   addArtifact : (evt) =>
 
     artifact = evt.gesture.target
-    dropTarget = evt.target
+    touch = evt.gesture.touches[0]
 
-    if $("svg").has(dropTarget).length > 0
+    #is the mouse over the SVG?
+    offset = $("svg").offset()
+
+    if touch.pageX > offset.left and touch.pageY > offset.top
 
       id = $(artifact).data("id")
       artifact = @artifactFinder.getArtifact(id)
+      $(artifact.domElement).find("img").addClass("nodeElement")
+
       @on "view:zooming", artifact.resize
 
       @addNode(evt, artifact)
@@ -132,6 +138,7 @@ class ProcessView
       when toolBox[0] then new DragNodeBehavior()
       when toolBox[1] then new ConnectNodesBehavior(graph, graphContainer)
       when toolBox[2] then new DeleteNodeBehavior(graph)
+      when toolBox[3] then new DrawClusterBehavior(graph)
 
     graph.changeBehavior( behavior )
 
