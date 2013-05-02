@@ -1,13 +1,21 @@
 ### define
 core_ext : CoreExt
 hammer : Hammer
+../cluster : Cluster
 ###
 
 class DrawClusterBehavior
 
-  constructor : ( @graph ) ->
+  constructor : ( @graph, @container ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
+
+    if $(".preview").length == 0
+      @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
+      @preview
+        .attr("class", "hidden preview cluster")
+    else
+      @preview = d3.select(".preview")
 
 
   activate : ->
@@ -28,12 +36,16 @@ class DrawClusterBehavior
 
   dragEnd : (event) =>
 
-    @graph.addCluster(@waypoints)
+    @cluster.finialize()
+
+    @graph.addCluster(@cluster)
+    @preview.classed("hidden, true")
 
 
   dragStart : (event) =>
 
-    @waypoints = []
+    @cluster = new Cluster()
+    @preview.data(@cluster)
 
     @offset = $("svg").offset()
     @scaleValue = $(".zoomSlider input").val()
@@ -51,6 +63,9 @@ class DrawClusterBehavior
       x : x
       y : y
 
-    @waypoints.push(tmp)
+    @cluster.waypoints.push(tmp)
 
+    @preview
+      .classed("hidden", false)
+      .attr("d", @cluster.getLineSegment())
 

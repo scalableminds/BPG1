@@ -3,7 +3,9 @@
 
 class Cluster
 
-  constructor : (@waypoints) ->
+  constructor : ->
+
+    @waypoints = []
 
 
   getLineSegment : ->
@@ -17,8 +19,11 @@ class Cluster
       else
         lineSegement += "L #{waypoint.x},#{waypoint.y} "
 
+    return lineSegement
+
+
+  finialize : ->
+
     #connect last waypoint with first
     firstWaypoint = @waypoints[0]
-    lineSegement += "L #{firstWaypoint.x},#{firstWaypoint.y}"
-
-    return lineSegement
+    @waypoints.push firstWaypoint

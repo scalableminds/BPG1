@@ -138,7 +138,7 @@ class ProcessView
       when toolBox[0] then new DragNodeBehavior()
       when toolBox[1] then new ConnectNodesBehavior(graph, graphContainer)
       when toolBox[2] then new DeleteNodeBehavior(graph)
-      when toolBox[3] then new DrawClusterBehavior(graph)
+      when toolBox[3] then new DrawClusterBehavior(graph, graphContainer)
 
     graph.changeBehavior( behavior )
 

@@ -56,9 +56,9 @@ class Graph
       @drawEdges()
 
 
-  addCluster : (waypoints) =>
+  addCluster : (cluster) =>
 
-    @clusters.push( new Cluster(waypoints) )
+    @clusters.push( cluster )
     @drawClusters()
 
 
