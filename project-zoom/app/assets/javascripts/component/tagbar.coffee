@@ -9,8 +9,8 @@ class Tagbar
   taglist = [
     {type :"project_partner", name : "SAP"},
     {type :"date", name : "2013"},
-    {type :"topic", name : "Health"},
-    {type :"topic", name : "Energy"},
+    {type :"branch", name : "Health"},
+    {type :"branch", name : "Energy"},
   ]
 
 
@@ -29,24 +29,48 @@ class Tagbar
 
   populateTagForm : ->
 
-    checkBoxList = $("#chklist")
+    # checkBoxList = $("#chklist")
+    branchTaglist = $("#branchtags")
+    dateTaglist = $("#datetags")
+    partnerTaglist = $("#partnertags")
 
     for tag of @tags
-      pair = @tags[tag].name
+      tagName = @tags[tag].name
+      tagType = @tags[tag].type
+
       checkbox = document.createElement("input")
-
       checkbox.type = "checkbox"
-      checkbox.name = pair
-      checkbox.value = pair
-
-      checkBoxList.append checkbox
+      checkbox.name = tagName
+      checkbox.value = tagName
 
       label = document.createElement("label")
-      label.htmlFor = pair
-      label.appendChild document.createTextNode(pair)
+      # label.htmlFor = tagName
+      label.appendChild document.createTextNode(tagName)
+      console.log tagName
 
-      checkBoxList.append label
-      checkBoxList.append document.createElement("br")
+      listToAppend = null
+      switch tagType
+        when "date" then listToAppend = dateTaglist
+        when "project_partner" then listToAppend = partnerTaglist
+        when "branch" then listToAppend = branchTaglist
+        else console.log "tag with strange type"
+
+      listToAppend.append checkbox
+      listToAppend.append label
+
+
+
+
+
+
+      # checkBoxList.append checkbox
+
+
+
+      # checkBoxList.append label
+      # checkBoxList.append document.createElement("br")
+
+
 
 
   destroy : ->
