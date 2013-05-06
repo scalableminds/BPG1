@@ -39,6 +39,7 @@ class ProjectsOverviewView
 
     @tagbar = new Tagbar()
     $("#tagbar").append( @tagbar.domElement )
+    @tagbar.populateTagForm()
 
 
   initD3 : ->
@@ -117,7 +118,7 @@ class ProjectsOverviewView
 
   zoom : ->
 
-    @graphContainer.attr("transform", "scale( #{d3.event.scale} )") #"translate(" + d3.event.translate + ")
+    @graphContainer.attr("transform", "scale( #{d3.event.scale} )")
     @trigger("view:zooming")
     console.log "zooming"
 
@@ -139,7 +140,6 @@ class ProjectsOverviewView
 
   venn1 : ->
     @drawCircle(300, 200, "steelblue")
-
 
   venn2 : ->
     @drawCircle(300, 200, "steelblue")
@@ -166,6 +166,21 @@ class ProjectsOverviewView
       })
 
     @clusters.push circle
+    # @drawLabelsForSelectedTags
+
+  drawLabelsForSelectedTags : ->
+    for t in @selectedTags
+      console.log "x"
+      label = @svg.append("svg:text")
+      label.attr({
+        x: 100,
+        y: 100,
+        fill: "red",
+        })
+      label.textContent = "now?"
+
+
+
 
 
 

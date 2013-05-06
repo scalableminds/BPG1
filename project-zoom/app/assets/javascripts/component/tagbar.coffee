@@ -5,14 +5,17 @@ jquery : $
 
 class Tagbar
 
-  TAB_PREFIX : "tab"
-
   domElement : null
-  artifacts : null
+  taglist = [
+    {type :"project_partner", name : "SAP"},
+    {type :"date", name : "2013"},
+    {type :"topic", name : "Health"},
+    {type :"topic", name : "Energy"},
+  ]
 
 
   constructor : () ->
-    @tags = []
+    @tags = taglist
 
     domElement = $('<div/>', {})
 
@@ -24,7 +27,26 @@ class Tagbar
     @onResized = func
 
 
-  arrangeProjectGraph : () ->
+  populateTagForm : ->
+
+    checkBoxList = $("#chklist")
+
+    for tag of @tags
+      pair = @tags[tag].name
+      checkbox = document.createElement("input")
+
+      checkbox.type = "checkbox"
+      checkbox.name = pair
+      checkbox.value = pair
+
+      checkBoxList.append checkbox
+
+      label = document.createElement("label")
+      label.htmlFor = pair
+      label.appendChild document.createTextNode(pair)
+
+      checkBoxList.append label
+      checkBoxList.append document.createElement("br")
 
 
   destroy : ->
