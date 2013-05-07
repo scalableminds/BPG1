@@ -29,7 +29,6 @@ class Tagbar
 
   populateTagForm : ->
 
-    # checkBoxList = $("#chklist")
     branchTaglist = $("#branchtags")
     dateTaglist = $("#datetags")
     partnerTaglist = $("#partnertags")
@@ -44,8 +43,7 @@ class Tagbar
       checkbox.value = tagName
 
       label = document.createElement("label")
-      # label.htmlFor = tagName
-      label.appendChild document.createTextNode(tagName)
+      label.innerHTML = tagName
       console.log tagName
 
       listToAppend = null
@@ -57,20 +55,6 @@ class Tagbar
 
       listToAppend.append checkbox
       listToAppend.append label
-
-
-
-
-
-
-      # checkBoxList.append checkbox
-
-
-
-      # checkBoxList.append label
-      # checkBoxList.append document.createElement("br")
-
-
 
 
   destroy : ->

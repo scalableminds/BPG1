@@ -11,13 +11,13 @@ class ProjectsOverviewView
   HEIGHT = 500
   time : null
 
-  SAMPLE_PROJECT : {
-    name:"test1"
+  SAMPLE_PROJECT = {
+    name : "test1",
     tags : [
-      {type :"project_partner", name : "SAP"}
-      {type :"date", name : "2013"}
-      {type :"topic", name : "Health"}
-      {type :"topic", name : "Energy"}
+      {type :"project_partner", name : "SAP"},
+      {type :"date", name : "2013"},
+      {type :"topic", name : "Health"},
+      {type :"topic", name : "Energy"},
     ]
   }
 
@@ -26,6 +26,7 @@ class ProjectsOverviewView
 
     @selectedTags = []
     @clusters = []
+    @projects = []
 
     EventMixin.extend(this)
     @initTagbar()
@@ -62,15 +63,24 @@ class ProjectsOverviewView
 
   initGraph : ->
 
+    @projects.push SAMPLE_PROJECT
+    console.log @projects
     @graphContainer = @svg.append("svg:g")
 
     @graph = new InteractiveGraph(@graphContainer, @svg)
-    for i in [0..5]
-      @graph.addNode(i*50, i*50)
+    pos_x = 0
+    pos_y = 0
+    for project in @projects
+      @graph.addNode(pos_x, pos_y)
+      pos_x += 50
+      pos_y += 50
 
-    @graph.addEdge(0,1)
-    @graph.addEdge(2,3)
-    @graph.addEdge(4,3)
+    # for i in [0..5]
+    #   @graph.addNode(i*50, i*50)
+
+    # @graph.addEdge(0,1)
+    # @graph.addEdge(2,3)
+    # @graph.addEdge(4,3)
 
 
   initArrowMarkers : ->
