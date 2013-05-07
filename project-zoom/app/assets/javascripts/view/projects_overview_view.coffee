@@ -11,14 +11,40 @@ class ProjectsOverviewView
   HEIGHT = 500
   time : null
 
-  SAMPLE_PROJECT = {
-    name : "test1",
+  SAMPLE_PROJECT_1 = {
+    name : "Test 1",
     tags : [
       {type :"project_partner", name : "SAP"},
       {type :"date", name : "2013"},
-      {type :"topic", name : "Health"},
-      {type :"topic", name : "Energy"},
-    ]
+      {type :"branch", name : "Health"},
+      {type :"branch", name : "Energy"},
+    ],
+    img : null,
+    node : null,
+  }
+
+  SAMPLE_PROJECT_2 = {
+    name : "Test 2",
+    tags : [
+      {type :"project_partner", name : "SAP"},
+      {type :"date", name : "2013"},
+      {type :"branch", name : "Health"},
+      {type :"branch", name : "Energy"},
+    ],
+    img : null,
+    node : null,
+  }
+
+  SAMPLE_PROJECT_3 = {
+    name : "Test 3",
+    tags : [
+      {type :"project_partner", name : "SAP"},
+      {type :"date", name : "2013"},
+      {type :"branch", name : "Health"},
+      {type :"branch", name : "Energy"},
+    ],
+    img : null,
+    node : null,
   }
 
 
@@ -63,17 +89,20 @@ class ProjectsOverviewView
 
   initGraph : ->
 
-    @projects.push SAMPLE_PROJECT
-    console.log @projects
+    @projects.push SAMPLE_PROJECT_1
+    @projects.push SAMPLE_PROJECT_2
+    @projects.push SAMPLE_PROJECT_3
+
     @graphContainer = @svg.append("svg:g")
 
     @graph = new InteractiveGraph(@graphContainer, @svg)
     pos_x = 0
     pos_y = 0
     for project in @projects
-      @graph.addNode(pos_x, pos_y)
+      node = @graph.addNode(pos_x, pos_y)
       pos_x += 50
       pos_y += 50
+      project.node = node
 
     # for i in [0..5]
     #   @graph.addNode(i*50, i*50)
@@ -180,7 +209,6 @@ class ProjectsOverviewView
 
   drawLabelsForSelectedTags : ->
     for t in @selectedTags
-      console.log "x"
       label = @svg.append("svg:text")
       label.attr({
         x: 100,
@@ -188,6 +216,10 @@ class ProjectsOverviewView
         fill: "red",
         })
       label.textContent = "now?"
+
+  # arrangeProjectsInClusters : ->
+  #   for tag in @selectedTags
+
 
 
 
