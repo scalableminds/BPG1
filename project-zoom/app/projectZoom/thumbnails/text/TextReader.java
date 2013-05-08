@@ -20,6 +20,11 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
 
+import org.artofsolving.jodconverter.OfficeDocumentConverter;
+import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
+import org.artofsolving.jodconverter.office.OfficeManager;
+
+
 import projectZoom.thumbnails.text.MyWordle.Word;
 import cue.lang.Counter;
 import cue.lang.WordIterator;
@@ -157,7 +162,19 @@ public class TextReader {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
 	}
-}
+	
+	public void convertToPdf(File fileIn, File fileOut, int count)
+	{
+		OfficeManager officeManager = new DefaultOfficeManagerConfiguration().buildOfficeManager();
+	    officeManager.start();
+
+	    OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+	    converter.convert(fileIn, fileOut);
+	        
+	    officeManager.stop();
+		
+	}
 
 }
