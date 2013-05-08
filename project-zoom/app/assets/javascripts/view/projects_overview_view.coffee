@@ -122,51 +122,48 @@ class ProjectsOverviewView
 
 
   initEventHandlers : ->
-
     graphContainer = @graphContainer[0][0]
-
     $(".checkbox-group input").on "click", (event) => @updateClusters(event.currentTarget)
 
 
   collectSelectedTags : ->
-
     @selectedTags = $("input[type=checkbox]:checked").map( ->
       @value
     ).get()
 
 
   updateClusters : (clickedCheckbox) ->
-
     @collectSelectedTags()
-    clusterName = clickedCheckbox.value
+    tagName = clickedCheckbox.value
 
     if clickedCheckbox.checked
-      @drawCluster(clusterName)
-    else @removeCluster(clusterName)
+      @drawCluster(tagName)
+    else @removeCluster(tagName)
+
+    @arrangeProjectsInClusters(tagName)
 
 
-  drawCluster : (clusterName) ->
-
+  drawCluster : (name) ->
     switch @selectedTags.length
-      when 1 then @venn1(clusterName)
-      when 2 then @venn2(clusterName)
-      when 3 then @venn3(clusterName)
+      when 1 then @venn1(name)
+      when 2 then @venn2(name)
+      when 3 then @venn3(name)
       else @noVenn()
 
 
-  removeCluster : (clusterName) ->
-    d3.select("##{clusterName}").remove()
+  removeCluster : (name) ->
+    if !d3.select("##{name}").nil?
+      d3.select("##{name}").remove()
 
 
-  venn1 : (clusterName) ->
-    @drawCircle(300, 200, "steelblue", clusterName)
-    @arrangeProjectsInClusters()
+  venn1 : (name) ->
+    @drawCircle(300, 200, "steelblue", name)
 
-  venn2 : (clusterName) ->
-    @drawCircle(550, 200, "yellow", clusterName)
+  venn2 : (name) ->
+    @drawCircle(550, 200, "yellow", name)
 
-  venn3 : (clusterName) ->
-    @drawCircle(425, 400, "forestgreen", clusterName)
+  venn3 : (name) ->
+    @drawCircle(425, 400, "forestgreen", name)
 
   noVenn : ->
     $("circle").each( ->
@@ -202,14 +199,13 @@ class ProjectsOverviewView
       .textContent = "now?"
 
 
-  arrangeProjectsInClusters : ->
+  arrangeProjectsInClusters : (tagName) ->
 
-    # for project in @projects
-    #   for tag in @selectedTags
-        # if @hasProjectTag(project, tag)
-          # console.log project
-          # console.log tag
-          # console.log "#######"
+    for project in @projects
+      if @hasProjectTag(project, tagName)
+        console.log project
+        console.log tagName
+        console.log "#######"
       # if tag in p.tags
       #   console.log "tagchen"
 
