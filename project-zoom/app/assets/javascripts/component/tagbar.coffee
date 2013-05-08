@@ -44,7 +44,6 @@ class Tagbar
 
       label = document.createElement("label")
       label.innerHTML = tagName
-      console.log tagName
 
       listToAppend = null
       switch tagType

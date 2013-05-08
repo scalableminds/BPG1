@@ -11,41 +11,33 @@ class ProjectsOverviewView
   HEIGHT = 500
   time : null
 
-  SAMPLE_PROJECT_1 = {
-    name : "Test 1",
+  SAMPLE_PROJECT_1 =
+    name : "Test 1"
     tags : [
-      {type :"project_partner", name : "SAP"},
-      {type :"date", name : "2013"},
-      {type :"branch", name : "Health"},
-      {type :"branch", name : "Energy"},
-    ],
-    img : null,
-    node : null,
-  }
+      {type : "project_partner", name : "SAP"},
+      {type : "date", name : "2013"},
+    ]
+    img : null
+    node : null
 
-  SAMPLE_PROJECT_2 = {
-    name : "Test 2",
+  SAMPLE_PROJECT_2 =
+    name : "Test 1"
     tags : [
-      {type :"project_partner", name : "SAP"},
-      {type :"date", name : "2013"},
-      {type :"branch", name : "Health"},
-      {type :"branch", name : "Energy"},
-    ],
-    img : null,
-    node : null,
-  }
+      {type : "project_partner", name : "Siemens"},
+      {type : "date", name : "2013"},
+      {type : "branch", name : "Diabetes"},
+    ]
+    img : null
+    node : null
 
-  SAMPLE_PROJECT_3 = {
-    name : "Test 3",
+  SAMPLE_PROJECT_3 =
+    name : "Test 1"
     tags : [
-      {type :"project_partner", name : "SAP"},
-      {type :"date", name : "2013"},
-      {type :"branch", name : "Health"},
-      {type :"branch", name : "Energy"},
-    ],
-    img : null,
-    node : null,
-  }
+      {type : "project_partner", name : "Janssen"},
+      {type : "branch", name : "Energy"},
+    ]
+    img : null
+    node : null
 
 
   constructor : ->
@@ -76,15 +68,11 @@ class ProjectsOverviewView
       .attr("WIDTH", WIDTH)
       .attr("HEIGHT", HEIGHT)
       .attr("pointer-events", "all")
-      .call(
-        d3.behavior.zoom()
-          .on("zoom", ( => @zoom()) )
-      )
 
     @hitbox = @svg.append("svg:rect")
-          .attr("width", WIDTH)
-          .attr("height", HEIGHT)
-          .attr("fill", "white")
+      .attr("width", WIDTH)
+      .attr("height", HEIGHT)
+      .attr("fill", "white")
 
 
   initGraph : ->
@@ -103,13 +91,6 @@ class ProjectsOverviewView
       pos_x += 50
       pos_y += 50
       project.node = node
-
-    # for i in [0..5]
-    #   @graph.addNode(i*50, i*50)
-
-    # @graph.addEdge(0,1)
-    # @graph.addEdge(2,3)
-    # @graph.addEdge(4,3)
 
 
   initArrowMarkers : ->
@@ -144,8 +125,7 @@ class ProjectsOverviewView
 
     graphContainer = @graphContainer[0][0]
 
-    projectsOverviewView = this
-    $(".checkbox-group input").on "click", (event) -> projectsOverviewView.drawClusters()
+    $(".checkbox-group input").on "click", (event) => @updateClusters(event.currentTarget)
 
 
   collectSelectedTags : ->
@@ -155,45 +135,47 @@ class ProjectsOverviewView
     ).get()
 
 
-  zoom : ->
-
-    @graphContainer.attr("transform", "scale( #{d3.event.scale} )")
-    @trigger("view:zooming")
-    console.log "zooming"
-
-
-  drawClusters : ->
-
-    $("circle").each( ->
-      @remove()
-    )
+  updateClusters : (clickedCheckbox) ->
 
     @collectSelectedTags()
+    clusterName = clickedCheckbox.value
+
+    if clickedCheckbox.checked
+      @drawCluster(clusterName)
+    else @removeCluster(clusterName)
+
+
+  drawCluster : (clusterName) ->
 
     switch @selectedTags.length
-      when 1 then @venn1()
-      when 2 then @venn2()
-      when 3 then @venn3()
+      when 1 then @venn1(clusterName)
+      when 2 then @venn2(clusterName)
+      when 3 then @venn3(clusterName)
       else @noVenn()
 
 
-  venn1 : ->
-    @drawCircle(300, 200, "steelblue")
+  removeCluster : (clusterName) ->
+    d3.select("##{clusterName}").remove()
 
-  venn2 : ->
-    @drawCircle(300, 200, "steelblue")
-    @drawCircle(550, 200, "yellow")
 
-  venn3 : ->
-    @drawCircle(300, 200, "steelblue")
-    @drawCircle(550, 200, "yellow")
-    @drawCircle(425, 400, "forestgreen")
+  venn1 : (clusterName) ->
+    @drawCircle(300, 200, "steelblue", clusterName)
+    @arrangeProjectsInClusters()
+
+  venn2 : (clusterName) ->
+    @drawCircle(550, 200, "yellow", clusterName)
+
+  venn3 : (clusterName) ->
+    @drawCircle(425, 400, "forestgreen", clusterName)
 
   noVenn : ->
+    $("circle").each( ->
+      @remove()
+    )
     console.log "no Venn Diagramm possible."
 
 
-  drawCircle : (cx, cy, color) ->
+  drawCircle : (cx, cy, color, name) ->
 
     circle = @svg.append("svg:circle")
       .attr({
@@ -202,25 +184,41 @@ class ProjectsOverviewView
         "cy": cy,
         "fill": color,
         "fill-opacity": .5,
+        "id": name,
       })
 
     @clusters.push circle
     # @drawLabelsForSelectedTags
 
   drawLabelsForSelectedTags : ->
+
     for t in @selectedTags
       label = @svg.append("svg:text")
-      label.attr({
+      .attr({
         x: 100,
         y: 100,
         fill: "red",
-        })
-      label.textContent = "now?"
-
-  # arrangeProjectsInClusters : ->
-  #   for tag in @selectedTags
+      })
+      .textContent = "now?"
 
 
+  arrangeProjectsInClusters : ->
+
+    # for project in @projects
+    #   for tag in @selectedTags
+        # if @hasProjectTag(project, tag)
+          # console.log project
+          # console.log tag
+          # console.log "#######"
+      # if tag in p.tags
+      #   console.log "tagchen"
+
+  hasProjectTag : (project, tag) ->
+    for t in project.tags
+      if JSON.stringify t == JSON.stringify tag
+        break
+        true
+      else false
 
 
 
