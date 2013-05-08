@@ -24,7 +24,7 @@ object ApplicationBuild extends Build {
     "org.apache.commons" % "commons-email" % "1.2",
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",
     "org.jvnet.hudson" % "ganymed-ssh-2" % "build260",
-    "org.apache.tika" % "tika-bundle" % "1.3",
+    "org.apache.tika" % "tika-parsers" % "1.3",
     "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources())
 
 

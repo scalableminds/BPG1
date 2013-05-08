@@ -11,9 +11,6 @@ import java.util.*;
 //import org.eclipse.zest.cloudio.TagCloud;
 //import org.eclipse.zest.cloudio.Word;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import java.util.Map.Entry;
 import java.util.List;
 import java.util.Map;
