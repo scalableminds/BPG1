@@ -200,25 +200,39 @@ class ProjectsOverviewView
 
   arrangeProjectsInClusters : (tagName) ->
     for project in @projects
+      selectedProjectTags = []
+
       if @hasProjectTag(project, tagName)
-        @moveNode(project)
+        selectedProjectTags.push tagName
+
+      @updateNode(project.node, selectedProjectTags)
 
 
   hasProjectTag : (project, tag) ->
 
-    trueOrFalse = false
-
     for t in project.tags
       if t.name == tag
-
-        trueOrFalse = true
-        break
-
-    trueOrFalse
+        return true
+      else return false
 
 
-  moveNode : (project) ->
-    console.log "xxxxxxxxxxxxxxxxxxx move node xxxxxxxxxxxxxxxxxxx"
+  updateNode : (projectNode, selectedProjectTags) ->
+
+    pos_x = 0
+    pos_y = 0
+
+    for t in selectedProjectTags
+      c = d3.select("#cluster_#{t}")
+      pos_x += c.attr("cx")
+      pos_y += c.attr("cy")
+
+    projectNode.attr("x", pos_x)
+    projectNode.attr("y", pos_y)
+
+    console.log projectNode
+    # now this one does not work...
+
+
 
 
 
