@@ -21,7 +21,7 @@ class ProjectsOverviewView
     node : null
 
   SAMPLE_PROJECT_2 =
-    name : "Test 1"
+    name : "Test 2"
     tags : [
       {type : "project_partner", name : "Siemens"},
       {type : "date", name : "2013"},
@@ -31,7 +31,7 @@ class ProjectsOverviewView
     node : null
 
   SAMPLE_PROJECT_3 =
-    name : "Test 1"
+    name : "Test 3"
     tags : [
       {type : "project_partner", name : "Janssen"},
       {type : "branch", name : "Energy"},
@@ -152,8 +152,8 @@ class ProjectsOverviewView
 
 
   removeCluster : (name) ->
-    if !d3.select("##{name}").nil?
-      d3.select("##{name}").remove()
+    if d3.select("#cluster_#{name}")?
+      d3.select("#cluster_#{name}").remove()
 
 
   venn1 : (name) ->
@@ -181,7 +181,7 @@ class ProjectsOverviewView
         "cy": cy,
         "fill": color,
         "fill-opacity": .5,
-        "id": name,
+        "id": "cluster_#{name}",
       })
 
     @clusters.push circle
@@ -203,19 +203,22 @@ class ProjectsOverviewView
 
     for project in @projects
       if @hasProjectTag(project, tagName)
-        console.log project
-        console.log tagName
-        console.log "#######"
-      # if tag in p.tags
-      #   console.log "tagchen"
+        @moveNode(project)
+
 
   hasProjectTag : (project, tag) ->
     for t in project.tags
       if JSON.stringify t == JSON.stringify tag
+        console.log t
+        console.log tag
         break
         true
       else false
+    #why does this not work?!
 
+
+  moveNode : (project) ->
+    console.log project
 
 
 
