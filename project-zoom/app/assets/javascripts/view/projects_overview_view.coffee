@@ -187,38 +187,38 @@ class ProjectsOverviewView
     @clusters.push circle
     # @drawLabelsForSelectedTags
 
-  drawLabelsForSelectedTags : ->
-
-    for t in @selectedTags
-      label = @svg.append("svg:text")
-      .attr({
-        x: 100,
-        y: 100,
-        fill: "red",
-      })
-      .textContent = "now?"
+  # drawLabelsForSelectedTags : ->
+  #   for t in @selectedTags
+  #     label = @svg.append("svg:text")
+  #     .attr({
+  #       x: 100,
+  #       y: 100,
+  #       fill: "red",
+  #     })
+  #     .textContent = "now?"
 
 
   arrangeProjectsInClusters : (tagName) ->
-
     for project in @projects
       if @hasProjectTag(project, tagName)
         @moveNode(project)
 
 
   hasProjectTag : (project, tag) ->
+
+    trueOrFalse = false
+
     for t in project.tags
-      if JSON.stringify t == JSON.stringify tag
-        console.log t
-        console.log tag
+      if t.name == tag
+
+        trueOrFalse = true
         break
-        true
-      else false
-    #why does this not work?!
+
+    trueOrFalse
 
 
   moveNode : (project) ->
-    console.log project
+    console.log "xxxxxxxxxxxxxxxxxxx move node xxxxxxxxxxxxxxxxxxx"
 
 
 
