@@ -23,17 +23,21 @@ import models.GlobalDBAccess
  */
 class UserService(application: Application) extends UserServicePlugin(application) with GlobalDBAccess{
   def find(id: UserId): Option[User] = {
-    Await.result(
+    val r = Await.result(
       ProfileDAO
         .findOneByUserId(id)
         .map(_.flatMap(_.user)), 5 seconds)
+        Logger.warn("User: " + r + " Penis: " + id)   
+    r
   }
 
   def findByEmailAndProvider(email: String, providerId: String): Option[User] = {
-    Await.result(
+    val r = Await.result(
       ProfileDAO
         .findOneByEmailAndProvider(email, providerId)
         .map(_.flatMap(_.user)), 5 seconds)
+    Logger.warn("Iser: " + r)   
+    r
   }
 
   def save(identity: Identity): User = {

@@ -25,10 +25,11 @@ object ApplicationBuild extends Build {
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",
     "org.jvnet.hudson" % "ganymed-ssh-2" % "build260",
     "org.apache.tika" % "tika-bundle" % "1.3",
-    "securesocial"%  "securesocial" % "master-SNAPSHOT" withSources())
+    "com.scalableminds" %%  "securesocial" % "master-SNAPSHOT" withSources())
 
 
   val dependencyResolvers = Seq(
+    Resolver.url("Scalableminds SNAPS Repo", url("http://scalableminds.github.com/snapshots/"))(Resolver.ivyStylePatterns),
     Resolver.url("play-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
     Resolver.url("typesafe community snaps", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns),
     "repo.novus rels" at "http://repo.novus.com/releases/",
