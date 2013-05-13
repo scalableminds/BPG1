@@ -84,13 +84,19 @@ class ProjectsOverviewView
     @graphContainer = @svg.append("svg:g")
 
     @graph = new InteractiveGraph(@graphContainer, @svg)
+    console.log @graph
     pos_x = 0
     pos_y = 0
     for project in @projects
-      node = @graph.addNode(pos_x, pos_y)
+
+      nodeContainer = @graph.addNode(pos_x, pos_y)
+      svgNodeContainer = nodeContainer[nodeContainer.length - 1].parentNode.childNodes
+      node = svgNodeContainer[svgNodeContainer.length - 1].childNodes[0]
+
+      project.node = node
+
       pos_x += 50
       pos_y += 50
-      project.node = node
 
 
   initArrowMarkers : ->
@@ -209,7 +215,6 @@ class ProjectsOverviewView
 
 
   hasProjectTag : (project, tag) ->
-
     for t in project.tags
       if t.name == tag
         return true
@@ -217,21 +222,15 @@ class ProjectsOverviewView
 
 
   updateNode : (projectNode, selectedProjectTags) ->
-
     pos_x = 0
     pos_y = 0
 
     for t in selectedProjectTags
       c = d3.select("#cluster_#{t}")
-      pos_x += c.attr("cx")
-      pos_y += c.attr("cy")
+      pos_x += parseInt c.attr("cx")
+      pos_y += parseInt c.attr("cy")
 
-    projectNode.attr("x", pos_x)
-    projectNode.attr("y", pos_y)
-
-    console.log projectNode
-    # now this one does not work...
-
+      console.log projectNode
 
 
 

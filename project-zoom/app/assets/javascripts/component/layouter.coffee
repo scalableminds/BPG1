@@ -17,15 +17,3 @@ class Layouter
 		occludesNode = true if node.x
 
 		moveNode newNode if occludesNode
-
-
-
-		# Assignment:
-		number   = 42
-		opposite = true
-
-		# Conditions:
-		number = -42 if opposite
-
-		square = (x) -> x * x
-		cube   = (x) -> square(x) * x

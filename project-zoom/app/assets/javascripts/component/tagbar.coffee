@@ -61,3 +61,6 @@ class Tagbar
   activate : ->
 
   deactivate : ->
+
+
+
