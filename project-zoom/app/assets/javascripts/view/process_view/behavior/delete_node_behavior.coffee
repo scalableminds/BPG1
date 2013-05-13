@@ -10,7 +10,7 @@ class DeleteNodeBehavior
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("tap", ".node", @removeNode)
+      .on("tap", ".nodeElement", @removeNode)
       .on("tap", ".edge", @removeEdge)
 
 
@@ -23,7 +23,9 @@ class DeleteNodeBehavior
 
   removeNode : (event) =>
 
-    node = d3.select(event.target).datum()
+    svgContainer = $(event.target).closest("foreignObject")[0]
+
+    node = d3.select(svgContainer).datum()
     @graph.removeNode(node)
 
 

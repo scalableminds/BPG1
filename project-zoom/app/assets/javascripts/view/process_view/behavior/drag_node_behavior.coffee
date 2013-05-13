@@ -8,30 +8,33 @@ class DragNodeBehavior
 
     @hammerContext = Hammer( $("svg")[0] )
       .on("drag", ".nodeElement", @dragMove)
+      .on("dragstart", ".nodeElement", @dragStart)
 
 
   deactivate : ->
 
     @hammerContext
       .off("drag", @dragMove)
+      .off("dragstart", ".nodeElement", @dragStart)
 
 
-  dragMove : (event) ->
+  dragStart : (event) =>
 
-    svgContainer = this.parentNode.parentNode
-
-    $svg = $("svg")
-    offset = $svg.offset()
-    scaleValue = $(".zoomSlider input").val()
-
-    x = event.gesture.touches[0].pageX - offset.left
-    y = event.gesture.touches[0].pageY - offset.top
-
-    x /= scaleValue
-    y /= scaleValue
+    @offset = $("svg").offset()
+    @scaleValue = $(".zoomSlider input").val()
 
 
-    halfWidth = 34
+  dragMove : (event) =>
+
+    svgContainer = $(event.gesture.target).closest("foreignObject")[0]
+
+    x = event.gesture.touches[0].pageX - @offset.left
+    y = event.gesture.touches[0].pageY - @offset.top
+
+    x /= @scaleValue
+    y /= @scaleValue
+
+    halfWidth = d3.select(svgContainer).datum().getSize() / 2
 
     d3.select(svgContainer)
       .attr("x", (data) -> data.x = x - halfWidth)

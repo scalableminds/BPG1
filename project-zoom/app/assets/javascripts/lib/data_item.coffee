@@ -8,9 +8,8 @@ async : async
 
 ###
 TODO:
-  * change sets/events
-  * Lazy loading/schema
   * json patch support
+  * decycling events
 ###
 
 class DataItem
@@ -59,24 +58,11 @@ class DataItem
 
     if _.isArray(@lazyAttributes[key])
 
-      promise = $.when( @lazyAttributes[key].map( (url) ->
-
-          Request.send(
-            url : url
-            method : "GET"
-            dataType : "json"
-          )
-
-        )...
-      )
+      promise = $.when( @lazyAttributes[key].map(@requestLazy)... )
 
     else
 
-      promise = Request.send(
-        url : @lazyAttributes[key]
-        method : "GET"
-        dataType : "json"
-      )
+      promise = @requestLazy(@lazyAttributes[key])
 
     promise.then(
 
@@ -86,7 +72,7 @@ class DataItem
           item = @set(key, result)
         else
           item = @set(key, result[0])
-          
+
         delete @lazyAttributes[key]
         callback.oneShot(item)
 
@@ -96,6 +82,25 @@ class DataItem
         callback.oneShot(undefined)
 
     )
+
+
+  requestLazy : (url) ->
+
+    if (result = DataItem.lazyCache[url])?
+      result
+
+    else
+      Request.send(
+        url : url
+        method : "GET"
+        dataType : "json"
+      ).then(
+        (result) ->
+          DataItem.lazyCache[url] = 
+            new $.Deferred()
+              .resolve(DataItem.prepareValue(result))
+              .promise()
+      )
 
 
   getDirect : (key, self, callback) ->
@@ -202,19 +207,28 @@ class DataItem
       value
 
 
+  @lazyCache : {}
+
+
 
 class DataItem.Collection
 
   DEFAULT_LIMIT : 50
 
-  constructor : (items = [], parent) ->
+  constructor : (items = []) ->
 
     EventMixin.extend(this)
+
+    if _.isString(items)
+      @url = items
+      items = []
+
 
     @items = []
     @parts = []
 
-    @items.push(new DataItem(item, this)) for item in items
+    for item in items
+      @items.push(DataItem.prepareValue(item))
 
     Object.defineProperty( this, "length", get : => @items.length )
 
@@ -235,7 +249,7 @@ class DataItem.Collection
 
       @dispatcher.register this, (result) =>
 
-        for item, i in result.items when i < result.limit
+        for item, i in result.content when i < result.limit
           @set(result.offset + i, item)
 
         @addParts(result.offset, result.limit)

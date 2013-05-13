@@ -189,7 +189,7 @@ describe "DataItem.Collection", ->
     it "should insert data", (done) ->
 
       sinon.stub(Request, "send").returns( 
-        (new $.Deferred()).resolve( offset : 0, limit : 2, items : [ { test : "1" }, { test : "2" } ] ).promise()
+        (new $.Deferred()).resolve( offset : 0, limit : 2, content : [ { test : "1" }, { test : "2" } ] ).promise()
       )
 
       @dataCollection.fetch(0, 10).then(
@@ -199,7 +199,7 @@ describe "DataItem.Collection", ->
           @dataCollection.should.have.length(2)
 
           sinon.stub(Request, "send").returns(
-            (new $.Deferred()).resolve( offset : 3, limit : 1, items : [ { test : "3" }, { test : "4" } ] ).promise()
+            (new $.Deferred()).resolve( offset : 3, limit : 1, content : [ { test : "3" }, { test : "4" } ] ).promise()
           )
           @dataCollection.fetch(3, 10).then(
             =>
@@ -216,7 +216,7 @@ describe "DataItem.Collection", ->
     it "should load continous data", (done) ->
 
       sinon.stub(Request, "send").returns( 
-        (new $.Deferred()).resolve( offset : 0, limit : 2, items : [ { test : "1" }, { test : "2" } ] ).promise()
+        (new $.Deferred()).resolve( offset : 0, limit : 2, content : [ { test : "1" }, { test : "2" } ] ).promise()
       )
       @dataCollection.fetchNext().then(
         =>
@@ -224,7 +224,7 @@ describe "DataItem.Collection", ->
           @dataCollection.should.have.length(2)
 
           sinon.stub(Request, "send").returns(
-            (new $.Deferred()).resolve( offset : 2, limit : 2, items : [ { test : "3" }, { test : "4" } ] ).promise()
+            (new $.Deferred()).resolve( offset : 2, limit : 2, content : [ { test : "3" }, { test : "4" } ] ).promise()
           )
           @dataCollection.fetchNext().then(
             =>
