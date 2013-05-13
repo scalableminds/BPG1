@@ -230,7 +230,9 @@ class ProjectsOverviewView
       pos_x += parseInt c.attr("cx")
       pos_y += parseInt c.attr("cy")
 
-      console.log projectNode
+      projectNode.x.baseVal.value = pos_x
+      projectNode.y.baseVal.value = pos_y
+
 
 
 
