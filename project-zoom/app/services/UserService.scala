@@ -14,6 +14,10 @@ import models.ProfileDAO
 import play.api.libs.concurrent.Execution.Implicits._
 import models.UserHelpers
 import models.GlobalDBAccess
+import play.api.Play
+import play.api.Mode
+import models.Profile
+import models.ProfileDAO._
 
 /**
  * A Sample In Memory user service in Scala
@@ -46,6 +50,9 @@ class UserService(application: Application) extends UserServicePlugin(applicatio
       ProfileDAO.findOneByConnectedEmail(email).map {
         case Some(p) =>
           ProfileDAO.update(p, p.copy(user = Some(user)))
+        case _ if Play.current.mode == Mode.Dev =>
+          val p = Profile(user.firstName, user.lastName, user.email.get, user = Some(user))
+          ProfileDAO.insert(p)
         case _ =>
           Logger.error("Couldn't insert user because no corresponding profile was found")
       }
