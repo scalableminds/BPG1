@@ -17,11 +17,14 @@ class ConnectNodesBehavior
       @dragLine = d3.select(".dragLine")
 
 
+
+
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".node", @dragMove)
-      .on("dragend", ".node", @dragEnd)
+      .on("drag", ".nodeElement", @dragMove)
+      .on("dragend", ".nodeElement", @dragEnd)
+      .on("dragstart", ".nodeElement", @dragStart)
 
 
   deactivate : ->
@@ -29,41 +32,47 @@ class ConnectNodesBehavior
     @hammerContext
       .off("drag", @dragMove)
       .off("dragend", @dragEnd)
+      .off("dragstart", @dragStart)
 
     @dragLine.classed("hidden", true)
 
 
+  dragStart : (event) =>
+
+    @offset = $("svg").offset()
+    @scaleValue = $(".zoomSlider input").val()
+
+
   dragEnd : (event) =>
 
-    # checking localName is a bit of a hack
-    startEvent = event.gesture.startEvent
-    if event.target == startEvent.target or not (event.target.localName == "circle")
-      @dragLine.classed("hidden", true)
-      return
+    # startContainer = $(event.gesture.startEvent.target).closest("foreignObject")[0]
+    # startID = d3.select(startContainer).datum().id
 
-    else
+    # svgContainer = $(event.target).closest("foreignObject")[0]
+    # nodeID = d3.select(svgContainer).datum().id
 
-      nodeID = event.target.__data__.id
-      startID = startEvent.target.__data__.id
+    startID = $(event.gesture.startEvent.target).data("id")
+    nodeID = $(event.target).data("id")
 
+    unless startID == nodeID
       @graph.addEdge(startID, nodeID)
-      @dragLine.classed("hidden", true)
+
+    @dragLine.classed("hidden", true)
 
 
   dragMove : (event) =>
 
-    offset = $("svg").offset()
-    scaleValue = $(".zoomSlider input").val()
+    svgContainer = $(event.gesture.target).closest("foreignObject")[0]
 
-    x = event.gesture.touches[0].pageX - offset.left
-    y = event.gesture.touches[0].pageY - offset.top
+    x = event.gesture.touches[0].pageX - @offset.left
+    y = event.gesture.touches[0].pageY - @offset.top
 
-    x /= scaleValue
-    y /= scaleValue
+    x /= @scaleValue
+    y /= @scaleValue
 
-    startEvent = event.gesture.startEvent
-    lineStartX = d3.select(startEvent.target).attr("cx")
-    lineStartY = d3.select(startEvent.target).attr("cy")
+    nodeData = d3.select(svgContainer).datum()
+    lineStartX = nodeData.getCenter().x
+    lineStartY = nodeData.getCenter().y
 
     #lineStartX = startEvent.touches[0].pageX - offset.left
     #lineStartY = startEvent.touches[0].pageY - offset.top

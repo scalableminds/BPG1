@@ -21,36 +21,53 @@ import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.util.Success
+import java.io.Writer
 
-trait DAO[T] {
-  def findHeadOption(attribute: String, value: String): Future[Option[T]]
+trait DAO[T] extends BaseDAO[T] {
+  def findHeadOption(attribute: String, value: String)(implicit ctx: DBAccessContext): Future[Option[T]]
 
-  def findSome(offset: Int, limit: Int): Future[List[T]]
+  def findSome(offset: Int, limit: Int)(implicit ctx: DBAccessContext): Future[List[T]]
 
-  def findAll: Future[List[T]]
+  def findAll(implicit ctx: DBAccessContext): Future[List[T]]
 
-  def findOneById(id: String): Future[Option[T]]
+  def findOneById(id: String)(implicit ctx: DBAccessContext): Future[Option[T]]
 
-  def insert(t: T): Future[LastError]
+  def removeById(id: String)(implicit ctx: DBAccessContext): Future[LastError]
 
-  def removeById(id: String): Future[LastError]
+  def removeAll(implicit ctx: DBAccessContext): Future[LastError]
+}
 
-  def removeAll(): Future[LastError]
+trait BaseDAO[T] {
+  def collectionInsert(t: JsObject)(implicit ctx: DBAccessContext): Future[LastError]
+
+  def collectionFind(query: JsObject)(implicit ctx: DBAccessContext): GenericQueryBuilder[JsObject, play.api.libs.json.Reads, play.api.libs.json.Writes]
+
+  def collectionUpdate(query: JsObject, update: JsObject, upsert: Boolean = false, multi: Boolean = false)(implicit ctx: DBAccessContext): Future[LastError]
+
+  def collectionRemove(js: JsObject)(implicit ctx: DBAccessContext): Future[LastError]
+}
+
+case class AuthedAccessContext(u: User) extends DBAccessContext {
+  override def user = Some(u)
+}
+
+case object UnAuthedAccessContext extends DBAccessContext
+
+case object GlobalAccessContext extends DBAccessContext {
+  override val globalAccess = true
+}
+
+trait DBAccessContext {
+  def user: Option[User] = None
+  def globalAccess: Boolean = false
 }
 
 trait MongoJsonDAO extends MongoDAO[JsObject] {
-  def insert[T](t: T)(implicit writer: Writes[T]): Future[LastError] = {
-    writer.writes(t) match {
-      case j: JsObject =>
-        collection.insert(j)
-      case _ =>
-        val errorMsg = "Couldn't insert object because serializer didn't produce a JsObject."
-        Logger.error(errorMsg)
-        Future.successful(errorFromMsg(errorMsg))
-    }
+  def insert[T](t: T)(implicit ctx: DBAccessContext, writer: OWrites[T]): Future[LastError] = {
+    super.insert(writer.writes(t))
   }
 
-  implicit object formatter extends Format[JsObject] {
+  implicit object formatter extends OFormat[JsObject] {
     def writes(js: JsObject) = js
     def reads(js: JsValue) = js match {
       case j: JsObject => JsSuccess(j)
@@ -62,7 +79,7 @@ trait MongoJsonDAO extends MongoDAO[JsObject] {
 trait MongoDAO[T] extends DAO[T] {
   import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
   def collectionName: String
-  implicit def formatter: Format[T]
+  implicit def formatter: OFormat[T]
 
   def db: DefaultDB = ReactiveMongoPlugin.db
   lazy val collection = db.collection[JSONCollection](collectionName)
@@ -71,21 +88,21 @@ trait MongoDAO[T] extends DAO[T] {
     LastError(ok = false, None, None, Some(msg), None, 0, false)
   }
 
-  def findHeadOption(attribute: String, value: String) = {
+  def findHeadOption(attribute: String, value: String)(implicit ctx: DBAccessContext) = {
     find(attribute, value).one[T]
   }
 
-  def find(attribute: String, value: String) = {
-    collection.find(Json.obj(attribute -> value))
+  def find(attribute: String, value: String)(implicit ctx: DBAccessContext): GenericQueryBuilder[JsObject, play.api.libs.json.Reads, play.api.libs.json.Writes] = {
+    collectionFind(Json.obj(attribute -> value))
   }
 
-  def remove(attribute: String, value: String) = {
-    collection.remove(Json.obj(attribute -> value))
+  def remove(attribute: String, value: String)(implicit ctx: DBAccessContext): Future[LastError] = {
+    collectionRemove(Json.obj(attribute -> value))
   }
 
-  def findSome(offset: Int, limit: Int): Future[List[T]] = {
+  def findSome(offset: Int, limit: Int)(implicit ctx: DBAccessContext): Future[List[T]] = {
     takeSome(
-      collection.find(Json.obj()),
+      collectionFind(Json.obj()),
       offset,
       limit)
   }
@@ -102,11 +119,11 @@ trait MongoDAO[T] extends DAO[T] {
       .collect[List](limit)
   }
 
-  def findAll = {
-    collection.find(Json.obj()).cursor[T].toList
+  def findAll(implicit ctx: DBAccessContext) = {
+    collectionFind(Json.obj()).cursor[T].toList
   }
-  
-  def toMongoObjectIdString(id: String) = 
+
+  def toMongoObjectIdString(id: String) =
     BSONObjectID.parse(id).map(oid => Json.toJson(oid).toString).toOption
 
   def withId[T](id: String, errorValue: => T)(f: BSONObjectID => Future[T]) = {
@@ -118,37 +135,32 @@ trait MongoDAO[T] extends DAO[T] {
         Future.successful(errorValue)
     }
   }
-  
-  
-  def findByEither(fields: (String, Function[String, Option[String]])*)(query: String) = {
-    collection.find(Json.obj(
+
+  def findByEither(fields: (String, Function[String, Option[String]])*)(query: String)(implicit ctx: DBAccessContext) = {
+    collectionFind(Json.obj(
       "$or" -> fields.flatMap {
         case (field, mapper) =>
           mapper(query).map(value => Json.obj(field -> value))
       }))
   }
 
-  def findOneById(id: String) = {
+  def findOneById(id: String)(implicit ctx: DBAccessContext) = {
     withId[Option[T]](id, errorValue = None) { bid =>
-      collection.find(Json.obj("_id" -> bid)).one[T]
+      collectionFind(Json.obj("_id" -> bid)).one[T]
     }
   }
 
-  def insert(t: T): Future[LastError] = {
-    collection.insert(t)
-  }
-
-  def update(query: JsObject, t: T, upsert: Boolean, multi: Boolean) = {
-    collection.update(query, t, upsert = upsert, multi = multi)
-  }
-
-  def removeById(id: String) = {
+  def removeById(id: String)(implicit ctx: DBAccessContext) = {
     withId(id, errorValue = LastError(false, None, None, Some(s"failed to parse objectId $id"), None, 0, false)) { bid =>
-      collection.remove(Json.obj("_id" -> new BSONObjectID(id)))
+      collectionRemove(Json.obj("_id" -> new BSONObjectID(id)))
     }
   }
 
-  def removeAll() = {
-    collection.remove(Json.obj())
+  def removeAll(implicit ctx: DBAccessContext) = {
+    collectionRemove(Json.obj())
+  }
+  
+  def insert(t:T)(implicit ctx: DBAccessContext): Future[LastError] = {
+    collectionInsert(formatter.writes(t))
   }
 }

@@ -5,9 +5,6 @@ define
 
 class Edge
 
-
-  NODE_SIZE = 64
-  HALF_SIZE = 32
   MARGIN = 2
 
   PI = Math.PI
@@ -29,13 +26,10 @@ class Edge
   getLineSegment : ->
 
     #use center of the rectangles
-    target =
-      x : @target.x + HALF_SIZE
-      y : @target.y + HALF_SIZE
+    target = @target.getCenter()
+    source = @source.getCenter()
 
-    source =
-      x : @source.x + HALF_SIZE
-      y : @source.y + HALF_SIZE
+    @HALF_SIZE = @target.getSize() / 2
 
     targetSourceAngle = @calcAngle(target, source)
     target = @getSnapPoint(targetSourceAngle, target)
@@ -71,16 +65,16 @@ class Edge
   getSnapPoint : (angle, point) ->
 
     if PI2 - PI_QUARTER < angle or angle <= PI_HALF - PI_QUARTER
-      point.y -= HALF_SIZE
+      point.y -= @HALF_SIZE
 
     else if PI_HALF - PI_QUARTER < angle <= PI - PI_QUARTER
-      point.x += HALF_SIZE
+      point.x += @HALF_SIZE
 
     else if PI - PI_QUARTER < angle <= PI + PI_QUARTER
-      point.y += HALF_SIZE
+      point.y += @HALF_SIZE
 
     else if PI + PI_QUARTER < angle <= PI2 - PI_QUARTER
-      point.x -= HALF_SIZE
+      point.x -= @HALF_SIZE
 
     return point
 

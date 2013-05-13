@@ -30,7 +30,7 @@ case class Graph(
 
 trait PayloadTransformers {
 
-  val payloadTypMapping: Map[String, String => Future[Option[JsValue]]] = Map(
+  def payloadTypMapping(implicit ctx: DBAccessContext): Map[String, String => Future[Option[JsValue]]] = Map(
     "project" -> ProjectDAO.findOneById _,
     "artifact" -> ArtifactDAO.findOneById _)
 
@@ -42,12 +42,12 @@ trait GraphTransformers extends PayloadTransformers {
   implicit val nodeFormat: Format[Node] = Json.format[Node]
   implicit val edgeFormat: Format[Edge] = Json.format[Edge]
   implicit val clusterFormat: Format[Cluster] = Json.format[Cluster]
-  implicit val graphFormat: Format[Graph] = Json.format[Graph]
+  implicit val graphFormat: OFormat[Graph] = Json.format[Graph]
 
   val reducePayloadToId =
     (__ \ 'payload).json.update((__ \ 'id).json.pick)
 
-  val includePayloadDetails =
+  def includePayloadDetails(implicit ctx: DBAccessContext) =
     (__ \ 'nodes).json.update(
       of[JsArray].map {
         case JsArray(list) => {
@@ -68,6 +68,6 @@ trait GraphTransformers extends PayloadTransformers {
       })
 }
 
-object GraphDAO extends MongoJsonDAO with GraphTransformers {
+object GraphDAO extends SecuredMongoJsonDAO with GraphTransformers {
   val collectionName = "graphs"
 }

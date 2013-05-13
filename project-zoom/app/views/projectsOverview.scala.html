@@ -1,21 +1,22 @@
-@()
+@()(implicit session: models.SessionData)
 
 @main{
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
         <div id="tagbar">
-          <form class="checkbox-group">
 
-            <h5>Please choose the tags of the project:</h5>
+            <h4>Branch Tags:</h4>
+            <form class="checkbox-group" id="branchtags">
+            </form>
 
-            <input type="checkbox" id="env" value="envi"> Environment<br>
-            <input type="checkbox" onchange="" value="sasa"> Health<br>
-            <input type="checkbox" onchange="" value="hhh"> Energy<br>
-            <input type="checkbox" onchange="" value="xxx"> Rural Health Care<br>
-            <input type="checkbox" onchange="" value="fff"> SAP<br>
-            <input type="checkbox" onchange="" value="ddd"> Siemens<br>
+            <h4>Project Partner Tags:</h4>
+            <form class="checkbox-group" id="partnertags">
+            </form>
 
-          </form>
+            <h4>Date Tags:</h4>
+            <form class="checkbox-group" id="datetags">
+            </form>
+
         </div>
 
         <div id="mainBody">

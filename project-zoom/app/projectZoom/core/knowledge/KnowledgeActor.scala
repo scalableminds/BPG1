@@ -16,6 +16,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import models.Profile
 import models.ProfileDAO
 import models.ProjectDAO
+import models.GlobalDBAccess
 
 case class ProjectFound(project: ProjectLike) extends Event
 case class ProjectAggregation(l: List[ProjectFound]) extends Event
@@ -23,7 +24,7 @@ case class ProjectAggregation(l: List[ProjectFound]) extends Event
 case class ProfileFound(profile: Profile) extends Event
 case class ProfileAggregation(l: List[ProfileFound]) extends Event
 
-class KnowledgeActor extends EventSubscriber with EventPublisher {
+class KnowledgeActor extends EventSubscriber with EventPublisher with GlobalDBAccess{
 
   def handleProfileAggregation(foundProfiles: List[ProfileFound]) = {
     ProfileDAO.findAll.map { dbProfiles =>

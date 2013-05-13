@@ -15,6 +15,7 @@ import play.api.http._
 import scala.concurrent.Future
 import play.api.http.Status._
 import scala.concurrent.ExecutionContext
+import models.ProvidesSessionData
 
 class ResultBox[T <: Result](b: Box[T]) {
   import Results.Status
@@ -104,10 +105,8 @@ trait JsonResultAttribues {
 class ControllerBase extends PlayController
     with JsonResults
     with BoxImplicits
-    with Status{
-
-  /*implicit def AuthenticatedRequest2Request[T](r: AuthenticatedRequest[T]) =
-    r.request*/
+    with Status
+    with ProvidesSessionData {
 
   def postParameter(parameter: String)(implicit request: Request[Map[String, Seq[String]]]) =
     request.body.get(parameter).flatMap(_.headOption)

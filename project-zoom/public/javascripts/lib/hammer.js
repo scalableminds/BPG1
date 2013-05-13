@@ -1,4 +1,4 @@
-/*! Hammer.JS - v1.0.5 - 2013-04-23
+/*! Hammer.JS - v1.0.5 - 2013-05-02
  * http://eightmedia.github.com/hammer.js
  *
  * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
@@ -157,7 +157,7 @@ Hammer.Instance.prototype = {
         var selectorHandler;
 
         if (arguments.length == 2){
-            selectorHandler = selector;
+            selectorHandler = handler = selector;
         }
         else if (arguments.length == 3) {
 
@@ -167,8 +167,7 @@ Hammer.Instance.prototype = {
 
                 if (Hammer.utils.matchesSelector(eventTarget, selector)){
 
-
-                    evt.target = evt.gesture.target = eventTarget;
+                    evt.gesture.target = eventTarget;
                     handler.call(eventTarget, evt);
                 }
             };

@@ -13,6 +13,11 @@ import models.User
 import models.ProfileDAO
 import play.api.libs.concurrent.Execution.Implicits._
 import models.UserHelpers
+import models.GlobalDBAccess
+import play.api.Play
+import play.api.Mode
+import models.Profile
+import models.ProfileDAO._
 
 /**
  * A Sample In Memory user service in Scala
@@ -20,19 +25,23 @@ import models.UserHelpers
  * IMPORTANT: This is just a sample and not suitable for a production environment since
  * it stores everything in memory.
  */
-class UserService(application: Application) extends UserServicePlugin(application) {
+class UserService(application: Application) extends UserServicePlugin(application) with GlobalDBAccess{
   def find(id: UserId): Option[User] = {
-    Await.result(
+    val r = Await.result(
       ProfileDAO
         .findOneByUserId(id)
         .map(_.flatMap(_.user)), 5 seconds)
+        Logger.warn("User: " + r + " Penis: " + id)   
+    r
   }
 
   def findByEmailAndProvider(email: String, providerId: String): Option[User] = {
-    Await.result(
+    val r = Await.result(
       ProfileDAO
         .findOneByEmailAndProvider(email, providerId)
         .map(_.flatMap(_.user)), 5 seconds)
+    Logger.warn("Iser: " + r)   
+    r
   }
 
   def save(identity: Identity): User = {
@@ -41,6 +50,9 @@ class UserService(application: Application) extends UserServicePlugin(applicatio
       ProfileDAO.findOneByConnectedEmail(email).map {
         case Some(p) =>
           ProfileDAO.update(p, p.copy(user = Some(user)))
+        case _ if Play.current.mode == Mode.Dev =>
+          val p = Profile(user.firstName, user.lastName, user.email.get, user = Some(user))
+          ProfileDAO.insert(p)
         case _ =>
           Logger.error("Couldn't insert user because no corresponding profile was found")
       }
@@ -61,10 +73,10 @@ class UserService(application: Application) extends UserServicePlugin(applicatio
   }
 
   def deleteTokens() {
-    Token.removeAll()
+    Token.removeAll
   }
 
   def deleteExpiredTokens() {
-    Token.removeExpiredTokens()
+    Token.removeExpiredTokens
   }
 }

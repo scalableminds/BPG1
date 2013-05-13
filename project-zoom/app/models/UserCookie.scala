@@ -8,15 +8,16 @@ import securesocial.core.UserId
 import org.joda.time.DateTime
 import play.api.Logger
 
-object UserCookieDAO extends MongoDAO[Authenticator] {
+object UserCookieDAO extends UnsecuredMongoDAO[Authenticator] {
   val collectionName = "userCookies"
   
   def refreshCookie(a: Authenticator) = {
-    update(Json.obj("id" -> a.id), a, true, false)
+    collectionUpdate(Json.obj("id" -> a.id), formatter.writes(a), true, false)
   }  
     
   import UserHelpers._
-  val formatter = 
+  
+  implicit val formatter: OFormat[Authenticator] = 
     ((__ \ "id").format[String] and
     (__ \ "userId").format[UserId] and
     (__ \ "creationDate").format[DateTime] and

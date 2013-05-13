@@ -3,6 +3,7 @@ jquery : $
 d3 : d3
 ./node : Node
 ./edge : Edge
+./cluster : Cluster
 ###
 
 class Graph
@@ -13,9 +14,11 @@ class Graph
 
     @nodes = []
     @edges = []
+    @clusters = []
 
+    @clusterPaths = @container.append("svg:g").selectAll("path")
     @paths = @container.append("svg:g").selectAll("path")
-    @circles = @container.append("svg:g").selectAll("circles")
+    @foreignObjects = @container.append("svg:g").selectAll("foreignObject")
 
     @colors = d3.scale.category10()
 
@@ -50,7 +53,13 @@ class Graph
       tmp = new Edge(sourceNode, targetNode)
       @edges.push(tmp)
 
-      @drawEdges(tmp)
+      @drawEdges()
+
+
+  addCluster : (cluster) =>
+
+    @clusters.push( cluster )
+    @drawClusters()
 
 
   removeNode : (node) ->
@@ -71,43 +80,42 @@ class Graph
 
   removeEdge : (edge) ->
 
-    index = @edges.indexOf(edge) - 1
+    index = @edges.indexOf(edge)
     if index > -1
 
       @edges.splice(index, 1)
       @drawEdges()
 
 
-  drawNodes : (node) ->
+  drawNodes : ->
 
     HTML = ""
-    @circles = @circles.data(@nodes, (d) -> d.id)
+    @foreignObjects = @foreignObjects.data(@nodes, (d) -> d.id)
 
     #add new nodes or update existing one
-    circle = @circles.enter()
-      .append("svg:foreignObject")
+    foreignObject = @foreignObjects.enter()
+      .append("svg:g")
         .attr("class", "node")
-        #.attr("r", NODE_SIZE)
+      .append("svg:foreignObject")
         .attr("x", (d) -> d.x)
         .attr("y", (d) -> d.y)
         .attr("width", 68)
         .attr("height", 68)
-      .append("xhtml:div")
         .attr("workaround", (d, i) ->
           if d.artifact?
             HTML = d.artifact.domElement
           else
-            HTML = """<div class="nodeElement" style="background-color:#{d3.scale.category10()(d.id)}">""" #return HTML element
+            HTML = """<body xmlns="http://www.w3.org/1999/xhtml"><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
 
           $(this).append(HTML)
           return ""
         )
 
     #remove deleted nodes
-    @circles.exit().remove()
+    @foreignObjects.exit().remove()
 
 
-  drawEdges : (node) ->
+  drawEdges : ->
 
     @paths = @paths.data(@edges)
 
@@ -118,8 +126,24 @@ class Graph
       .attr("d", (data) -> data.getLineSegment())
       .style("marker-end", (d) -> "url(#end-arrow)")
 
-    #remove delte edges
+    #remove deleted edges
     @paths.exit().remove()
+
+
+  drawClusters : ->
+
+    @clusterPaths = @clusterPaths.data(@clusters)
+
+    #add new edges or update existing ones
+    clusterPath = @clusterPaths.enter().append("svg:path")
+    clusterPath
+      .attr("class", "cluster")
+      .attr("d", (data) -> data.getLineSegment())
+
+    #remove deleted edges
+    @clusterPaths.exit().remove()
+
+
 
 
 

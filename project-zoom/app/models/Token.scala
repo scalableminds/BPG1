@@ -8,25 +8,25 @@ import reactivemongo.bson.BSONDateTime
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits._
 
-object Token extends MongoDAO[SocialToken]{
+object Token extends UnsecuredMongoDAO[SocialToken]{
   val collectionName = "tokens"
 
   def findByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
 
-  override def removeById(id: String) = {
-    collection.remove(Json.obj("uuid" -> id))
+  override def removeById(id: String)(implicit ctx: models.DBAccessContext) = {
+    collectionRemove(Json.obj("uuid" -> id))
   }
   
-  override def findOneById(id: String)= {
-    collection.find(Json.obj("uuid" -> id)).one[SocialToken]
+  override def findOneById(id: String)(implicit ctx: models.DBAccessContext)= {
+    collectionFind(Json.obj("uuid" -> id)).one[SocialToken]
   }
   
-  def removeExpiredTokens() = {
+  def removeExpiredTokens(implicit ctx: models.DBAccessContext) = {
     val now = System.currentTimeMillis()
-    collection.remove(Json.obj("expirationTime" -> Json.obj("$lt" -> BSONDateTime(now))))
+    collectionRemove(Json.obj("expirationTime" -> Json.obj("$lt" -> BSONDateTime(now))))
   }
   
-  implicit val formatter: Format[SocialToken] = 
+  implicit val formatter: OFormat[SocialToken] = 
     ((__ \ "uuid").format[String] and
     (__ \ "email").format[String] and
     (__ \ "creationTime").format[DateTime] and
