@@ -23,6 +23,7 @@ import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
 import play.api.libs.concurrent.Execution.Implicits._
 import models.DefaultResourceTypes
+import models.GlobalDBAccess
 
 case class UpdateInfo(origin: String, projectName: String)
 
@@ -75,7 +76,7 @@ trait FSWriter {
   }
 }
 
-class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter {
+class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess{
 
   def handleResourceUpdate(is: InputStream, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) = {
     writeToFS(is, artifactInfo._project, resourceInfo).map {

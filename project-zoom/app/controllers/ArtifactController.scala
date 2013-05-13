@@ -20,6 +20,7 @@ import java.io.InputStream
 import play.api.libs.iteratee.Enumerator
 import akka.pattern.AskTimeoutException
 import scala.concurrent.Future
+import models.Implicits._
 
 object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem with PlayConfig {
 
@@ -28,7 +29,6 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
   implicit val timeout = Timeout(config.getInt("artifact.timeout").getOrElse(5) seconds)
 
   val dao = ArtifactDAO
-
 
   def listForProject(project: String, offset: Int, limit: Int) = SecuredAction { implicit request =>
     //TODO: restrict access
@@ -47,7 +47,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
       } yield {
         artifact.flatMap(a => (a \ "resources" \ resourceType).asOpt[ResourceInfo]) match {
           case Some(resource) =>
-            val r: Future[play.api.mvc.Result] = (artifactActor ? RequestResource(_project, resource))
+            (artifactActor ? RequestResource(_project, resource))
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
@@ -59,7 +59,6 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
                 case a: AskTimeoutException =>
                   NotFound
               }
-            r
           case _ =>
             Future.successful(NotFound)
         }

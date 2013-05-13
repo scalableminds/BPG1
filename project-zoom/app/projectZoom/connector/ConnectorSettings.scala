@@ -15,8 +15,9 @@ import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import models.MongoJsonDAO
 import play.api.libs.concurrent.Execution.Implicits._
+import models.UnsecuredMongoJsonDAO
 
-trait ConnectorSettings extends MongoJsonDAO {
+trait ConnectorSettings extends UnsecuredMongoJsonDAO {
   def identifier: String
 
   val MAX_SETTINGS_AWAIT = 1 second
@@ -28,12 +29,11 @@ trait ConnectorSettings extends MongoJsonDAO {
   def defaultSettings = Json.obj()
 
   def awaitSettings: JsValue = {
-    try{
-    Await.result(
-      collection
-        .find[JsValue](settingsQuery)
-        .one[JsValue].map(_ getOrElse defaultSettings),
-      MAX_SETTINGS_AWAIT)
+    try {
+      Await.result(
+        collectionFind(settingsQuery)
+          .one[JsValue].map(_ getOrElse defaultSettings),
+        MAX_SETTINGS_AWAIT)
     } catch {
       case e: TimeoutException =>
         Logger.error(s"Failed to load settings for $identifier due to timeout.")
@@ -44,16 +44,18 @@ trait ConnectorSettings extends MongoJsonDAO {
   def storeSetting(key: String, value: String): Future[LastError] = {
     storeSetting(key, JsString(value))
   }
-  
+
   def storeSetting(key: String, value: JsValue) = {
-    collection.update(
+    collectionUpdate(
       settingsQuery,
-      Json.obj("$set" -> Json.obj(key -> value)))
+      Json.obj("$set" -> Json.obj(key -> value)),
+      upsert = true)
   }
 
-  def storeSettings(settings: JsValue) = {
-    collection.update(
+  def storeSettings(settings: JsObject) = {
+    collectionUpdate(
       settingsQuery,
-      settings)
+      settings,
+      upsert = true)
   }
 }

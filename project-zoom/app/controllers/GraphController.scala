@@ -14,6 +14,7 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsValue
 import models.GraphTransformers
 import securesocial.core.SecureSocial
+import models.Implicits._
 
 case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 

@@ -8,6 +8,8 @@ import play.api.Logger
 import play.api.libs.json.JsString
 import play.api.libs.json.Format
 import play.api.libs.concurrent.Execution.Implicits._
+import scala.concurrent.Future
+import reactivemongo.core.commands.LastError
 
 /* 
  * ArtifactInfo needs to be a subset of artifact. It should contain all 
@@ -31,7 +33,7 @@ trait ArtifactTransformers extends ResourceHelpers {
 
 }
 
-object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHelpers {
+object ArtifactDAO extends SecuredMongoJsonDAO with ArtifactInfoFactory with ResourceHelpers {
   val collectionName = "artifacts"
 
   def findByArtifactQ(artifactInfo: ArtifactInfo): JsObject =
@@ -40,30 +42,30 @@ object ArtifactDAO extends MongoJsonDAO with ArtifactInfoFactory with ResourceHe
   def findByArtifactQ(name: String, source: String, project: String) =
     Json.obj("name" -> name, "source" -> source, "_project" -> project)
 
-  def findOne(artifactInfo: ArtifactInfo) =
-    collection.find(findByArtifactQ(artifactInfo)).one[JsObject]
+  def findOne(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext) =
+    collectionFind(findByArtifactQ(artifactInfo)).one[JsObject]
 
-  def update(artifactInfo: ArtifactInfo) =
-    collection.update(findByArtifactQ(artifactInfo),
+  def update(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext): Future[LastError] =
+    collectionUpdate(findByArtifactQ(artifactInfo),
       Json.obj("$set" -> artifactInfo), upsert = true)
 
-  def markAsDeleted(artifactInfo: ArtifactInfo) =
-    collection.update(findByArtifactQ(artifactInfo),
+  def markAsDeleted(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext) =
+    collectionUpdate(findByArtifactQ(artifactInfo),
       Json.obj("$set" -> Json.obj("isDeleted" -> true)))
 
-  def findSomeForProject(_project: String, offset: Int, limit: Int) =
+  def findSomeForProject(_project: String, offset: Int, limit: Int)(implicit ctx: DBAccessContext) =
     takeSome(findForProject(_project), offset, limit)
 
-  def findAllForProject(_project: String) =
+  def findAllForProject(_project: String)(implicit ctx: DBAccessContext) =
     findForProject(_project).cursor[JsObject].toList
 
-  def findForProject(_project: String) =
-    collection.find(Json.obj("_project" -> _project))
+  def findForProject(_project: String)(implicit ctx: DBAccessContext) =
+    collectionFind(Json.obj("_project" -> _project))
 
-  def insertRessource(artifactInfo: ArtifactInfo)(path: String, hash: String, resourceInfo: ResourceInfo) = {
+  def insertRessource(artifactInfo: ArtifactInfo)(path: String, hash: String, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) = {
     val resource = resourceCreateFrom(resourceInfo, path, hash)
 
-    collection.update(findByArtifactQ(artifactInfo), Json.obj(
+    collectionUpdate(findByArtifactQ(artifactInfo), Json.obj(
       "$set" -> Json.obj(
         s"resources.${resourceInfo.typ}" -> resource)))
   }

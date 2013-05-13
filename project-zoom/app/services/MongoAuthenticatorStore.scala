@@ -5,8 +5,9 @@ import securesocial.core.Authenticator
 import models.UserCookieDAO
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import models.GlobalDBAccess
 
-class MongoAuthenticatorStore(app: play.api.Application) extends AuthenticatorStore(app) {
+class MongoAuthenticatorStore(app: play.api.Application) extends AuthenticatorStore(app) with GlobalDBAccess{
   def save(authenticator: Authenticator): Either[Error, Unit] = {
     UserCookieDAO.refreshCookie(authenticator)
     Right(())

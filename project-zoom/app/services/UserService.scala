@@ -13,6 +13,7 @@ import models.User
 import models.ProfileDAO
 import play.api.libs.concurrent.Execution.Implicits._
 import models.UserHelpers
+import models.GlobalDBAccess
 
 /**
  * A Sample In Memory user service in Scala
@@ -20,7 +21,7 @@ import models.UserHelpers
  * IMPORTANT: This is just a sample and not suitable for a production environment since
  * it stores everything in memory.
  */
-class UserService(application: Application) extends UserServicePlugin(application) {
+class UserService(application: Application) extends UserServicePlugin(application) with GlobalDBAccess{
   def find(id: UserId): Option[User] = {
     Await.result(
       ProfileDAO
@@ -61,10 +62,10 @@ class UserService(application: Application) extends UserServicePlugin(applicatio
   }
 
   def deleteTokens() {
-    Token.removeAll()
+    Token.removeAll
   }
 
   def deleteExpiredTokens() {
-    Token.removeExpiredTokens()
+    Token.removeExpiredTokens
   }
 }

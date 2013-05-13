@@ -2,6 +2,7 @@ package controllers
 
 import securesocial.core.SecureSocial
 import models.MongoDAO
+import models.Implicits._
 import play.api.libs.json.Json
 import play.api.libs.json.Format
 import projectZoom.util.PlayActorSystem

@@ -10,8 +10,8 @@ import projectZoom.util.StartableActor
 
 trait Event
 case class Unsubscribe(key: String)
-case class UnsubscribeAll()
 case class SubscribeWithFilter(pf: PartialFunction[Any, Unit], key: String)
+case class UnsubscribeAll()
 
 class EventActor extends Actor {
   case class EventSubscription(f: PartialFunction[Event, Unit], actor: ActorRef)
