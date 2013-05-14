@@ -21,8 +21,10 @@ GET    /graphs                                                    controllers.Gr
 PATCH  /graphs/:id                                                controllers.GraphController.patch(id: String)
 
 GET    /admin                                                     controllers.Admin.panel
-GET    /admin/boxAuth                                             controllers.Admin.redirectToBoxAuth
-GET    /admin/boxAuthenticated                                    controllers.Admin.boxAuthenticated(code: String, state: String)
+GET    /oauth/box/begin                                           controllers.OAuth.beginBoxOAuth
+GET    /oauth/box/authenticated                                   controllers.OAuth.boxAuthenticated(code: String, state: String)
+
+
 
 # Login page
 GET    /login                                                     securesocial.controllers.LoginPage.login
