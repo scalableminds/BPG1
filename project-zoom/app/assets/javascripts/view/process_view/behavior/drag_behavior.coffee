@@ -7,8 +7,8 @@ class dragBehavior
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".nodeElement", @dragMove)
-      .on("dragstart", ".nodeElement", @dragStart)
+      .on("drag", ".nodeElement", @dragMoveNode)
+      .on("dragstart", @dragStart)
 
 
   deactivate : ->
@@ -24,9 +24,9 @@ class dragBehavior
     @scaleValue = $(".zoomSlider input").val()
 
 
-  dragMove : (event) =>
+  dragMoveNode : (event) =>
 
-    svgContainer = $(event.gesture.target).closest("foreignObject")[0]
+    nodeId = $(event.gesture.target).data("id")
 
     x = event.gesture.touches[0].pageX - @offset.left
     y = event.gesture.touches[0].pageY - @offset.top
@@ -34,16 +34,22 @@ class dragBehavior
     x /= @scaleValue
     y /= @scaleValue
 
+    @moveNode(nodeId, x, y)
+
+
+  moveNode : (nodeId, x, y) ->
+
+    svgContainer = $("div[data-id=#{nodeId}]").closest("foreignObject")[0]
     halfWidth = d3.select(svgContainer).datum().getSize() / 2
 
     d3.select(svgContainer)
-      .attr("x", (data) -> data.x = x - halfWidth)
-      .attr("y", (data) -> data.y = y - halfWidth)
+      .attr(
+        x : (data) -> data.x = x - halfWidth
+        y : (data) -> data.y = y - halfWidth
+      )
 
     # update edges when node are dragged around
     edges = d3.selectAll(".edge")
     edges.attr("d", (data) ->
       if data
         data.getLineSegment())
-
-
