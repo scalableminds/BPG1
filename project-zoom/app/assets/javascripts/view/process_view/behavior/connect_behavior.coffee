@@ -3,7 +3,7 @@ core_ext : CoreExt
 hammer : Hammer
 ###
 
-class ConnectNodesBehavior
+class connectBehavior
 
   constructor : ( @graph, @container ) ->
 
@@ -15,8 +15,6 @@ class ConnectNodesBehavior
         .style('marker-end', 'url(#end-arrow)')
     else
       @dragLine = d3.select(".dragLine")
-
-
 
 
   activate : ->

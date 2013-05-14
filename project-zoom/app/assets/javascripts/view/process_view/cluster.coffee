@@ -6,6 +6,7 @@ class Cluster
   constructor : ->
 
     @waypoints = []
+    @nodes = []
 
 
   getLineSegment : ->
@@ -31,8 +32,10 @@ class Cluster
 
     for node in nodes
 
+      #save the reference both in the cluster and in the node
       if @pointInPolygon(node)
         node.cluster = @
+        @nodes.push node
 
 
   # alogrithm uses even-odd-rule
