@@ -65,6 +65,7 @@ class Graph
 
   addCluster : (cluster) =>
 
+    cluster.finialize(@nodes)
     @clusters.push( cluster )
     @drawClusters()
 

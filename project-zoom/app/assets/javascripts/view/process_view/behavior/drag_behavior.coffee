@@ -2,7 +2,7 @@
 hammer : Hammer
 ###
 
-class DragNodeBehavior
+class dragBehavior
 
   activate : ->
 

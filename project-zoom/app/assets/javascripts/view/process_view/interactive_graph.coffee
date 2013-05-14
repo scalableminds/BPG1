@@ -2,8 +2,8 @@
 d3 : d3
 lib/event_mixin : EventMixin
 ./graph : Graph
-./behavior/connect_nodes_behavior : ConnectNodesBehavior
-./behavior/drag_node_behavior : DragNodeBehavior
+./behavior/connect_behavior : connectBehavior
+./behavior/drag_behavior : dragBehavior
 ###
 
 class InteractiveGraph extends Graph
@@ -13,7 +13,7 @@ class InteractiveGraph extends Graph
     EventMixin.extend(this)
     @initArrowMarkers()
 
-    @currentBehavior = new DragNodeBehavior(@container, @svg, @)
+    @currentBehavior = new dragBehavior(@container, @svg, @)
     @currentBehavior.activate()
 
     super(@container)

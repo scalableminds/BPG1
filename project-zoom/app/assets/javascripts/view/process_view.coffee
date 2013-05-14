@@ -5,9 +5,9 @@ hammer: Hammer
 jquery.mousewheel : Mousewheel
 ./process_view/interactive_graph : InteractiveGraph
 ./process_view/gui : GUI
-./process_view/behavior/connect_nodes_behavior : ConnectNodesBehavior
-./process_view/behavior/drag_node_behavior : DragNodeBehavior
-./process_view/behavior/delete_node_behavior : DeleteNodeBehavior
+./process_view/behavior/connect_behavior : connectBehavior
+./process_view/behavior/drag_behavior : dragBehavior
+./process_view/behavior/delete_behavior : deleteBehavior
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
 ../component/artifact_finder : ArtifactFinder
 ../component/artifact : Artifact
@@ -135,9 +135,9 @@ class ProcessView
     toolBox = $(".btn-group button")
     behavior = switch selectedTool
 
-      when toolBox[0] then new DragNodeBehavior()
-      when toolBox[1] then new ConnectNodesBehavior(graph, graphContainer)
-      when toolBox[2] then new DeleteNodeBehavior(graph)
+      when toolBox[0] then new dragBehavior()
+      when toolBox[1] then new connectBehavior(graph, graphContainer)
+      when toolBox[2] then new deleteBehavior(graph)
       when toolBox[3] then new DrawClusterBehavior(graph, graphContainer)
 
     graph.changeBehavior( behavior )

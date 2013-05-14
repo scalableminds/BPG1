@@ -2,7 +2,7 @@
 hammer : Hammer
 ###
 
-class DeleteNodeBehavior
+class deleteBehavior
 
   constructor : (@graph) ->
 
