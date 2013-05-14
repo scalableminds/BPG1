@@ -36,8 +36,6 @@ class DrawClusterBehavior
 
   dragEnd : (event) =>
 
-    @cluster.finialize()
-
     @graph.addCluster(@cluster)
     @preview.classed("hidden, true")
 
