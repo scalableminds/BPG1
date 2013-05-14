@@ -28,7 +28,14 @@ class Graph
   addForeignObject : (object) ->
 
     foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject' )
-    $(foreignObject).attr("x", 0).attr("y", 0).attr("width", 64).attr("height", 64).append(object)
+    $(foreignObject)
+      .attr(
+        x : 0
+        y : 0
+        width : 64
+        height : 64
+      )
+      .append(object)
     $("g:first").append(foreignObject)
 
 
@@ -95,20 +102,25 @@ class Graph
     #add new nodes or update existing one
     foreignObject = @foreignObjects.enter()
       .append("svg:g")
-        .attr("class", "node")
+        .attr( class : "node" )
       .append("svg:foreignObject")
-        .attr("x", (d) -> d.x)
-        .attr("y", (d) -> d.y)
-        .attr("width", 68)
-        .attr("height", 68)
-        .attr("workaround", (d, i) ->
-          if d.artifact?
-            HTML = d.artifact.domElement
-          else
-            HTML = """<body xmlns="http://www.w3.org/1999/xhtml"><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
+        .attr(
 
-          $(this).append(HTML)
-          return ""
+          width : 68
+          height : 68
+
+          x : (d) -> d.x
+          y : (d) -> d.y
+
+          workaround : (d, i) ->
+
+            if d.artifact?
+              html = d.artifact.domElement
+            else
+              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
+
+            $(this).append(html)
+            return ""
         )
 
     #remove deleted nodes

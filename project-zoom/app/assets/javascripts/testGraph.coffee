@@ -4,8 +4,6 @@ jquery : $
 view/process_view : ProcessView
 ###
 
-app.addInitializer (options, callback) ->
+app.on "start", ->
 
   view = new ProcessView()
-
-  callback()
