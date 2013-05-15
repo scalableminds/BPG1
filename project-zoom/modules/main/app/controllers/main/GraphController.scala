@@ -8,6 +8,7 @@ import projectZoom.core.event._
 import play.api.libs.json.JsValue
 import models.GraphTransformers
 import models.Implicits._
+import controllers.common.ControllerBase
 
 case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 

@@ -24,6 +24,7 @@ import scala.concurrent.Future
 import securesocial.core.UserId
 import akka.actor.actorRef2Scala
 import akka.pattern.ask
+import controllers.common.ControllerBase
 
 case class Join(userId: UserId)
 case class Quit(userId: UserId)

@@ -1,5 +1,6 @@
-package controllers.main
+package controllers.admin
 
+import controllers.common.ControllerBase
 import projectZoom.util.PlayConfig
 import projectZoom.util.PlayActorSystem
 import securesocial.core.SecureSocial

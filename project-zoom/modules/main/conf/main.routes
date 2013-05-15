@@ -20,9 +20,5 @@ GET    /users/:name                                               controllers.ma
 GET    /graphs                                                    controllers.main.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
 PATCH  /graphs/:id                                                controllers.main.GraphController.patch(id: String)
 
-GET    /admin                                                     controllers.main.Admin.panel
-GET    /oauth/box/begin                                           controllers.main.OAuth.beginBoxOAuth
-GET    /oauth/box/authenticated                                   controllers.main.OAuth.boxAuthenticated(code: String, state: String)
-
 # Map static resources from the /public folder to the /assets URL path
 GET    /assets/*file                                              controllers.main.Assets.at(path="/public", file)
