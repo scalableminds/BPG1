@@ -3,45 +3,7 @@
 # ~~~~
 
 # Home page
-GET    /                                                          controllers.Application.index
-GET    /test                                                      controllers.Application.test
-GET    /overview                                                  controllers.Application.overview
-GET    /processView                                               controllers.Application.processView
-
-# CRUD Urls
-GET    /projects                                                  controllers.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
-GET    /projects/:_project/artifacts/:id/:artifactType/download   controllers.ArtifactController.download(_project: String, id: String, artifactType: String)
-
-GET    /tags                                                      controllers.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
-
-GET    /users                                                     controllers.ProfileController.list(offset: Int ?= 0, limit: Int ?= 50)
-GET    /users/:name                                               controllers.ProfileController.read(name)
-
-GET    /graphs                                                    controllers.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
-PATCH  /graphs/:id                                                controllers.GraphController.patch(id: String)
-
-
-# Login page
-GET    /login                                                     securesocial.controllers.LoginPage.login
-GET    /logout                                                    securesocial.controllers.LoginPage.logout
-
-# User Registration and password handling 
-GET    /signup                                                    securesocial.controllers.Registration.startSignUp
-POST   /signup                                                    securesocial.controllers.Registration.handleStartSignUp
-GET    /signup/:token                                             securesocial.controllers.Registration.signUp(token)
-POST   /signup/:token                                             securesocial.controllers.Registration.handleSignUp(token)
-GET    /reset                                                     securesocial.controllers.Registration.startResetPassword
-POST   /reset                                                     securesocial.controllers.Registration.handleStartResetPassword
-GET    /reset/:token                                              securesocial.controllers.Registration.resetPassword(token)
-POST   /reset/:token                                              securesocial.controllers.Registration.handleResetPassword(token)
-GET    /password                                                  securesocial.controllers.PasswordChange.page
-POST   /password                                                  securesocial.controllers.PasswordChange.handlePasswordChange
-
-# Providers entry points
-GET    /authenticate/:provider                                    securesocial.controllers.ProviderController.authenticate(provider)
-POST   /authenticate/:provider                                    securesocial.controllers.ProviderController.authenticateByPost(provider)
-GET    /not-authorized                                            securesocial.controllers.ProviderController.notAuthorized
-
-
-# Map static resources from the /public folder to the /assets URL path
-GET    /assets/*file                                              controllers.Assets.at(path="/public", file)
+GET /test controllers.Application.index()
+->  /admin admin.Routes
+-> / common.Routes
+-> / main.Routes
