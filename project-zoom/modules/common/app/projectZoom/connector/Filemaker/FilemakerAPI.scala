@@ -36,7 +36,7 @@ class FilemakerAPI(con: java.sql.Connection) {
 
   def extractProjects(): List[ProjectLike] = {
     val statement = con.createStatement()
-    val rs = statement.executeQuery("select 'E-Mail 1' as email, %s, \"12-W-Project\", \"3-W-Project\", \"3-W-Class\", \"6-W-Project\", \"6-W-Class\" from dmiA where %s and %s".format(tagfield, userHasEmail, userHasTakenClasses))
+    val rs = statement.executeQuery("select \"E-Mail 1\" as email, %s, \"12-W-Project\", \"3-W-Project\", \"3-W-Class\", \"6-W-Project\", \"6-W-Class\" from dmiA where %s and %s".format(tagfield, userHasEmail, userHasTakenClasses))
     val projects = scala.collection.mutable.Map[String, PartialProject]()
 
     while (rs.next) {
