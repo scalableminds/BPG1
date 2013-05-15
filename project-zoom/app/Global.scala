@@ -45,6 +45,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
 
         val g = models.Graph("Test", 1, 1, nodes, edges, clusters)
         GraphDAO.insert(g)
+      case _ =>
     }
   }
 
