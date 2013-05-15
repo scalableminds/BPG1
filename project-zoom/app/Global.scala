@@ -9,30 +9,46 @@ import projectZoom.connector.SupervisorActor
 import play.api.libs.concurrent.Akka
 import projectZoom.core.settings.SettingsActor
 import play.api.Mode
-import models.User
 import models.Profile
 import play.api.Logger
-import models.ProfileDAO
+import models.Node
+import models.Position
+import models.NodePayload
+import models.Cluster
+import models.GraphDAO
+import models.GraphDAO._
+import models.GlobalDBAccess
+import play.api.libs.concurrent.Execution.Implicits._
 
-object Global extends GlobalSettings {
+object Global extends GlobalSettings with GlobalDBAccess {
 
   override def onStart(app: Application) {
     implicit val sys = Akka.system(app)
     EventActor.start
     SettingsActor.start
-    ArtifactActor.start    
+    ArtifactActor.start
     KnowledgeActor.start
     TextThumbnailActor.start
     SupervisorActor.start
-    if(app.mode == Mode.Dev)
+    if (app.mode == Mode.Dev)
       putSampleValuesInDB()
   }
-  
+
   def putSampleValuesInDB() = {
-    //User.insert()
+    GraphDAO.findOne.map {
+      case None =>
+        val nodes = List(
+          Node(1, Position(10, 10), NodePayload("d.thinking Kids", "project")),
+          Node(2, Position(50, 50), NodePayload("Searching for Time - A", "project")))
+        val edges = List(models.Edge(1, 2, Some("Penis")))
+        val clusters = List()
+
+        val g = models.Graph("Test", 1, 1, nodes, edges, clusters)
+        GraphDAO.insert(g)
+    }
   }
 
   override def onStop(app: Application) {
-    
+
   }
 }

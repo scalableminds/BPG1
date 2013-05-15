@@ -24,6 +24,7 @@ object ProjectDAO extends SecuredMongoJsonDAO {
   implicit val projectLikeFormat = Json.format[ProjectLike]
 
   def findOneByName(_project: String)(implicit ctx: DBAccessContext) = {
+    Logger.warn("find by name called: " + _project)
     find("name", _project).one[JsObject]
   }
 
@@ -35,11 +36,11 @@ object ProjectDAO extends SecuredMongoJsonDAO {
     collectionUpdate(Json.obj("name" -> p.name),
       Json.obj("$set" -> p), upsert = true)
       
-  override def findQueryFilter(implicit ctx: DBAccessContext): JsObject = {
+  /*override def findQueryFilter(implicit ctx: DBAccessContext): JsObject = {
     ctx.user.map{ user =>
       val email = user.email.getOrElse("")
       Json.obj(
         "participants._user" -> email)
     } getOrElse Json.obj()
-  }
+  }*/
 }

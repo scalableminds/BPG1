@@ -12,6 +12,7 @@ import play.api.libs.json.Writes
 import play.api.libs.concurrent.Execution.Implicits._
 import projectZoom.util.MongoHelpers
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import models.DBAccessContext
 
 trait JsonCRUDController extends CRUDController[JsObject] {
   implicit def formatter = Format.apply[JsObject](Reads.JsObjectReads, Writes.JsValueWrites)
@@ -31,12 +32,22 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
   def dao: DAO[T]
   implicit def formatter: Format[T]
 
-  def list(offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
-    //TODO: restrict access
-    Async {
-      dao.findSome(offset, limit).map { l =>
-        Ok(withPortionInfo(Json.toJson(l.map(e => Json.toJson(e).transform(beautifyObjectId).get)), offset, limit))
+  def displayReader: Reads[JsObject] = Reads.JsObjectReads
+
+  def createSingleResult(obj: T) = {
+    Json.toJson(obj).transform(beautifyObjectId andThen displayReader).get
+  }
+  
+  def listItems(offset: Int, limit: Int)(resultTransformation: T => JsObject)(implicit ctx: DBAccessContext) = {
+    dao.findSome(offset, limit).map { l =>
+        Ok(withPortionInfo(
+          Json.toJson(l.map(resultTransformation)), offset, limit))
       }
+  }
+
+  def list(offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
+    Async {
+      listItems(offset, limit)(createSingleResult)
     }
   }
 
@@ -45,7 +56,7 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
     Async {
       dao.findOneById(id).map {
         case Some(obj) =>
-          Ok(Json.toJson(obj).transform(beautifyObjectId).get)
+          Ok(createSingleResult(obj))
         case _ =>
           Ok(Json.obj())
       }

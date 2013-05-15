@@ -16,7 +16,7 @@ case class NodePayload(id: String, typ: String)
 
 case class Node(id: Int, position: Position, payload: NodePayload)
 
-case class Edge(from: Int, to: Int, comment: String)
+case class Edge(from: Int, to: Int, comment: Option[String])
 
 case class Cluster(id: Int, positions: List[Position])
 
@@ -31,7 +31,7 @@ case class Graph(
 trait PayloadTransformers {
 
   def payloadTypMapping(implicit ctx: DBAccessContext): Map[String, String => Future[Option[JsValue]]] = Map(
-    "project" -> ProjectDAO.findOneById _,
+    "project" -> ProjectDAO.findOneByName _,
     "artifact" -> ArtifactDAO.findOneById _)
 
   implicit val nodePayloadFormat: Format[NodePayload] = Json.format[NodePayload]
