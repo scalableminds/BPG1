@@ -28,7 +28,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
 
   val dao = ArtifactDAO
 
-  def listForProject(project: String, offset: Int, limit: Int) = SecuredAction { implicit request =>
+  def listForProject(project: String, offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
     //TODO: restrict access
     Async {
       dao.findSomeForProject(project, offset, limit).map { l =>
@@ -37,7 +37,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
     }
   }
 
-  def download(_project: String, artifactId: String, resourceType: String) = SecuredAction { implicit request =>
+  def download(_project: String, artifactId: String, resourceType: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
       (for {
         project <- ProjectDAO.findOneByName(_project)

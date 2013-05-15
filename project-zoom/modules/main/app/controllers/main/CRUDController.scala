@@ -31,7 +31,7 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
   def dao: DAO[T]
   implicit def formatter: Format[T]
 
-  def list(offset: Int, limit: Int) = SecuredAction { implicit request =>
+  def list(offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
     //TODO: restrict access
     Async {
       dao.findSome(offset, limit).map { l =>
@@ -40,7 +40,7 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
     }
   }
 
-  def read(id: String) = SecuredAction { implicit request =>
+  def read(id: String) = SecuredAction(ajaxCall = true) { implicit request =>
     //TODO: restrict access
     Async {
       dao.findOneById(id).map {

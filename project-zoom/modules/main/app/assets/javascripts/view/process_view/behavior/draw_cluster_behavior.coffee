@@ -1,10 +1,11 @@
 ### define
 core_ext : CoreExt
 hammer : Hammer
+./behavior : Behavior
 ../cluster : Cluster
 ###
 
-class DrawClusterBehavior
+class DrawClusterBehavior extends Behavior
 
   constructor : ( @graph, @container ) ->
 
@@ -20,9 +21,9 @@ class DrawClusterBehavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("svg")[0] )
-      .on("dragstart", @dragStart)
+    @hammerContext = Hammer( $("svg")[0], { swipe : false} )
       .on("drag", @throttledDragMove)
+      .on("dragstart", @dragStart)
       .on("dragend", @dragEnd)
 
 
@@ -30,13 +31,13 @@ class DrawClusterBehavior
 
     @hammerContext
       .off("drag", @throttledDragMove)
-      .off("dragend", @dragEnd)
       .off("dragstart", @dragStart)
+      .off("dragend", @dragEnd)
+
+    @preview.attr("d", "M 0,0 L 0,0") # move it out of the way
 
 
   dragEnd : (event) =>
-
-    @cluster.finialize()
 
     @graph.addCluster(@cluster)
     @preview.classed("hidden, true")

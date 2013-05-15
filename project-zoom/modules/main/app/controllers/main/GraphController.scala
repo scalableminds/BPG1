@@ -14,7 +14,7 @@ case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 object GraphController extends ControllerBase with JsonCRUDController with EventPublisher with GraphTransformers {
   val dao = GraphDAO
   
-  def patch(graphId: String) = SecuredAction(false, None, parse.json) { implicit request =>
+  def patch(graphId: String) = SecuredAction(true, None, parse.json) { implicit request =>
     Async {
       val patch = request.body
       GraphDAO.findOneById(graphId).map {

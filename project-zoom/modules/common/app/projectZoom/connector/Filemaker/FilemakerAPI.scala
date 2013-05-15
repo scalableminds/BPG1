@@ -13,6 +13,8 @@ case class FileMakerDBInfo(hostName: String, dbName: String, userName: String, p
 class FilemakerAPI(con: java.sql.Connection) {
 
   val tagfield = "dschool[1] as d1, dschool[2] as d2, dschool[3] as d3, dschool[4] as d4, dschool[5] as d5, dschool[6] as d6"
+  val userHasEmail = "\"E-Mail 1\" is not null"
+  val userHasTakenClasses = "(\"3-W-Class\" is not null or \"3-W-Class\" is not null or \"6-W-Project\" is not null or \"6-W-Class\" is not null or \"12-W-Class\" is not null or \"12-W-Project\" is not null)"
 
   def extractTags(rs: ResultSet) = {
     List[String](rs.getString("d1"), rs.getString("d2"), rs.getString("d3"), rs.getString("d4"), rs.getString("d5"), rs.getString("d6")).
@@ -22,7 +24,7 @@ class FilemakerAPI(con: java.sql.Connection) {
   def extractStudents(): List[Profile] = {
 
     val statement = con.createStatement()
-    val rs = statement.executeQuery("select Vorname, Name, \"E-Mail 1\" as email, %s from dmiA".format(tagfield))
+    val rs = statement.executeQuery("select Vorname, Name, \"E-Mail 1\" as email, %s from dmiA where %s".format(tagfield, userHasEmail))
     val l = scala.collection.mutable.ListBuffer[Profile]()
 
     while (rs.next) {
@@ -34,7 +36,7 @@ class FilemakerAPI(con: java.sql.Connection) {
 
   def extractProjects(): List[ProjectLike] = {
     val statement = con.createStatement()
-    val rs = statement.executeQuery("select \"E-Mail 1\" as email, %s, \"12-W-Project\", \"3-W-Project\", \"3-W-Class\", \"6-W-Project\", \"6-W-Class\" from dmiA where \"E-Mail 1\" is not null".format(tagfield))
+    val rs = statement.executeQuery("select 'E-Mail 1' as email, %s, \"12-W-Project\", \"3-W-Project\", \"3-W-Class\", \"6-W-Project\", \"6-W-Class\" from dmiA where %s and %s".format(tagfield, userHasEmail, userHasTakenClasses))
     val projects = scala.collection.mutable.Map[String, PartialProject]()
 
     while (rs.next) {

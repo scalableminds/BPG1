@@ -1,7 +1,7 @@
 define(
   "app"
   ["./lib/application", "backbone.deepmodel", "./lib/core_ext"]
-  (Application) -> new Application()
+  (Application) -> window.app = new Application()
 )
 
 

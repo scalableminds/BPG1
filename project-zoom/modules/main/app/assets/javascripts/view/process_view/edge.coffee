@@ -26,8 +26,8 @@ class Edge
   getLineSegment : ->
 
     #use center of the rectangles
-    target = @target.getCenter()
-    source = @source.getCenter()
+    target = @target#.getCenter()
+    source = @source#.getCenter()
 
     @HALF_SIZE = @target.getSize() / 2
 
@@ -63,6 +63,10 @@ class Edge
 
 
   getSnapPoint : (angle, point) ->
+
+    # dont change the referenced original here
+    # rather return a copy
+    point = _.clone(point)
 
     if PI2 - PI_QUARTER < angle or angle <= PI_HALF - PI_QUARTER
       point.y -= @HALF_SIZE

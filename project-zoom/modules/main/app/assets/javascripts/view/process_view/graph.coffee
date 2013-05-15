@@ -8,8 +8,6 @@ d3 : d3
 
 class Graph
 
-  NODE_SIZE = 20
-
   constructor : (@container) ->
 
     @nodes = []
@@ -28,16 +26,27 @@ class Graph
   addForeignObject : (object) ->
 
     foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject' )
-    $(foreignObject).attr("x", 0).attr("y", 0).attr("width", 64).attr("height", 64).append(object)
+    $(foreignObject)
+      .attr(
+        x : 0
+        y : 0
+        width : 64
+        height : 64
+      )
+      .append(object)
     $("g:first").append(foreignObject)
 
 
   addNode : (x, y, artifact) =>
 
-    tmp = new Node(x, y, @nodeId++, artifact)
-    @nodes.push(tmp)
+    @nodes.push new Node(
+      x ,
+      y,
+      @nodeId++,
+      artifact
+    )
 
-    @drawNodes(tmp)
+    @drawNodes()
 
 
   addEdge : (source, target) =>
@@ -58,6 +67,7 @@ class Graph
 
   addCluster : (cluster) =>
 
+    cluster.finialize(@nodes)
     @clusters.push( cluster )
     @drawClusters()
 
@@ -95,20 +105,25 @@ class Graph
     #add new nodes or update existing one
     foreignObject = @foreignObjects.enter()
       .append("svg:g")
-        .attr("class", "node")
+        .attr( class : "node" )
       .append("svg:foreignObject")
-        .attr("x", (d) -> d.x)
-        .attr("y", (d) -> d.y)
-        .attr("width", 68)
-        .attr("height", 68)
-        .attr("workaround", (d, i) ->
-          if d.artifact?
-            HTML = d.artifact.domElement
-          else
-            HTML = """<body xmlns="http://www.w3.org/1999/xhtml"><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
+        .attr(
 
-          $(this).append(HTML)
-          return ""
+          width : 68
+          height : 68
+
+          x : (d) -> d.x - d.getSize() / 2
+          y : (d) -> d.y - d.getSize() / 2
+
+          workaround : (d, i) ->
+
+            if d.artifact?
+              html = d.artifact.domElement
+            else
+              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
+
+            $(this).append(html)
+            return ""
         )
 
     #remove deleted nodes
@@ -122,8 +137,10 @@ class Graph
     #add new edges or update existing ones
     path = @paths.enter().append("svg:path")
     path
-      .attr("class", "edge")
-      .attr("d", (data) -> data.getLineSegment())
+      .attr(
+        class : "edge"
+        d : (data) -> data.getLineSegment()
+      )
       .style("marker-end", (d) -> "url(#end-arrow)")
 
     #remove deleted edges
@@ -137,8 +154,10 @@ class Graph
     #add new edges or update existing ones
     clusterPath = @clusterPaths.enter().append("svg:path")
     clusterPath
-      .attr("class", "cluster")
-      .attr("d", (data) -> data.getLineSegment())
+      .attr(
+        class : "cluster"
+        d : (data) -> data.getLineSegment()
+      )
 
     #remove deleted edges
     @clusterPaths.exit().remove()
