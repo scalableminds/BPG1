@@ -11,16 +11,13 @@ class Cluster
 
   getLineSegment : ->
 
-    lineSegement = ""
 
-    for waypoint, i in @waypoints
+    lineFunction = d3.svg.line(@waypoints)
+      .x( (data) -> data.x )
+      .y( (data) -> data.y )
+      .interpolate("basis")
 
-      if i == 0
-        lineSegement += "M #{waypoint.x},#{waypoint.y} "
-      else
-        lineSegement += "L #{waypoint.x},#{waypoint.y} "
-
-    return lineSegement
+    return lineFunction(@waypoints)
 
 
   finialize : (nodes) ->
