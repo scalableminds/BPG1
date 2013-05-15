@@ -1,4 +1,4 @@
-package controllers.main
+package controllers.common
 
 import play.api.mvc.{ Controller => PlayController }
 import play.api.templates.Html

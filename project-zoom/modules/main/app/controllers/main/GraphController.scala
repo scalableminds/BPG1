@@ -11,6 +11,7 @@ import models.Implicits._
 import models.DBAccessContext
 import play.api.libs.json.Json
 import play.api.libs.json.JsObject
+import controllers.common.ControllerBase
 
 case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 
