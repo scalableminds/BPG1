@@ -5,9 +5,9 @@ hammer: Hammer
 jquery.mousewheel : Mousewheel
 ./process_view/interactive_graph : InteractiveGraph
 ./process_view/gui : GUI
-./process_view/behavior/connect_behavior : connectBehavior
-./process_view/behavior/drag_behavior : dragBehavior
-./process_view/behavior/delete_behavior : deleteBehavior
+./process_view/behavior/connect_behavior : ConnectBehavior
+./process_view/behavior/drag_behavior : DragBehavior
+./process_view/behavior/delete_behavior : DeleteBehavior
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
 ../component/artifact_finder : ArtifactFinder
 ../component/artifact : Artifact
@@ -97,7 +97,7 @@ class ProcessView
 
   addArtifact : (evt) =>
 
-    artifact = evt.gesture.target
+    artifact = $(evt.gesture.target)
     touch = evt.gesture.touches[0]
 
     #is the mouse over the SVG?
@@ -105,16 +105,16 @@ class ProcessView
 
     if touch.pageX > offset.left and touch.pageY > offset.top
 
-      id = $(artifact).data("id")
+      id = artifact.data("id")
       artifact = @artifactFinder.getArtifact(id)
       $(artifact.domElement).find("img").addClass("nodeElement")
 
       @on "view:zooming", artifact.resize
 
-      @addNode(evt, artifact)
+      @addNode(evt, id, artifact)
 
 
-  addNode : (evt, artifact = null) =>
+  addNode : (evt, nodeId, artifact = null) =>
 
     offset = $("svg").offset()
     scaleValue = $(".zoomSlider input").val()
@@ -125,7 +125,7 @@ class ProcessView
     x /= scaleValue
     y /= scaleValue
 
-    @graph.addNode(x, y, artifact)
+    @graph.addNode(x, y, nodeId, artifact)
 
 
   changeBehavior : (selectedTool) =>
@@ -135,9 +135,9 @@ class ProcessView
     toolBox = $(".btn-group button")
     behavior = switch selectedTool
 
-      when toolBox[0] then new dragBehavior()
-      when toolBox[1] then new connectBehavior(graph, graphContainer)
-      when toolBox[2] then new deleteBehavior(graph)
+      when toolBox[0] then new DragBehavior()
+      when toolBox[1] then new ConnectBehavior(graph, graphContainer)
+      when toolBox[2] then new DeleteBehavior(graph)
       when toolBox[3] then new DrawClusterBehavior(graph, graphContainer)
 
     graph.changeBehavior( behavior )

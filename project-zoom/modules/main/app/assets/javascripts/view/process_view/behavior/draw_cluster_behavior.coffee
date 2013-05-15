@@ -39,6 +39,7 @@ class DrawClusterBehavior extends Behavior
 
   dragEnd : (event) =>
 
+    @cluster.finalize()
     @graph.addCluster(@cluster)
     @preview.classed("hidden, true")
 

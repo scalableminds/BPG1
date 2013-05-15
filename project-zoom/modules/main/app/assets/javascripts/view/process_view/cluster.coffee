@@ -11,20 +11,22 @@ class Cluster
 
   getLineSegment : ->
 
-
     lineFunction = d3.svg.line(@waypoints)
       .x( (data) -> data.x )
       .y( (data) -> data.y )
-      .interpolate("basis")
+      .interpolate("basis") # smoothing bitches!!!
 
-    return lineFunction(@waypoints)
+    lineFunction(@waypoints)
 
 
-  finialize : (nodes) ->
+  finalize : ->
 
     #connect last waypoint with first
     firstWaypoint = _.deepClone(@waypoints[0])
     @waypoints.push firstWaypoint
+
+
+  checkForNodes : (nodes) ->
 
     for node in nodes
 

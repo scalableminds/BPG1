@@ -69,7 +69,7 @@ class DragBehavior extends Behavior
   # x, y are absolute positions
   moveNode : (nodeId, x, y) ->
 
-    svgContainer = $("div[data-id=#{nodeId}]").closest("foreignObject")[0]
+    svgContainer = $("img[data-id=#{nodeId}]").closest("foreignObject")[0]
     halfWidth = d3.select(svgContainer).datum().getSize() / 2
 
     d3.select(svgContainer)

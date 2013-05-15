@@ -23,28 +23,22 @@ class Graph
     @nodeId = 0
 
 
-  addForeignObject : (object) ->
+  addNode : (x, y, nodeId, artifact) =>
 
-    foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject' )
-    $(foreignObject)
-      .attr(
-        x : 0
-        y : 0
-        width : 64
-        height : 64
-      )
-      .append(object)
-    $("g:first").append(foreignObject)
+    id = nodeId ? @nodeId++
 
-
-  addNode : (x, y, artifact) =>
-
-    @nodes.push new Node(
-      x ,
+    node = new Node(
+      x,
       y,
-      @nodeId++,
+      id,
       artifact
     )
+
+    @nodes.push node
+
+    #was the node dropped in a cluster?
+    for cluster in @clusters
+      cluster.checkForNodes([node])
 
     @drawNodes()
 
@@ -67,7 +61,7 @@ class Graph
 
   addCluster : (cluster) =>
 
-    cluster.finialize(@nodes)
+    cluster.checkForNodes(@nodes)
     @clusters.push( cluster )
     @drawClusters()
 
@@ -120,7 +114,7 @@ class Graph
             if d.artifact?
               html = d.artifact.domElement
             else
-              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
+              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" style="background-color: rgb(0,127,255)"><img class="nodeElement" draggable="false" data-id="#{d.id}"></img></body></html>""" #return HTML element
 
             $(this).append(html)
             return ""
