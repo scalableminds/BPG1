@@ -60,8 +60,6 @@ class DragBehavior extends Behavior
     for node in cluster.nodes
       @moveNode(node.id, node.x + distX, node.y + distY)
 
-    #move all child nodes
-
     @startX = mouse.x
     @startY = mouse.y
 
