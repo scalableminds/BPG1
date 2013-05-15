@@ -33,7 +33,7 @@ trait UnsecuredDAO[T] extends SecuredDAO[T] { this: MongoDAO[T] =>
 }
 
 trait GlobalDBAccess {
-  implicit val ctx = GlobalAccessContext
+  implicit val ctx: DBAccessContext = GlobalAccessContext
 }
 
 trait AllowEverytingDBAccessValidator extends DBAccessValidator{

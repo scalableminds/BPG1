@@ -47,21 +47,25 @@ trait GraphTransformers extends PayloadTransformers {
   val reducePayloadToId =
     (__ \ 'payload).json.update((__ \ 'id).json.pick)
 
+  def transformNode(node: JsValue)(implicit ctx: DBAccessContext) = {
+    node
+      .asOpt[Node]
+      .map { node: Node =>
+        payloadTypMapping
+          .get(node.payload.typ)
+          .map(_(node.payload.id))
+          .getOrElse(Future.successful(None))
+      }
+      .getOrElse(Future.successful(None))
+  }
+
   def includePayloadDetails(implicit ctx: DBAccessContext) =
     (__ \ 'nodes).json.update(
       of[JsArray].map {
         case JsArray(list) => {
           Await.result(Future
-            .sequence(list.map { jsNode =>
-              jsNode
-                .asOpt[Node]
-                .map { node: Node =>
-                  payloadTypMapping
-                    .get(node.payload.typ)
-                    .map(_(node.payload.id))
-                    .getOrElse(Future.successful(None))
-                }
-                .getOrElse(Future.successful(None))
+            .sequence(list.map { jsNode: JsValue =>
+              transformNode(jsNode)
             })
             .map(l => JsArray(l.flatten)), 5 seconds)
         }

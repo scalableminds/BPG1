@@ -13,7 +13,7 @@ trait MongoHelpers{
     OWrites[String] { s => Json.obj("_id" -> Json.obj("$oid" -> s)) }
 
   val beautifyObjectId =
-    (__ \ '_id).json.update( (__ \ '$oid).json.pick)
+    (__).json.update((__ \ 'id).json.copyFrom((__ \ '_id \ '$oid).json.pick)) andThen (__ \ '_id).json.prune  
 
   val fromCreated =
     __.json.update((__ \ 'created).json.copyFrom((__ \ 'created \ '$date).json.pick))
