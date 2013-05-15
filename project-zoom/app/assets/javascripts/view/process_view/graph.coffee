@@ -8,8 +8,6 @@ d3 : d3
 
 class Graph
 
-  NODE_SIZE = 20
-
   constructor : (@container) ->
 
     @nodes = []
@@ -41,10 +39,14 @@ class Graph
 
   addNode : (x, y, artifact) =>
 
-    tmp = new Node(x, y, @nodeId++, artifact)
-    @nodes.push(tmp)
+    @nodes.push new Node(
+      x ,
+      y,
+      @nodeId++,
+      artifact
+    )
 
-    @drawNodes(tmp)
+    @drawNodes()
 
 
   addEdge : (source, target) =>
@@ -135,8 +137,10 @@ class Graph
     #add new edges or update existing ones
     path = @paths.enter().append("svg:path")
     path
-      .attr("class", "edge")
-      .attr("d", (data) -> data.getLineSegment())
+      .attr(
+        class : "edge"
+        d : (data) -> data.getLineSegment()
+      )
       .style("marker-end", (d) -> "url(#end-arrow)")
 
     #remove deleted edges
@@ -150,8 +154,10 @@ class Graph
     #add new edges or update existing ones
     clusterPath = @clusterPaths.enter().append("svg:path")
     clusterPath
-      .attr("class", "cluster")
-      .attr("d", (data) -> data.getLineSegment())
+      .attr(
+        class : "cluster"
+        d : (data) -> data.getLineSegment()
+      )
 
     #remove deleted edges
     @clusterPaths.exit().remove()

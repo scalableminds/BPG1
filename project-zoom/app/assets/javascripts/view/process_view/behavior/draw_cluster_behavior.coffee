@@ -37,6 +37,7 @@ class DrawClusterBehavior
   dragEnd : (event) =>
 
     @graph.addCluster(@cluster)
+    @preview.attr("d", "M 0,0 L 0,0") # move it out of the way
     @preview.classed("hidden, true")
 
 
