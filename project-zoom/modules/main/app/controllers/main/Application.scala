@@ -1,5 +1,6 @@
 package controllers.main
 
+import controllers.common.ControllerBase
 import play.api._
 import play.api.mvc._
 import securesocial.core.SecureSocial
