@@ -26,7 +26,7 @@ class Cluster
   finialize : (nodes) ->
 
     #connect last waypoint with first
-    firstWaypoint = @waypoints[0]
+    firstWaypoint = _.deepClone(@waypoints[0])
     @waypoints.push firstWaypoint
 
 
