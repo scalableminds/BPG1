@@ -3,26 +3,26 @@
 # ~~~~
 
 # Home page
-GET    /                                                          controllers.Application.index
-GET    /test                                                      controllers.Application.test
-GET    /overview                                                  controllers.Application.overview
-GET    /processView                                               controllers.Application.processView
+GET    /                                                          controllers.main.Application.index
+GET    /test                                                      controllers.main.Application.test
+GET    /overview                                                  controllers.main.Application.overview
+GET    /processView                                               controllers.main.Application.processView
 
 # CRUD Urls
-GET    /projects                                                  controllers.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
-GET    /projects/:_project/artifacts/:id/:artifactType/download   controllers.ArtifactController.download(_project: String, id: String, artifactType: String)
+GET    /projects                                                  controllers.main.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /projects/:_project/artifacts/:id/:artifactType/download   controllers.main.ArtifactController.download(_project: String, id: String, artifactType: String)
 
-GET    /tags                                                      controllers.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /tags                                                      controllers.main.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
 
-GET    /users                                                     controllers.ProfileController.list(offset: Int ?= 0, limit: Int ?= 50)
-GET    /users/:name                                               controllers.ProfileController.read(name)
+GET    /users                                                     controllers.main.ProfileController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /users/:name                                               controllers.main.ProfileController.read(name)
 
-GET    /graphs                                                    controllers.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
-PATCH  /graphs/:id                                                controllers.GraphController.patch(id: String)
+GET    /graphs                                                    controllers.main.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
+PATCH  /graphs/:id                                                controllers.main.GraphController.patch(id: String)
 
-GET    /admin                                                     controllers.Admin.panel
-GET    /admin/boxAuth                                             controllers.Admin.redirectToBoxAuth
-GET    /admin/boxAuthenticated                                    controllers.Admin.boxAuthenticated(code: String, state: String)
+GET    /admin                                                     controllers.main.Admin.panel
+GET    /admin/boxAuth                                             controllers.main.Admin.redirectToBoxAuth
+GET    /admin/boxAuthenticated                                    controllers.main.Admin.boxAuthenticated(code: String, state: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET    /assets/*file                                              controllers.main.Assets.at(path="/public", file)
