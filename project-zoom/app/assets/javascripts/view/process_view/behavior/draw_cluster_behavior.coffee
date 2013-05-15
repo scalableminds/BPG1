@@ -1,10 +1,11 @@
 ### define
 core_ext : CoreExt
 hammer : Hammer
+./behavior : Behavior
 ../cluster : Cluster
 ###
 
-class DrawClusterBehavior
+class DrawClusterBehavior extends Behavior
 
   constructor : ( @graph, @container ) ->
 

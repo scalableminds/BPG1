@@ -112,8 +112,8 @@ class Graph
           width : 68
           height : 68
 
-          x : (d) -> d.x
-          y : (d) -> d.y
+          x : (d) -> d.x - 32
+          y : (d) -> d.y - 32
 
           workaround : (d, i) ->
 

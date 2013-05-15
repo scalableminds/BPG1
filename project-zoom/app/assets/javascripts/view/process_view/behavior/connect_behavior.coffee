@@ -1,9 +1,10 @@
 ### define
 core_ext : CoreExt
 hammer : Hammer
+./behavior : Behavior
 ###
 
-class connectBehavior
+class ConnectBehavior extends Behavior
 
   constructor : ( @graph, @container ) ->
 

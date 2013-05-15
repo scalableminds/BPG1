@@ -1,8 +1,9 @@
 ### define
 hammer : Hammer
+./behavior : Behavior
 ###
 
-class deleteBehavior
+class DeleteBehavior extends Behavior
 
   constructor : (@graph) ->
 

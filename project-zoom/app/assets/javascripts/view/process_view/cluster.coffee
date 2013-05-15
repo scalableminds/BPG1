@@ -29,7 +29,6 @@ class Cluster
     firstWaypoint = _.deepClone(@waypoints[0])
     @waypoints.push firstWaypoint
 
-
     for node in nodes
 
       #save the reference both in the cluster and in the node

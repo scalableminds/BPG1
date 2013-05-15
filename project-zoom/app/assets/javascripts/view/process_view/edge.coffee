@@ -26,13 +26,13 @@ class Edge
   getLineSegment : ->
 
     #use center of the rectangles
-    target = @target.getCenter()
-    source = @source.getCenter()
+    target = @target#.getCenter()
+    source = @source#.getCenter()
 
     @HALF_SIZE = @target.getSize() / 2
 
     targetSourceAngle = @calcAngle(target, source)
-    target = @getSnapPoint(targetSourceAngle, target)
+    #target = @getSnapPoint(targetSourceAngle, target)
 
     # sourceTargetAngle = @calcAngle(source, target)
     # source = @getSnapPoint(sourceTargetAngle, source)

@@ -1,8 +1,9 @@
 ### define
 hammer : Hammer
+./behavior : Behavior
 ###
 
-class dragBehavior
+class DragBehavior extends Behavior
 
   activate : ->
 
@@ -25,37 +26,27 @@ class dragBehavior
     @offset = $("svg").offset()
     @scaleValue = $(".zoomSlider input").val()
 
-    @startX = event.gesture.touches[0].pageX - @offset.left
-    @startY = event.gesture.touches[0].pageY - @offset.top
+    @startX = @mousePosition(event).x
+    @startY = @mousePosition(event).y
 
 
   dragMoveNode : (event) =>
 
     nodeId = $(event.gesture.target).data("id")
+    mouse = @mousePosition(event)
 
-    x = event.gesture.touches[0].pageX - @offset.left
-    y = event.gesture.touches[0].pageY - @offset.top
-
-    x /= @scaleValue
-    y /= @scaleValue
-
-    @moveNode(nodeId, x, y)
-
+    @moveNode(nodeId, mouse.x, mouse.y)
 
 
   dragMoveCluster : (event) =>
 
-    x = event.gesture.touches[0].pageX - @offset.left
-    y = event.gesture.touches[0].pageY - @offset.top
-
-    x /= @scaleValue
-    y /= @scaleValue
+    mouse = @mousePosition(event)
 
     svgPath = d3.select(event.gesture.target)
     cluster = svgPath.datum()
 
-    distX = x - @startX
-    distY = y - @startY
+    distX = mouse.x - @startX
+    distY = mouse.y - @startY
 
     #move waypoints
     for waypoint in cluster.waypoints
@@ -65,11 +56,17 @@ class dragBehavior
     #actually move them
     svgPath.attr("d", (data) -> data.getLineSegment())
 
+    #move child nodes
+    for node in cluster.nodes
+      @moveNode(node.id, node.x + distX, node.y + distY)
+
     #move all child nodes
 
-    @startX = x
-    @startY = y
+    @startX = mouse.x
+    @startY = mouse.y
 
+
+  # x, y are absolute positions
   moveNode : (nodeId, x, y) ->
 
     svgContainer = $("div[data-id=#{nodeId}]").closest("foreignObject")[0]
@@ -77,8 +74,8 @@ class dragBehavior
 
     d3.select(svgContainer)
       .attr(
-        x : (data) -> data.x = x - halfWidth
-        y : (data) -> data.y = y - halfWidth
+        x : (data) -> data.x = x; x - halfWidth
+        y : (data) -> data.y = y; y - halfWidth
       )
 
     # update edges when node are dragged around
@@ -86,3 +83,5 @@ class dragBehavior
     edges.attr("d", (data) ->
       if data
         data.getLineSegment())
+
+
