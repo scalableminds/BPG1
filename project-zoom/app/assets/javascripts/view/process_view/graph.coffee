@@ -112,8 +112,8 @@ class Graph
           width : 68
           height : 68
 
-          x : (d) -> d.x - 32
-          y : (d) -> d.y - 32
+          x : (d) -> d.x - d.getSize() / 2
+          y : (d) -> d.y - d.getSize() / 2
 
           workaround : (d, i) ->
 

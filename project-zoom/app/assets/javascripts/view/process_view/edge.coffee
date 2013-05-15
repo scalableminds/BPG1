@@ -32,7 +32,7 @@ class Edge
     @HALF_SIZE = @target.getSize() / 2
 
     targetSourceAngle = @calcAngle(target, source)
-    #target = @getSnapPoint(targetSourceAngle, target)
+    target = @getSnapPoint(targetSourceAngle, target)
 
     # sourceTargetAngle = @calcAngle(source, target)
     # source = @getSnapPoint(sourceTargetAngle, source)
@@ -63,6 +63,10 @@ class Edge
 
 
   getSnapPoint : (angle, point) ->
+
+    # dont change the referenced original here
+    # rather return a copy
+    point = _.clone(point)
 
     if PI2 - PI_QUARTER < angle or angle <= PI_HALF - PI_QUARTER
       point.y -= @HALF_SIZE
