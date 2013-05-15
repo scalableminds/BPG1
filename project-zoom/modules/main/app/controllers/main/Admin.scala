@@ -1,4 +1,4 @@
-package controllers
+package controllers.main
 
 import projectZoom.util.PlayConfig
 import projectZoom.util.PlayActorSystem
@@ -9,7 +9,7 @@ import play.api.mvc._
 object Admin extends ControllerBase with SecureSocial with PlayActorSystem with PlayConfig {
   
   def panel = SecuredAction { implicit request => 
-    Ok(views.html.adminPanel())
+    Ok(views.html.main.adminPanel())
   }
   
   def redirectToBoxAuth = SecuredAction { implicit request =>
@@ -22,6 +22,6 @@ object Admin extends ControllerBase with SecureSocial with PlayActorSystem with 
   def boxAuthenticated(code: String, state: String) = SecuredAction { implicit request =>
     Logger.info(s"code: $code")
     Logger.info(s"state: $state")
-    Ok(views.html.adminPanel())
+    Ok(views.html.main.adminPanel())
   }
 }
