@@ -3,6 +3,8 @@ lib/event_mixin : EventMixin
 d3 : d3
 ./process_view/interactive_graph : InteractiveGraph
 ../component/tagbar : Tagbar
+../component/project : Project
+../component/layouter : Layouter
 ###
 
 class ProjectsOverviewView
@@ -39,9 +41,10 @@ class ProjectsOverviewView
     img : null
     node : null
 
+  SAMPLE_PROJECTS = [SAMPLE_PROJECT_1, SAMPLE_PROJECT_2, SAMPLE_PROJECT_3]
+
 
   constructor : ->
-
     @selectedTags = []
     @clusters = []
     @projects = []
@@ -50,19 +53,18 @@ class ProjectsOverviewView
     @initTagbar()
     @initD3()
     @initArrowMarkers()
+    @initProjects()
     @initGraph()
     @initEventHandlers()
 
 
   initTagbar : ->
-
     @tagbar = new Tagbar()
     $("#tagbar").append( @tagbar.domElement )
     @tagbar.populateTagForm()
 
 
   initD3 : ->
-
     @svg = d3.select("#graph")
       .append("svg")
       .attr("WIDTH", WIDTH)
@@ -74,33 +76,40 @@ class ProjectsOverviewView
       .attr("height", HEIGHT)
       .attr("fill", "white")
 
+    @makePackLayout()
+
 
   initGraph : ->
-
-    @projects.push SAMPLE_PROJECT_1
-    @projects.push SAMPLE_PROJECT_2
-    @projects.push SAMPLE_PROJECT_3
-
     @graphContainer = @svg.append("svg:g")
-
     @graph = new InteractiveGraph(@graphContainer, @svg)
-    console.log @graph
-    pos_x = 0
-    pos_y = 0
-    for project in @projects
 
+    pos_x = 20
+    pos_y = 20
+
+    for p in @projects
       nodeContainer = @graph.addNode(pos_x, pos_y)
       svgNodeContainer = nodeContainer[nodeContainer.length - 1].parentNode.childNodes
       node = svgNodeContainer[svgNodeContainer.length - 1].childNodes[0]
 
-      project.node = node
+      p.setNode node
 
-      pos_x += 50
-      pos_y += 50
+      pos_x += 70
+      pos_y += 70
+
+
+  initProjects : ->
+    for p in SAMPLE_PROJECTS
+      project = new Project(p.name)
+
+      for t in p.tags
+        project.addTag t
+
+      project.setImage p.img
+
+      @projects.push project
 
 
   initArrowMarkers : ->
-
     # define arrow markers for graph edges
     @svg.append("svg:defs")
       .append("svg:marker")
@@ -163,13 +172,13 @@ class ProjectsOverviewView
 
 
   venn1 : (name) ->
-    @drawCircle(300, 200, "steelblue", name)
+    @drawCircle("left", "steelblue", name)
 
   venn2 : (name) ->
-    @drawCircle(550, 200, "yellow", name)
+    @drawCircle("right", "yellow", name)
 
   venn3 : (name) ->
-    @drawCircle(425, 400, "forestgreen", name)
+    @drawCircle("bottom", "forestgreen", name)
 
   noVenn : ->
     $("circle").each( ->
@@ -178,20 +187,30 @@ class ProjectsOverviewView
     console.log "no Venn Diagramm possible."
 
 
-  drawCircle : (cx, cy, color, name) ->
-
+  drawCircle : (location, color, name) ->
     circle = @svg.append("svg:circle")
-      .attr({
+
+    switch location
+      when "left" then position = [300, 200]
+      when "right" then position = [550, 200]
+      when "bottom" then position = [425, 400]
+
+    circle.attr({
         "r": 200,
-        "cx": cx,
-        "cy": cy,
+        "cx": position[0],
+        "cy": position[1],
         "fill": color,
         "fill-opacity": .5,
         "id": "cluster_#{name}",
-      })
+    })
+    circle.pos = location
 
     @clusters.push circle
+
     # @drawLabelsForSelectedTags
+
+
+################## To Be Refactored: ###################
 
   # drawLabelsForSelectedTags : ->
   #   for t in @selectedTags
@@ -204,11 +223,13 @@ class ProjectsOverviewView
   #     .textContent = "now?"
 
 
+
   arrangeProjectsInClusters : (tagName) ->
     for project in @projects
       selectedProjectTags = []
 
       if @hasProjectTag(project, tagName)
+        console.log tagName
         selectedProjectTags.push tagName
 
       @updateNode(project.node, selectedProjectTags)
@@ -221,19 +242,68 @@ class ProjectsOverviewView
       else return false
 
 
+  oneTag : (positions, projectNode) ->
+    console.log "function oneTag"
+    switch positions[0]
+      when "left" then @left(projectNode)
+      when "right" then @right(projectNode)
+      when "bottom" then @bottom(projectNode)
+
+  two : (positions, projectNode) ->
+    console.log "two"
+    switch positions
+      when ["left", "right"] or ["right", "left"] then @leftRight(projectNode)
+      when ["left", "bottom"] or ["bottom", "left"] then @leftBottom(projectNode)
+      when ["bottom", "right"] or ["right", "bottom"] then @bottomRight(projectNode)
+
+  three : (positions, projectNode) ->
+    console.log "three"
+    projectNode.x.baseVal.value += 400
+    projectNode.x.baseVal.value += 200
+
+  left : (projectNode) ->
+    projectNode.x.baseVal.value += 300
+
+  right : (projectNode) ->
+    projectNode.x.baseVal.value += 550
+
+  bottom : (projectNode) ->
+    projectNode.x.baseVal.value += 425
+    projectNode.y.baseVal.value += 400
+
+  leftRight : (projectNode) ->
+    projectNode.x.baseVal.value += 425
+
+  bottomRight : (projectNode) ->
+    projectNode.x.baseVal.value += 450
+    projectNode.y.baseVal.value += 370
+
+  leftBottom : (projectNode) ->
+    projectNode.x.baseVal.value += 350
+    projectNode.y.baseVal.value += 370
+
+
   updateNode : (projectNode, selectedProjectTags) ->
     pos_x = 0
     pos_y = 0
+    console.log "updateNode"
 
+    clusterPositions = []
     for t in selectedProjectTags
-      c = d3.select("#cluster_#{t}")
-      pos_x += parseInt c.attr("cx")
-      pos_y += parseInt c.attr("cy")
+      # c = d3.select("#cluster_#{t}")
+      c = @clusters.filter (c) -> c.id = "cluster_#{t}"
 
-      projectNode.x.baseVal.value = pos_x
-      projectNode.y.baseVal.value = pos_y
+      clusterPositions.push c[0].pos
+
+    switch clusterPositions.length
+      when 0 then console.log "no selected tags for this project"
+      when 1 then @oneTag(clusterPositions, projectNode)
+      when 2 then @two(clusterPositions, projectNode)
+      when 3 then @three(clusterPositions, projectNode)
 
 
+  makePackLayout : () ->
+    @vennDiagram = d3.layout.pack()
 
 
 
