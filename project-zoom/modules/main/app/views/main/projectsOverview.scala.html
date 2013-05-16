@@ -1,0 +1,38 @@
+@()(implicit session: models.SessionData)
+
+@main{
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+        <div id="tagbar">
+
+            <h4>Branch Tags:</h4>
+            <form class="checkbox-group" id="branchtags">
+            </form>
+
+            <h4>Project Partner Tags:</h4>
+            <form class="checkbox-group" id="partnertags">
+            </form>
+
+            <h4>Date Tags:</h4>
+            <form class="checkbox-group" id="datetags">
+            </form>
+
+        </div>
+
+        <div id="mainBody">
+            <div id="toolBarSimple">
+                <div class="navbar">
+                  <div class="navbar-inner">
+                    <a class="brand" href="#">Projects Overview</a>
+                    <ul class="nav">
+                      <li><a href="#"><i class="icon-arrow-left"></i>Connect Nodes</a></li>
+                    </ul>
+                  </div>
+                </div>
+            </div>
+
+            <div id="graph"></div>
+        </div>
+        <div id="clearfix"></div>
+
+}

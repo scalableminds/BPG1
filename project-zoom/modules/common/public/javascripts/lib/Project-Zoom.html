@@ -1,0 +1,68 @@
+
+
+<!DOCTYPE html>
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Project-Zoom</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="format-detection" content="telephone=no"/>
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1, minimum-scale=1" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Project-Zoom">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon-precomposed" href="images/apple-icon.png" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="/assets/css/bootstrap.css">
+    <link rel="stylesheet" media="screen" href="/assets/stylesheets/main.css">
+    <link rel="shortcut icon" type="image/png" href="/assets/images/favicon.png">
+</head>
+<body>
+  <script src="/assets/javascripts/config.js" type="text/javascript"></script>
+  <script src="/assets/javascripts/lib/require-2.1.5.js" data-main="index" type="text/javascript"></script>
+
+  <div class="content">
+    
+  <div class="container-fluid">
+
+    <div class="row-fluid">
+      <div id="artifactFinder" class="span4"></div>
+
+      <div id="mainBody" class="span8">
+
+        <div class="row-fluid">
+          <div id="toolBar" class="span12">
+            <div class="btn-group">
+              <button class="btn active"><a href="#"><i class="icon-move"></i>Drag Node</a></button>
+              <button class="btn"><a href="#"><i class="icon-arrow-left"></i>Connect Nodes</a></button>
+              <button class="btn"><a href="#"><i class="icon-trash"></i>Delete Node</a></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row-fluid">
+          <div id="graph" class="span11"></div>
+
+          <div class="zoomSlider span1">
+            <button class="btn plus"><i class="icon-plus"></i></button>
+            <input type="range" min="0.5" max="3" step=".1" value="1">
+            <button class="btn minus"><i class="icon-minus"></i></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+  </div>
+
+</body>
+</html>
