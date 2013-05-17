@@ -315,33 +315,29 @@ class ProjectsOverviewView
       x = cluster[0][0].cx.baseVal.value
       y = cluster[0][0].cy.baseVal.value
       project.moveNode(x, y)
+
+    else if selectedProjectTags.length == 2
+      [cluster1] = @clusters.filter (c) -> c[0][0].id == "cluster_#{selectedProjectTags[0]}"
+      [cluster2] = @clusters.filter (c) -> c[0][0].id == "cluster_#{selectedProjectTags[1]}"
+
+      x1 = cluster1[0][0].cx.baseVal.value
+      x2 = cluster2[0][0].cx.baseVal.value
+      y1 = cluster1[0][0].cy.baseVal.value
+      y2 = cluster2[0][0].cy.baseVal.value
+
+      x = x1+(x2-x1)/2 ? x1 < x2 : x2+(x1-x2)/2
+      y = y1+(y2-y1)/2 ? y1 < y2 : y2+(y1-y2)/2
+      console.log "2!!!!!!!!!!!!!!!!!!!!!!!!!!"
       console.log x
-      console.log y
+      project.moveNode(x, y)
+
+    else
 
     # else if selectedProjectTags.length == 2
 
     # else if selectedProjectTags.length == 3
 
 
-
-
-
-    # pos_x = 0
-    # pos_y = 0
-    # console.log "updateNode"
-
-    # clusterPositions = []
-    # for t in selectedProjectTags
-    #   # c = d3.select("#cluster_#{t}")
-    #   c = @clusters.filter (c) -> c[0].id = "cluster_#{t}"
-
-    #   clusterPositions.push c[0].pos
-
-    # switch clusterPositions.length
-    #   when 0 then console.log "no selected tags for this project"
-    #   when 1 then @oneTag(clusterPositions, projectNode)
-    #   when 2 then @two(clusterPositions, projectNode)
-    #   when 3 then @three(clusterPositions, projectNode)
 
 
 
