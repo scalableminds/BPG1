@@ -153,7 +153,17 @@ class ProjectsOverviewView
 
     if clickedCheckbox.checked
       @drawCluster(tagName)
-    else @removeCluster(tagName)
+
+    else if @selectedTags.length == 3     # venn diagramm possible again
+      @venn1 @selectedTags[0]
+      @venn2 @selectedTags[1]
+      @venn3 @selectedTags[2]
+
+    else if @selectedTags.length < 3
+      @removeCluster(tagName)
+
+    else
+      console.log "still no venn diagramm possible"
 
     @arrangeProjectsInClusters(tagName)
 
