@@ -8,6 +8,8 @@ class Cluster
     @waypoints = []
     @nodes = []
 
+    @id = 0
+
 
   getLineSegment : ->
 

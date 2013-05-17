@@ -21,6 +21,7 @@ class Graph
     @colors = d3.scale.category10()
 
     @nodeId = 0
+    @clusterId = 0
 
 
   addNode : (x, y, nodeId, artifact) =>
@@ -61,6 +62,7 @@ class Graph
 
   addCluster : (cluster) =>
 
+    cluster.id = @clusterId++
     cluster.checkForNodes(@nodes)
     @clusters.push( cluster )
     @drawClusters()
@@ -94,31 +96,36 @@ class Graph
   drawNodes : ->
 
     HTML = ""
-    @foreignObjects = @foreignObjects.data(@nodes, (d) -> d.id)
+    @foreignObjects = @foreignObjects.data(@nodes, (data) -> data.id)
 
-    #add new nodes or update existing one
+    #add new nodes
     foreignObject = @foreignObjects.enter()
-      .append("svg:g")
-        .attr( class : "node" )
       .append("svg:foreignObject")
+        .attr( class : "node" )
         .attr(
 
           width : 68
           height : 68
 
-          x : (d) -> d.x - d.getSize() / 2
-          y : (d) -> d.y - d.getSize() / 2
+          x : (data) -> data.x - data.getSize() / 2
+          y : (data) -> data.y - data.getSize() / 2
 
-          workaround : (d, i) ->
+          workaround : (data, i) ->
 
-            if d.artifact?
-              html = d.artifact.domElement
+            if data.artifact?
+              html = data.artifact.domElement
             else
-              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" style="background-color: rgb(0,127,255)"><img class="nodeElement" draggable="false" data-id="#{d.id}"></img></body></html>""" #return HTML element
+              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" style="background-color: rgb(0,127,255)"><img class="nodeElement" draggable="false" data-id="#{data.id}"></img></body></html>""" #return HTML element
 
             $(this).append(html)
             return ""
         )
+
+    #update existing ones
+    @foreignObjects.attr(
+      x : (data) -> data.x - data.getSize() / 2
+      y : (data) -> data.y - data.getSize() / 2
+    )
 
     #remove deleted nodes
     @foreignObjects.exit().remove()
@@ -128,14 +135,19 @@ class Graph
 
     @paths = @paths.data(@edges)
 
-    #add new edges or update existing ones
+    #add new edges
     path = @paths.enter().append("svg:path")
     path
       .attr(
         class : "edge"
         d : (data) -> data.getLineSegment()
       )
-      .style("marker-end", (d) -> "url(#end-arrow)")
+      .style("marker-end", -> "url(#end-arrow)")
+
+    #update existing ones
+    @paths.attr(
+      d : (data) -> data.getLineSegment()
+    )
 
     #remove deleted edges
     @paths.exit().remove()
@@ -150,13 +162,51 @@ class Graph
     clusterPath
       .attr(
         class : "cluster"
+        "data-id" : (data) -> data.id
         d : (data) -> data.getLineSegment()
       )
+
+    #update existing ones
+    @clusterPaths.attr(
+      d : (data) -> data.getLineSegment()
+    )
 
     #remove deleted edges
     @clusterPaths.exit().remove()
 
 
+  # position.x/y are absolute positions
+  moveNode : (nodeId, position) ->
+
+    node = _.find(@nodes, (node) -> node.id == nodeId )
+
+    node.x = position.x
+    node.y = position.y
+
+    @drawNodes()
+    @drawEdges()
+
+
+  moveCluster : (clusterId, distance) ->
+
+    cluster = _.find(@clusters, (cluster) -> cluster.id == clusterId )
+
+    #move waypoints
+    for waypoint in cluster.waypoints
+      waypoint.x += distance.x
+      waypoint.y += distance.y
+
+    #move child nodes
+    for node in cluster.nodes
+      position =
+        x : node.x + distance.x
+        y : node.y + distance.y
+
+      @moveNode(node.id, position)
+
+    #actually move the svg elements
+    @drawClusters()
+    @drawNodes()
 
 
 

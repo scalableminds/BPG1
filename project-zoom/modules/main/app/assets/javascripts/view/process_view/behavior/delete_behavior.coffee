@@ -5,9 +5,6 @@ hammer : Hammer
 
 class DeleteBehavior extends Behavior
 
-  constructor : (@graph) ->
-
-
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )

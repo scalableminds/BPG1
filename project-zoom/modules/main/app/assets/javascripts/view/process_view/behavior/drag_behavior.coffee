@@ -35,51 +35,21 @@ class DragBehavior extends Behavior
     nodeId = $(event.gesture.target).data("id")
     mouse = @mousePosition(event)
 
-    @moveNode(nodeId, mouse.x, mouse.y)
+    @graph.moveNode(nodeId, mouse)
 
 
   dragMoveCluster : (event) =>
 
+    clusterId = $(event.gesture.target).data("id")
     mouse = @mousePosition(event)
 
-    svgPath = d3.select(event.gesture.target)
-    cluster = svgPath.datum()
+    distance =
+      x : mouse.x - @startX
+      y : mouse.y - @startY
 
-    distX = mouse.x - @startX
-    distY = mouse.y - @startY
-
-    #move waypoints
-    for waypoint in cluster.waypoints
-      waypoint.x += distX
-      waypoint.y += distY
-
-    #actually move them
-    svgPath.attr("d", (data) -> data.getLineSegment())
-
-    #move child nodes
-    for node in cluster.nodes
-      @moveNode(node.id, node.x + distX, node.y + distY)
+    @graph.moveCluster(clusterId, distance)
 
     @startX = mouse.x
     @startY = mouse.y
-
-
-  # x, y are absolute positions
-  moveNode : (nodeId, x, y) ->
-
-    svgContainer = $("img[data-id=#{nodeId}]").closest("foreignObject")[0]
-    halfWidth = d3.select(svgContainer).datum().getSize() / 2
-
-    d3.select(svgContainer)
-      .attr(
-        x : (data) -> data.x = x; x - halfWidth
-        y : (data) -> data.y = y; y - halfWidth
-      )
-
-    # update edges when node are dragged around
-    edges = d3.selectAll(".edge")
-    edges.attr("d", (data) ->
-      if data
-        data.getLineSegment())
 
 

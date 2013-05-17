@@ -135,7 +135,7 @@ class ProcessView
     toolBox = $(".btn-group button")
     behavior = switch selectedTool
 
-      when toolBox[0] then new DragBehavior()
+      when toolBox[0] then new DragBehavior(graph)
       when toolBox[1] then new ConnectBehavior(graph, graphContainer)
       when toolBox[2] then new DeleteBehavior(graph)
       when toolBox[3] then new DrawClusterBehavior(graph, graphContainer)
