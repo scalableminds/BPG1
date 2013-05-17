@@ -30,7 +30,13 @@ class Cluster
 
   checkForNodes : (nodes) ->
 
+    #argument "nodes" can be an array or a single node
+    unless _.isArray(nodes)
+      nodes = [nodes]
+
     for node in nodes
+
+      return if node.cluster == @
 
       #save the reference both in the cluster and in the node
       if @pointInPolygon(node)

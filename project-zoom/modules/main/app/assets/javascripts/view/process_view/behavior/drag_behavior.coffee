@@ -35,7 +35,7 @@ class DragBehavior extends Behavior
     nodeId = $(event.gesture.target).data("id")
     mouse = @mousePosition(event)
 
-    @graph.moveNode(nodeId, mouse)
+    @graph.moveNode(nodeId, mouse, true)
 
 
   dragMoveCluster : (event) =>

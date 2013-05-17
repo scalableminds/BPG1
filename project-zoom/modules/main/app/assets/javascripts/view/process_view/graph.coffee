@@ -39,7 +39,7 @@ class Graph
 
     #was the node dropped in a cluster?
     for cluster in @clusters
-      cluster.checkForNodes([node])
+      cluster.checkForNodes(node)
 
     @drawNodes()
 
@@ -176,12 +176,16 @@ class Graph
 
 
   # position.x/y are absolute positions
-  moveNode : (nodeId, position) ->
+  moveNode : (nodeId, position, checkForCluster = false) ->
 
     node = _.find(@nodes, (node) -> node.id == nodeId )
 
     node.x = position.x
     node.y = position.y
+
+    if checkForCluster
+      for cluster in @clusters
+        cluster.checkForNodes(node)
 
     @drawNodes()
     @drawEdges()
