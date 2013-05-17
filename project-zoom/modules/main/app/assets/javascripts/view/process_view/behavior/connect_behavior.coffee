@@ -44,12 +44,6 @@ class ConnectBehavior extends Behavior
 
   dragEnd : (event) =>
 
-    # startContainer = $(event.gesture.startEvent.target).closest("foreignObject")[0]
-    # startID = d3.select(startContainer).datum().id
-
-    # svgContainer = $(event.target).closest("foreignObject")[0]
-    # nodeID = d3.select(svgContainer).datum().id
-
     startID = $(event.gesture.startEvent.target).data("id")
     nodeID = $(event.target).data("id")
 
@@ -63,19 +57,12 @@ class ConnectBehavior extends Behavior
 
     svgContainer = $(event.gesture.target).closest("foreignObject")[0]
 
-    x = event.gesture.touches[0].pageX - @offset.left
-    y = event.gesture.touches[0].pageY - @offset.top
-
-    x /= @scaleValue
-    y /= @scaleValue
+    mouse = @mousePosition(event)
 
     nodeData = d3.select(svgContainer).datum()
-    lineStartX = nodeData.getCenter().x
-    lineStartY = nodeData.getCenter().y
-
-    #lineStartX = startEvent.touches[0].pageX - offset.left
-    #lineStartY = startEvent.touches[0].pageY - offset.top
+    lineStartX = nodeData.x
+    lineStartY = nodeData.y
 
     @dragLine
       .classed("hidden", false)
-      .attr("d", "M #{lineStartX},#{lineStartY} L #{x},#{y}")
+      .attr("d", "M #{lineStartX},#{lineStartY} L #{mouse.x},#{mouse.y}")
