@@ -63,3 +63,17 @@ class Cluster
       j = i
 
     return result
+
+
+  getCenter : ->
+
+    minX = _.min(waypoints, (waypoint) -> waypoint.x)
+    maxX = _.mx(waypoints, (waypoint) -> waypoint.x)
+
+    minY = _.min(waypoints, (waypoint) -> waypoint.y)
+    maxY = _.max(waypoints, (waypoint) -> waypoint.y)
+
+    return {
+      x : (maxX - minX) / 2
+      y : (maxY - minY) / 2
+    }
