@@ -11,17 +11,17 @@ import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import models.PermanentValueService
 
 case class BoxAccessTokens(access_token: String, expires: Long, token_type: String, refresh_token: String)
 
 object BoxAccessTokens extends Function4[String, Long, String, String, BoxAccessTokens]{
-  implicit val boxAccessTokensReader = Json.reads[BoxAccessTokens]
+  implicit val boxAccessTokensFormat = Json.format[BoxAccessTokens]
 }
 
 object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with PlayConfig {
-
   val BoxExpirationReader = (__).json.update(( __ \ 'expires).json.copyFrom((__ \ 'expires_in).json.pick[JsNumber].map{
-    case JsNumber(t) => JsNumber(System.currentTimeMillis / 1000 + t)}))
+    case JsNumber(t) => JsNumber(System.currentTimeMillis / 1000 + t)})) andThen (__ \ 'expires_in).json.prune
       
   def beginBoxOAuth = SecuredAction { implicit request =>
     (for{client_id <- config.getString("box.client_id")
@@ -41,11 +41,12 @@ object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with 
               "client_id" -> Seq(client_id),
               "client_secret" -> Seq(client_secret))).map{ response =>
               Logger.info(Json.parse(response.body).validate(BoxExpirationReader).toString)
-              Json.parse(response.body).validate(BoxExpirationReader andThen BoxAccessTokens.boxAccessTokensReader) match {
-                case JsSuccess(boxAccessTokens, _) => Logger.info(boxAccessTokens.toString)
-                Ok("lalalla")
+              Json.parse(response.body).validate(BoxExpirationReader) match {
+                case JsSuccess(boxAccessTokens, _) => 
+                  PermanentValueService.put("box.tokens", boxAccessTokens)
+                  Ok(views.html.admin.dataSources())
                 case JsError(errors) => Logger.error(errors.mkString)
-                Ok(":(")
+                  Ok(errors.mkString)
               }
           }
       }) getOrElse Future.successful(Ok("retrieving box access token failed"))
