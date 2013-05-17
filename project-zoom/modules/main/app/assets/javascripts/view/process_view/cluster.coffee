@@ -8,25 +8,35 @@ class Cluster
     @waypoints = []
     @nodes = []
 
+    @id = 0
+
 
   getLineSegment : ->
-
 
     lineFunction = d3.svg.line(@waypoints)
       .x( (data) -> data.x )
       .y( (data) -> data.y )
-      .interpolate("basis")
+      .interpolate("basis") # smoothing bitches!!!
 
-    return lineFunction(@waypoints)
+    lineFunction(@waypoints)
 
 
-  finialize : (nodes) ->
+  finalize : ->
 
     #connect last waypoint with first
     firstWaypoint = _.deepClone(@waypoints[0])
     @waypoints.push firstWaypoint
 
+
+  checkForNodes : (nodes) ->
+
+    #argument "nodes" can be an array or a single node
+    unless _.isArray(nodes)
+      nodes = [nodes]
+
     for node in nodes
+
+      return if node.cluster == @
 
       #save the reference both in the cluster and in the node
       if @pointInPolygon(node)
@@ -61,3 +71,17 @@ class Cluster
       j = i
 
     return result
+
+
+  getCenter : ->
+
+    minX = _.min(waypoints, (waypoint) -> waypoint.x)
+    maxX = _.mx(waypoints, (waypoint) -> waypoint.x)
+
+    minY = _.min(waypoints, (waypoint) -> waypoint.y)
+    maxY = _.max(waypoints, (waypoint) -> waypoint.y)
+
+    return {
+      x : (maxX - minX) / 2
+      y : (maxY - minY) / 2
+    }
