@@ -93,8 +93,7 @@ class ProjectsOverviewView
 
     for p in @projects
       nodeContainer = @graph.addNode(pos_x, pos_y)
-      svgNodeContainer = nodeContainer[nodeContainer.length - 1].parentNode.childNodes
-      node = svgNodeContainer[svgNodeContainer.length - 1].childNodes[0]
+      node = nodeContainer[0].parentNode.lastChild
 
       p.setNode node
 
@@ -260,47 +259,6 @@ class ProjectsOverviewView
       else return false
 
 
-  # oneTag : (positions, projectNode) ->
-
-  #   switch positions[0]
-  #     when "left" then @left(projectNode)
-  #     when "right" then @right(projectNode)
-  #     when "bottom" then @bottom(projectNode)
-
-  # two : (positions, projectNode) ->
-  #   # console.log "two"
-  #   switch positions
-  #     when ["left", "right"] or ["right", "left"] then @leftRight(projectNode)
-  #     when ["left", "bottom"] or ["bottom", "left"] then @leftBottom(projectNode)
-  #     when ["bottom", "right"] or ["right", "bottom"] then @bottomRight(projectNode)
-
-  # three : (positions, projectNode) ->
-  #   # console.log "three"
-  #   projectNode.x.baseVal.value += 400
-  #   projectNode.x.baseVal.value += 200
-
-  # left : (projectNode) ->
-  #   projectNode.x.baseVal.value += 300
-
-  # right : (projectNode) ->
-  #   projectNode.x.baseVal.value += 550
-
-  # bottom : (projectNode) ->
-  #   projectNode.x.baseVal.value += 425
-  #   projectNode.y.baseVal.value += 400
-
-  # leftRight : (projectNode) ->
-  #   projectNode.x.baseVal.value += 425
-
-  # bottomRight : (projectNode) ->
-  #   projectNode.x.baseVal.value += 450
-  #   projectNode.y.baseVal.value += 370
-
-  # leftBottom : (projectNode) ->
-  #   projectNode.x.baseVal.value += 350
-  #   projectNode.y.baseVal.value += 370
-
-
   updateNode : (project, selectedProjectTags) ->
     window.debug = @clusters
 
@@ -330,12 +288,6 @@ class ProjectsOverviewView
       console.log "2!!!!!!!!!!!!!!!!!!!!!!!!!!"
       console.log x
       project.moveNode(x, y)
-
-    else
-
-    # else if selectedProjectTags.length == 2
-
-    # else if selectedProjectTags.length == 3
 
 
 
