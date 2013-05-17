@@ -24,7 +24,6 @@ object ProjectDAO extends SecuredMongoJsonDAO {
   implicit val projectLikeFormat = Json.format[ProjectLike]
 
   def findOneByName(_project: String)(implicit ctx: DBAccessContext) = {
-    Logger.warn("find by name called: " + _project)
     find("name", _project).one[JsObject]
   }
 
