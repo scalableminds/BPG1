@@ -56,6 +56,11 @@ class ProjectsOverviewView
     @initProjects()
     @initGraph()
     @initEventHandlers()
+    @initLayouter()
+
+
+  initLayouter : ->
+    @layouter = new Layouter()
 
 
   initTagbar : ->
@@ -76,7 +81,7 @@ class ProjectsOverviewView
       .attr("height", HEIGHT)
       .attr("fill", "white")
 
-    @makePackLayout()
+    # @makePackLayout()
 
 
   initGraph : ->
@@ -150,7 +155,7 @@ class ProjectsOverviewView
   updateClusters : (clickedCheckbox) ->
     @collectSelectedTags()
     tagName = clickedCheckbox.value
-
+    # @layouter.drawVenn(@selectedTags, @projects)
     if clickedCheckbox.checked
       @drawCluster(tagName)
 
@@ -159,16 +164,17 @@ class ProjectsOverviewView
       @venn2 @selectedTags[1]
       @venn3 @selectedTags[2]
 
-    else if @selectedTags.length < 3
+    else if @selectedTags < 3
       @removeCluster(tagName)
 
     else
       console.log "still no venn diagramm possible"
 
-    @arrangeProjectsInClusters(tagName)
+    @arrangeProjectsInClusters()
 
 
   drawCluster : (name) ->
+    # console.log name
     switch @selectedTags.length
       when 1 then @venn1(name)
       when 2 then @venn2(name)
@@ -179,6 +185,8 @@ class ProjectsOverviewView
   removeCluster : (name) ->
     if d3.select("#cluster_#{name}")?
       d3.select("#cluster_#{name}").remove()
+
+    @clusters.filter (c) -> c[0][0].id.toString() isnt "cluster_#{name}"
 
 
   venn1 : (name) ->
@@ -199,6 +207,7 @@ class ProjectsOverviewView
 
   drawCircle : (location, color, name) ->
     circle = @svg.append("svg:circle")
+    # console.log circle
 
     switch location
       when "left" then position = [300, 200]
@@ -234,86 +243,105 @@ class ProjectsOverviewView
 
 
 
-  arrangeProjectsInClusters : (tagName) ->
-    for project in @projects
+  arrangeProjectsInClusters : () ->
+    for p in @projects
       selectedProjectTags = []
+      for t in p.tags
+        selectedProjectTags.push t.name if t.name in @selectedTags
 
-      if @hasProjectTag(project, tagName)
-        console.log tagName
-        selectedProjectTags.push tagName
-
-      @updateNode(project.node, selectedProjectTags)
+      @updateNode(p, selectedProjectTags)
 
 
   hasProjectTag : (project, tag) ->
+
     for t in project.tags
       if t.name == tag
         return true
       else return false
 
 
-  oneTag : (positions, projectNode) ->
-    console.log "function oneTag"
-    switch positions[0]
-      when "left" then @left(projectNode)
-      when "right" then @right(projectNode)
-      when "bottom" then @bottom(projectNode)
+  # oneTag : (positions, projectNode) ->
 
-  two : (positions, projectNode) ->
-    console.log "two"
-    switch positions
-      when ["left", "right"] or ["right", "left"] then @leftRight(projectNode)
-      when ["left", "bottom"] or ["bottom", "left"] then @leftBottom(projectNode)
-      when ["bottom", "right"] or ["right", "bottom"] then @bottomRight(projectNode)
+  #   switch positions[0]
+  #     when "left" then @left(projectNode)
+  #     when "right" then @right(projectNode)
+  #     when "bottom" then @bottom(projectNode)
 
-  three : (positions, projectNode) ->
-    console.log "three"
-    projectNode.x.baseVal.value += 400
-    projectNode.x.baseVal.value += 200
+  # two : (positions, projectNode) ->
+  #   # console.log "two"
+  #   switch positions
+  #     when ["left", "right"] or ["right", "left"] then @leftRight(projectNode)
+  #     when ["left", "bottom"] or ["bottom", "left"] then @leftBottom(projectNode)
+  #     when ["bottom", "right"] or ["right", "bottom"] then @bottomRight(projectNode)
 
-  left : (projectNode) ->
-    projectNode.x.baseVal.value += 300
+  # three : (positions, projectNode) ->
+  #   # console.log "three"
+  #   projectNode.x.baseVal.value += 400
+  #   projectNode.x.baseVal.value += 200
 
-  right : (projectNode) ->
-    projectNode.x.baseVal.value += 550
+  # left : (projectNode) ->
+  #   projectNode.x.baseVal.value += 300
 
-  bottom : (projectNode) ->
-    projectNode.x.baseVal.value += 425
-    projectNode.y.baseVal.value += 400
+  # right : (projectNode) ->
+  #   projectNode.x.baseVal.value += 550
 
-  leftRight : (projectNode) ->
-    projectNode.x.baseVal.value += 425
+  # bottom : (projectNode) ->
+  #   projectNode.x.baseVal.value += 425
+  #   projectNode.y.baseVal.value += 400
 
-  bottomRight : (projectNode) ->
-    projectNode.x.baseVal.value += 450
-    projectNode.y.baseVal.value += 370
+  # leftRight : (projectNode) ->
+  #   projectNode.x.baseVal.value += 425
 
-  leftBottom : (projectNode) ->
-    projectNode.x.baseVal.value += 350
-    projectNode.y.baseVal.value += 370
+  # bottomRight : (projectNode) ->
+  #   projectNode.x.baseVal.value += 450
+  #   projectNode.y.baseVal.value += 370
 
-
-  updateNode : (projectNode, selectedProjectTags) ->
-    pos_x = 0
-    pos_y = 0
-    console.log "updateNode"
-
-    clusterPositions = []
-    for t in selectedProjectTags
-      # c = d3.select("#cluster_#{t}")
-      c = @clusters.filter (c) -> c.id = "cluster_#{t}"
-
-      clusterPositions.push c[0].pos
-
-    switch clusterPositions.length
-      when 0 then console.log "no selected tags for this project"
-      when 1 then @oneTag(clusterPositions, projectNode)
-      when 2 then @two(clusterPositions, projectNode)
-      when 3 then @three(clusterPositions, projectNode)
+  # leftBottom : (projectNode) ->
+  #   projectNode.x.baseVal.value += 350
+  #   projectNode.y.baseVal.value += 370
 
 
-  makePackLayout : () ->
-    @vennDiagram = d3.layout.pack()
+  updateNode : (project, selectedProjectTags) ->
+    window.debug = @clusters
+
+    if selectedProjectTags.length > 3
+      console.log "no venn anyway"
+
+    else if selectedProjectTags.length == 0
+      console.log "no venn anyway --> 0"
+
+    else if selectedProjectTags.length == 1
+      [cluster] = @clusters.filter (c) -> c[0][0].id == "cluster_#{selectedProjectTags[0]}"
+      x = cluster[0][0].cx.baseVal.value
+      y = cluster[0][0].cy.baseVal.value
+      project.moveNode(x, y)
+      console.log x
+      console.log y
+
+    # else if selectedProjectTags.length == 2
+
+    # else if selectedProjectTags.length == 3
+
+
+
+
+
+    # pos_x = 0
+    # pos_y = 0
+    # console.log "updateNode"
+
+    # clusterPositions = []
+    # for t in selectedProjectTags
+    #   # c = d3.select("#cluster_#{t}")
+    #   c = @clusters.filter (c) -> c[0].id = "cluster_#{t}"
+
+    #   clusterPositions.push c[0].pos
+
+    # switch clusterPositions.length
+    #   when 0 then console.log "no selected tags for this project"
+    #   when 1 then @oneTag(clusterPositions, projectNode)
+    #   when 2 then @two(clusterPositions, projectNode)
+    #   when 3 then @three(clusterPositions, projectNode)
 
 
 
