@@ -186,8 +186,10 @@ class ProjectsOverviewView
   removeCluster : (name) ->
     if d3.select("#cluster_#{name}")?
       d3.select("#cluster_#{name}").remove()
+    if d3.select("#label_#{name}")?
+      d3.select("#label_#{name}").remove()
 
-    @clusters.filter (c) -> c[0][0].id.toString() isnt "cluster_#{name}"
+    @clusters.filter (c) -> c[0][0][0].id.toString() isnt "cluster_#{name}"
 
 
   venn1 : (name) ->
@@ -210,11 +212,6 @@ class ProjectsOverviewView
     cluster = []
     circle = @svg.append("svg:circle")
 
-    label = @svg.append("svg:text")
-
-    cluster.push circle
-    cluster.push label
-
     switch location
       when "left" then    position = [300, 200, 250, 50]
       when "right" then   position = [550, 200, 600, 50]
@@ -230,31 +227,27 @@ class ProjectsOverviewView
     })
     circle.pos = location
 
+    label = @drawLabel(name, position[2], position[3], color)
+
+    cluster.push circle
+    cluster.push label
+
+    @clusters.push cluster
+
+
+  drawLabel : (name, x, y, color) ->
+    label = @svg.append("svg:text")
+
     label.attr({
       "id": "text1",
-      "x": position[2],
-      "y": position[3],
-      "id": "label_#{name}"
+      "x": x,
+      "y": y,
+      "id": "label_#{name}",
+      "class": "label",
     })
+
     label.text name
-
-    @clusters.push circle
-
-    # @drawLabelsForSelectedTags
-
-
-################## To Be Refactored: ###################
-
-  # drawLabelsForSelectedTags : ->
-  #   for t in @selectedTags
-  #     label = @svg.append("svg:text")
-  #     .attr({
-  #       x: 100,
-  #       y: 100,
-  #       fill: "red",
-  #     })
-  #     .textContent = "now?"
-
+    label
 
 
   arrangeProjectsInClusters : () ->
@@ -275,8 +268,6 @@ class ProjectsOverviewView
 
 
   updateNode : (project, selectedProjectTags) ->
-    window.debug = @clusters
-
     if selectedProjectTags.length > 3
       console.log "no venn anyway"
 
@@ -284,19 +275,19 @@ class ProjectsOverviewView
       console.log "no venn anyway --> 0"
 
     else if selectedProjectTags.length == 1
-      [cluster] = @clusters.filter (c) -> c[0][0].id == "cluster_#{selectedProjectTags[0]}"
-      x = cluster[0][0].cx.baseVal.value
-      y = cluster[0][0].cy.baseVal.value
+      [cluster] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[0]}"
+      x = cluster[0][0][0].cx.baseVal.value
+      y = cluster[0][0][0].cy.baseVal.value
       project.moveNode(x, y)
 
     else if selectedProjectTags.length == 2
-      [cluster1] = @clusters.filter (c) -> c[0][0].id == "cluster_#{selectedProjectTags[0]}"
-      [cluster2] = @clusters.filter (c) -> c[0][0].id == "cluster_#{selectedProjectTags[1]}"
+      [cluster1] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[0]}"
+      [cluster2] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[1]}"
 
-      x1 = cluster1[0][0].cx.baseVal.value
-      x2 = cluster2[0][0].cx.baseVal.value
-      y1 = cluster1[0][0].cy.baseVal.value
-      y2 = cluster2[0][0].cy.baseVal.value
+      x1 = cluster1[0][0][0].cx.baseVal.value
+      x2 = cluster2[0][0][0].cx.baseVal.value
+      y1 = cluster1[0][0][0].cy.baseVal.value
+      y2 = cluster2[0][0][0].cy.baseVal.value
 
       x = x1+(x2-x1)/2 ? x1 < x2 : x2+(x1-x2)/2
       y = y1+(y2-y1)/2 ? y1 < y2 : y2+(y1-y2)/2
