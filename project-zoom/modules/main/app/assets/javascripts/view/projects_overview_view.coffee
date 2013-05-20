@@ -11,13 +11,15 @@ class ProjectsOverviewView
 
   WIDTH = 960
   HEIGHT = 500
-  time : null
+  MIDDLE_X = 325
+  MIDDLE_Y = 325
 
   SAMPLE_PROJECT_1 =
     name : "Test 1"
     tags : [
       {type : "project_partner", name : "SAP"},
       {type : "date", name : "2013"},
+      {type : "branch", name : "Health"},
     ]
     img : null
     node : null
@@ -205,13 +207,18 @@ class ProjectsOverviewView
 
 
   drawCircle : (location, color, name) ->
+    cluster = []
     circle = @svg.append("svg:circle")
-    # console.log circle
+
+    label = @svg.append("svg:text")
+
+    cluster.push circle
+    cluster.push label
 
     switch location
-      when "left" then position = [300, 200]
-      when "right" then position = [550, 200]
-      when "bottom" then position = [425, 400]
+      when "left" then    position = [300, 200, 250, 50]
+      when "right" then   position = [550, 200, 600, 50]
+      when "bottom" then  position = [425, 400, 425, 575]
 
     circle.attr({
         "r": 200,
@@ -222,6 +229,14 @@ class ProjectsOverviewView
         "id": "cluster_#{name}",
     })
     circle.pos = location
+
+    label.attr({
+      "id": "text1",
+      "x": position[2],
+      "y": position[3],
+      "id": "label_#{name}"
+    })
+    label.text name
 
     @clusters.push circle
 
@@ -287,6 +302,11 @@ class ProjectsOverviewView
       y = y1+(y2-y1)/2 ? y1 < y2 : y2+(y1-y2)/2
       console.log "2!!!!!!!!!!!!!!!!!!!!!!!!!!"
       console.log x
+      project.moveNode(x, y)
+
+    else
+      x = MIDDLE_X
+      y = MIDDLE_Y
       project.moveNode(x, y)
 
 
