@@ -6,8 +6,46 @@ lib/numeric : Numeric
 
 class Layouter
 
+  PROJECT_SIZE = 64
+  PADDING = 5
+
 	constructor : ->
     console.log "hi i'm the layouter"
+
+
+  resizeCircle : (weight) ->
+
+
+
+  arrangeInSquare : (objects, square) ->
+    start_x = square[0][0]
+    start_y = square[0][1]
+
+    len_x   = square[1][0]
+    len_y   = square[1][1]
+
+    object_width = PROJECT_SIZE
+
+    pos_x = start_x
+    pos_y = start_y
+
+    for o in objects
+      o.moveNode(pos_x, pos_y)
+
+      if (pos_x + PADDING + object_width) < (start_x + len_x)
+        pos_x += PADDING + object_width
+
+      else
+        pos_x = start_x
+        pos_y += PADDING + object_width
+
+
+  getSquareInArea : (area) ->
+
+
+
+
+
 
 
  #  drawVenn : (selectedTags, projects) ->
