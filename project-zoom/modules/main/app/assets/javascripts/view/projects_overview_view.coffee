@@ -4,7 +4,7 @@ d3 : d3
 ./process_view/interactive_graph : InteractiveGraph
 ../component/tagbar : Tagbar
 ../component/project : Project
-../component/layouter : Layouter
+
 ###
 
 class ProjectsOverviewView
@@ -31,7 +31,7 @@ class ProjectsOverviewView
       {type : "date", name : "2013"},
       {type : "branch", name : "Diabetes"},
     ]
-    img : null
+    img : "http://cdn.arstechnica.net/wp-content/uploads/2012/10/06_Place_20773_1_Mis.jpg"
     node : null
 
   SAMPLE_PROJECT_3 =
@@ -40,7 +40,7 @@ class ProjectsOverviewView
       {type : "project_partner", name : "Janssen"},
       {type : "branch", name : "Energy"},
     ]
-    img : null
+    img : "http://www.thinkstockphotos.com/CMS/StaticContent/WhyThinkstockImages/Best_Images.jpg"
     node : null
 
   SAMPLE_PROJECTS = [SAMPLE_PROJECT_1, SAMPLE_PROJECT_2, SAMPLE_PROJECT_3]
@@ -54,24 +54,25 @@ class ProjectsOverviewView
     EventMixin.extend(this)
     @initTagbar()
     @initD3()
-    @initArrowMarkers()
     @initProjects()
     @initGraph()
     @initEventHandlers()
-    @initLayouter()
+    # @initLayouter()
 
 
   initLayouter : ->
+
     @layouter = new Layouter()
 
 
   initTagbar : ->
+
     @tagbar = new Tagbar()
     $("#tagbar").append( @tagbar.domElement )
-    @tagbar.populateTagForm()
 
 
   initD3 : ->
+
     @svg = d3.select("#graph")
       .append("svg")
       .attr("WIDTH", WIDTH)
@@ -83,15 +84,16 @@ class ProjectsOverviewView
       .attr("height", HEIGHT)
       .attr("fill", "white")
 
-    # @makePackLayout()
-
 
   initGraph : ->
+
     @graphContainer = @svg.append("svg:g")
     @graph = new InteractiveGraph(@graphContainer, @svg)
 
     pos_x = 20
     pos_y = 20
+
+    @circles = @svg.append("svg:g").selectAll("circle")
 
     for p in @projects
       nodeContainer = @graph.addNode(pos_x, pos_y)
@@ -104,48 +106,164 @@ class ProjectsOverviewView
 
 
   initProjects : ->
+
     for p in SAMPLE_PROJECTS
-      project = new Project(p.name)
-
-      for t in p.tags
-        project.addTag t
-
-      project.setImage p.img
+      project = new Project(p)
 
       @projects.push project
 
 
-  initArrowMarkers : ->
-    # define arrow markers for graph edges
-    @svg.append("svg:defs")
-      .append("svg:marker")
-        .attr("id", "end-arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 6)
-        .attr("markerWidth", 3)
-        .attr("markerHeight", 3)
-        .attr("orient", "auto")
-      .append("svg:path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "#000")
-
-    @svg.append("svg:defs")
-      .append("svg:marker")
-        .attr("id", "start-arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 4)
-        .attr("markerWidth", 3)
-        .attr("markerHeight", 3)
-        .attr("orient", "auto")
-      .append("svg:path")
-        .attr("d", "M10,-5L0,0L10,5")
-        .attr("fill", "#000")
-
-
   initEventHandlers : ->
-    graphContainer = @graphContainer[0][0]
-    $(".checkbox-group input").on "click", (event) => @updateClusters(event.currentTarget)
+    $(".checkbox-group input").on "click", @updateClusters
 
+
+######################### Drawing: #########################
+
+  # drawCluster : (name) ->
+
+
+  #   # console.log name
+  #   switch @selectedTags.length
+  #     when 1 then @venn1(name)
+  #     when 2 then @venn2(name)
+  #     when 3 then @venn3(name)
+  #     else @noVenn()
+
+
+  # removeCluster : (name) ->
+  #   if d3.select("#cluster_#{name}")?
+  #     d3.select("#cluster_#{name}").remove()
+  #   if d3.select("#label_#{name}")?
+  #     d3.select("#label_#{name}").remove()
+
+  #   @clusters.filter (c) -> c[0][0][0].id.toString() isnt "cluster_#{name}"
+
+
+  # venn1 : (name) ->
+  #   @drawCircle("left", "steelblue", name)
+
+  # venn2 : (name) ->
+  #   @drawCircle("right", "yellow", name)
+
+  # venn3 : (name) ->
+  #   @drawCircle("bottom", "forestgreen", name)
+
+  # noVenn : ->
+  #   $("circle").each( ->
+  #     @remove()
+  #   )
+  #   console.log "no Venn Diagramm possible."
+
+
+  drawCircle : ->
+
+    @circles = @circles.data(@clusters, (data) -> data.id)
+    g = @circles.enter().append("svg:g")
+    g.append("svg:text")
+      .attr(
+        id: "text1"
+        x: (d) -> d.position[2]
+        y: (d) -> d.position[3]
+        id: (d) -> "label_#{d.name}"
+        class: "label"
+      )
+      .text( (d) -> d.name )
+    g.append("svg:circle")
+      .attr(
+        r: 200
+        cx: (d) -> d.position[0]
+        cy: (d) -> d.position[1]
+        id: (d) -> "cluster_#{d.name}"
+        fill: (d) -> d.color
+        "fill-opacity": .5
+        "data-pos": location
+      )
+
+    @circles.exit().remove()
+
+
+  # drawLabel : (name, x, y, color) ->
+  #   label = @svg.append("svg:text")
+
+  #   label.attr({
+  #     "id": "text1",
+  #     "x": x,
+  #     "y": y,
+  #     "id": "label_#{name}",
+  #     "class": "label",
+  #   })
+
+  #   label.text name
+  #   label
+
+
+######################### Arranging: #########################
+
+  updateClusters : =>
+
+    location =
+      0: [300, 200, 250, 50]
+      1: [550, 200, 550, 50]
+      2: [425, 400, 425, 575]
+
+    color =
+      0: "steelblue"
+      1: "yellow"
+      2: "forestgreen"
+
+    @collectSelectedTags()
+    @clusters = []
+
+    if @selectedTags.length <= 3
+      for t, index in @selectedTags
+        cluster =
+          position: location[index]
+          color: color[index]
+          name: t
+          id: t
+
+        @clusters.push cluster
+
+    @drawCircle()
+
+    @arrangeProjectsInClusters()
+
+
+  arrangeProjectsInClusters : () ->
+    left = right = bottom = lr = lb = br = middle = no_cluster = []
+
+    for p in @projects
+      selectedProjectTags = []
+      for t in p.tags
+        selectedProjectTags.push t.name if t.name in @selectedTags
+
+      position = @getPosition selectedProjectTags
+
+      switch position
+        when "left" then left.push p.node
+        when "right" then right.push p.node
+        when "bottom" then bottom.push p.node
+        when "lr" then lr.push p.node
+        when "lb" then lb.push p.node
+        when "br" then br.push p.node
+        when "middle" then middle.push p.node
+        when "no_cluster" then no_cluster.push p.node
+
+    all = [left, right, bottom, middle, lb, lr, br, no_cluster]
+
+    @resizeCircles all
+    @arrangeProjects all
+
+    # @layouter.arrangeInSquare()
+    # @layouter.resizeCircle()
+      # @updateNode(p, selectedProjectTags)
+
+
+  resizeAllCircles : () ->
+
+  arrangeAllProjects : () ->
+
+######################### Calculating: #########################
 
   collectSelectedTags : ->
     @selectedTags = $("input[type=checkbox]:checked").map( ->
@@ -153,110 +271,28 @@ class ProjectsOverviewView
     ).get()
 
 
-  updateClusters : (clickedCheckbox) ->
-    @collectSelectedTags()
-    tagName = clickedCheckbox.value
-    # @layouter.drawVenn(@selectedTags, @projects)
-    if clickedCheckbox.checked
-      @drawCluster(tagName)
+  getPosition : (clusters) ->
+    positions = []
 
-    else if @selectedTags.length == 3     # venn diagramm possible again
-      @venn1 @selectedTags[0]
-      @venn2 @selectedTags[1]
-      @venn3 @selectedTags[2]
+    for c in clusters
+      [cluster] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{c}"
+      positions.push cluster.pos
 
-    else if @selectedTags < 3
-      @removeCluster(tagName)
-
-    else
-      console.log "still no venn diagramm possible"
-
-    @arrangeProjectsInClusters()
-
-
-  drawCluster : (name) ->
-    # console.log name
-    switch @selectedTags.length
-      when 1 then @venn1(name)
-      when 2 then @venn2(name)
-      when 3 then @venn3(name)
-      else @noVenn()
-
-
-  removeCluster : (name) ->
-    if d3.select("#cluster_#{name}")?
-      d3.select("#cluster_#{name}").remove()
-    if d3.select("#label_#{name}")?
-      d3.select("#label_#{name}").remove()
-
-    @clusters.filter (c) -> c[0][0][0].id.toString() isnt "cluster_#{name}"
-
-
-  venn1 : (name) ->
-    @drawCircle("left", "steelblue", name)
-
-  venn2 : (name) ->
-    @drawCircle("right", "yellow", name)
-
-  venn3 : (name) ->
-    @drawCircle("bottom", "forestgreen", name)
-
-  noVenn : ->
-    $("circle").each( ->
-      @remove()
-    )
-    console.log "no Venn Diagramm possible."
-
-
-  drawCircle : (location, color, name) ->
-    cluster = []
-    circle = @svg.append("svg:circle")
-
-    switch location
-      when "left" then    position = [300, 200, 250, 50]
-      when "right" then   position = [550, 200, 600, 50]
-      when "bottom" then  position = [425, 400, 425, 575]
-
-    circle.attr({
-        "r": 200,
-        "cx": position[0],
-        "cy": position[1],
-        "fill": color,
-        "fill-opacity": .5,
-        "id": "cluster_#{name}",
-    })
-    circle.pos = location
-
-    label = @drawLabel(name, position[2], position[3], color)
-
-    cluster.push circle
-    cluster.push label
-
-    @clusters.push cluster
-
-
-  drawLabel : (name, x, y, color) ->
-    label = @svg.append("svg:text")
-
-    label.attr({
-      "id": "text1",
-      "x": x,
-      "y": y,
-      "id": "label_#{name}",
-      "class": "label",
-    })
-
-    label.text name
-    label
-
-
-  arrangeProjectsInClusters : () ->
-    for p in @projects
-      selectedProjectTags = []
-      for t in p.tags
-        selectedProjectTags.push t.name if t.name in @selectedTags
-
-      @updateNode(p, selectedProjectTags)
+    if "left" in positions
+      if "right" in positions
+        if "bottom" in positions
+          return "middle"
+        else return "lr"
+      else if "bottom" in positions
+        return "lb"
+      else return "left"
+    else if "right" in positions
+      if "bottom" in positions
+        return "br"
+      else return "right"
+    else if "bottom" in positions
+      return "bottom"
+    else return "no_cluster"
 
 
   hasProjectTag : (project, tag) ->
@@ -266,6 +302,8 @@ class ProjectsOverviewView
         return true
       else return false
 
+
+######################### Deprecated: #########################
 
   updateNode : (project, selectedProjectTags) ->
     if selectedProjectTags.length > 3
@@ -301,6 +339,13 @@ class ProjectsOverviewView
       project.moveNode(x, y)
 
 
+  # arrangeProjectsInClusters : () ->
+  #   for p in @projects
+  #     selectedProjectTags = []
+  #     for t in p.tags
+  #       selectedProjectTags.push t.name if t.name in @selectedTags
+
+  #     @updateNode(p, selectedProjectTags)
 
 
 

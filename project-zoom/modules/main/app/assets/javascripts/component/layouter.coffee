@@ -13,7 +13,7 @@ class Layouter
     console.log "hi i'm the layouter"
 
 
-  resizeCircle : (weight) ->
+  resizeCircle : (circle, weight) ->
 
 
 

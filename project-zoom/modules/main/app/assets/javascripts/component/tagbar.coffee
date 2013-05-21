@@ -17,10 +17,12 @@ class Tagbar
   constructor : () ->
     @availableTags = taglist
 
-    domElement = $('<div/>', {})
+    domElement = $("<div/>")
 
     project = @SAMPLE_PROJECT
     @domElement = domElement
+
+    @populateTagForm()
 
 
   setResized : (func) ->
@@ -28,32 +30,40 @@ class Tagbar
 
 
   populateTagForm : ->
+    # jquery elemente mit $-zeichen am anfang benennen.
 
     branchTaglist = $("#branchtags")
     dateTaglist = $("#datetags")
     partnerTaglist = $("#partnertags")
 
-    for tag of @availableTags
-      tagName = @availableTags[tag].name
-      tagType = @availableTags[tag].type
+    for tag in @availableTags
+      tagName = tag.name
+      tagType = tag.type
 
-      checkbox = document.createElement("input")
-      checkbox.type = "checkbox"
-      checkbox.name = tagName
-      checkbox.value = tagName
+      container = $("<div>",
+        class: "tagbarItem"
+      )
 
-      label = document.createElement("label")
+      checkbox = $("<input>",
+        type: "checkbox"
+        name: tagName
+        value: tagName
+        )
+
+      label = document.createElement("label") #jquery!
       label.innerHTML = tagName
+      container.append checkbox
+      container.append label
 
       listToAppend = null
       switch tagType
-        when "date" then listToAppend = dateTaglist
-        when "project_partner" then listToAppend = partnerTaglist
-        when "branch" then listToAppend = branchTaglist
+        when "date" then dateTaglist.append container
+        when "project_partner" then partnerTaglist.append container
+        when "branch" then branchTaglist.append container
         else console.log "tag with strange type"
 
-      listToAppend.append checkbox
-      listToAppend.append label
+      # listToAppend.append checkbox
+      # listToAppend.append label
 
 
   destroy : ->

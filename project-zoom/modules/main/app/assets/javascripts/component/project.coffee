@@ -8,11 +8,10 @@ class Project
   node : null
   image : null
 
-  constructor : (name) ->
-    @name = name
-    @image = null
-    @node = null
-    @tags = []
+  constructor : (project) ->
+
+    {@name, img:@image, @node, @tags} = project
+
 
   setNode : (node) ->
     @node = node
