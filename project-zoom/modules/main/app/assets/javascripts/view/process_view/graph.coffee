@@ -39,7 +39,7 @@ class Graph
 
     #was the node dropped in a cluster?
     for cluster in @clusters
-      cluster.checkForNodes(node)
+      cluster.checkForNode(node)
 
     @drawNodes()
 
@@ -185,7 +185,8 @@ class Graph
 
     if checkForCluster
       for cluster in @clusters
-        cluster.checkForNodes(node)
+        unless cluster.checkForNode(node)
+          cluster.removeNode(node)
 
     @drawNodes()
     @drawEdges()
