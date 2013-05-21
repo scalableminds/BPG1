@@ -28,20 +28,37 @@ class Cluster
     @waypoints.push firstWaypoint
 
 
-  checkForNodes : (nodes) ->
+  checkForNode : (node) ->
 
-    #argument "nodes" can be an array or a single node
-    unless _.isArray(nodes)
-      nodes = [nodes]
 
-    for node in nodes
+    #save the reference both in the cluster and in the node
+    if @pointInPolygon(node)
 
-      return if node.cluster == @
+      #if node is already associated with cluster, then dont do anything
+      unless node.cluster == @
 
-      #save the reference both in the cluster and in the node
-      if @pointInPolygon(node)
+        #else, associate it
         node.cluster = @
         @nodes.push node
+
+      return true
+
+    return false
+
+
+  checkForNodes : (nodes) ->
+
+    for node in nodes
+      @checkForNode(node)
+
+
+  removeNode : (node) ->
+
+    index = @nodes.indexOf(node)
+
+    if index > -1
+      @nodes.splice(index, 1)
+      node.cluster = null
 
 
   # alogrithm uses even-odd-rule
@@ -51,8 +68,8 @@ class Cluster
     {x, y} = point
 
     #calculate from the center of a node
-    x += point.getSize() / 2
-    y += point.getSize() / 2
+    #x += point.getSize() / 2
+    #y += point.getSize() / 2
 
     j = _.last(@waypoints)
     result = false
