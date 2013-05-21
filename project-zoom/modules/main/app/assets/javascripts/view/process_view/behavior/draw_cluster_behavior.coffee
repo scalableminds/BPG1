@@ -10,7 +10,6 @@ class DrawClusterBehavior extends Behavior
   constructor : ( @graph, @container ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
-
     if $(".preview").length == 0
       @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @preview
@@ -39,6 +38,7 @@ class DrawClusterBehavior extends Behavior
 
   dragEnd : (event) =>
 
+    @cluster.finalize()
     @graph.addCluster(@cluster)
     @preview.classed("hidden, true")
 

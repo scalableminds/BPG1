@@ -3,6 +3,8 @@
 
 class Behavior
 
+  constructor : (@graph) ->
+
   mousePosition : (event) =>
 
     x = event.gesture.touches[0].pageX - @offset.left

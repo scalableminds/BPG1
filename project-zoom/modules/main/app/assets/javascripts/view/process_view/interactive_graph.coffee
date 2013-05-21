@@ -13,7 +13,7 @@ class InteractiveGraph extends Graph
     EventMixin.extend(this)
     @initArrowMarkers()
 
-    @currentBehavior = new dragBehavior(@container, @svg, @)
+    @currentBehavior = new dragBehavior(@)
     @currentBehavior.activate()
 
     super(@container)
