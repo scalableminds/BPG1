@@ -13,10 +13,28 @@
         <div class="row-fluid">
           <div id="toolBar" class="span12">
             <div class="btn-group">
-              <button class="btn active"><a href="#"><i class="icon-move"></i>Drag</a></button>
-              <button class="btn"><a href="#"><i class="icon-arrow-left"></i>Connect</a></button>
-              <button class="btn"><a href="#"><i class="icon-trash"></i>Delete</a></button>
-              <button class="btn"><a href="#"><i class="icon-pencil"></i>Draw New Group</a></button>
+              <a class="btn active" href="#"><i class="icon-move"></i>Drag</a>
+              <a class="btn" href="#"><i class="icon-arrow-left"></i>Connect</a>
+              <a class="btn" href="#"><i class="icon-trash"></i>Delete</a>
+              <div class="btn-group" id="cluster-tool">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                <i class="icon-pencil"></i>
+                Draw New Group
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Free Form</a></li>
+                <li class="divider">/li>
+                <li><a href="#">Understand</a></li>
+                <li><a href="#">Observe</a></li>
+                <li><a href="#">POV</a></li>
+                <li><a href="#">Ideate</a></li>
+                <li><a href="#">Prototype</a></li>
+                <li><a href="#">Test</a></li>
+              </ul>
+              </div>
+
+
             </div>
           </div>
         </div>

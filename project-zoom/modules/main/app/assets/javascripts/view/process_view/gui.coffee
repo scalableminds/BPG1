@@ -14,8 +14,8 @@ class GUI
 
   initToolbar : ->
 
-    $('.btn-group button').on "click", (event) ->
-      $('.btn-group button').removeClass('active')
+    $('.btn-group .btn').on "click", (event) ->
+      $('.btn-group .btn').removeClass('active')
 
       $this = $(@)
       unless $this.hasClass('active')

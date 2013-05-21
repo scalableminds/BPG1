@@ -7,7 +7,7 @@ hammer : Hammer
 
 class DrawClusterBehavior extends Behavior
 
-  constructor : ( @graph, @container ) ->
+  constructor : ( @graph, @container, @type ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
     if $(".preview").length == 0

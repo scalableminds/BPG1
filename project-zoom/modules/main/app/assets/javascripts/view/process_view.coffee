@@ -78,7 +78,7 @@ class ProcessView
 
     # change tool from toolbox
     processView = this
-    $(".btn-group button").on "click", (event) -> processView.changeBehavior(this)
+    $(".btn-group a").on "click", (event) -> processView.changeBehavior(this)
 
     # zooming
     $(".zoomSlider")
@@ -132,13 +132,20 @@ class ProcessView
 
     { graph, graphContainer } = @
 
-    toolBox = $(".btn-group button")
+    toolBox = $(".btn-group a")
     behavior = switch selectedTool
 
       when toolBox[0] then new DragBehavior(graph)
       when toolBox[1] then new ConnectBehavior(graph, graphContainer)
       when toolBox[2] then new DeleteBehavior(graph)
-      when toolBox[3] then new DrawClusterBehavior(graph, graphContainer)
+      when toolBox[3] then new DrawClusterBehavior(graph, graphContainer, "standard")
+      when toolBox[4] then new DrawClusterBehavior(graph, graphContainer, "standard") #twice is right
+      when toolBox[5] then new DrawClusterBehavior(graph, graphContainer, "understand")
+      when toolBox[6] then new DrawClusterBehavior(graph, graphContainer, "observe")
+      when toolBox[7] then new DrawClusterBehavior(graph, graphContainer, "pov")
+      when toolBox[8] then new DrawClusterBehavior(graph, graphContainer, "ideate")
+      when toolBox[9] then new DrawClusterBehavior(graph, graphContainer, "prototype")
+      when toolBox[10] then new DrawClusterBehavior(graph, graphContainer, "test")
 
     graph.changeBehavior( behavior )
 
