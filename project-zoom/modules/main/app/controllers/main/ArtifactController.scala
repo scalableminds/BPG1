@@ -18,6 +18,7 @@ import akka.pattern.AskTimeoutException
 import akka.pattern.ask
 import scala.concurrent.Future
 import models.Implicits._
+import controllers.common.ControllerBase
 
 
 object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem with PlayConfig {

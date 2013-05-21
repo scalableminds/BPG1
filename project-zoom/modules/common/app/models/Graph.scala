@@ -9,14 +9,16 @@ import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import play.api.Logger
+import projectZoom.util.MongoHelpers
 
 case class Position(x: Int, y: Int)
 
-case class NodePayload(id: String, typ: String)
+case class NodePayload(id: String)
 
-case class Node(id: Int, position: Position, payload: NodePayload)
+case class Node(id: Int, position: Position, typ: String, payload: NodePayload)
 
-case class Edge(from: Int, to: Int, comment: String)
+case class Edge(from: Int, to: Int, comment: Option[String])
 
 case class Cluster(id: Int, positions: List[Position])
 
@@ -31,39 +33,54 @@ case class Graph(
 trait PayloadTransformers {
 
   def payloadTypMapping(implicit ctx: DBAccessContext): Map[String, String => Future[Option[JsValue]]] = Map(
-    "project" -> ProjectDAO.findOneById _,
+    "project" -> ProjectDAO.findOneByName _,
     "artifact" -> ArtifactDAO.findOneById _)
 
   implicit val nodePayloadFormat: Format[NodePayload] = Json.format[NodePayload]
 }
 
-trait GraphTransformers extends PayloadTransformers {
+trait GraphTransformers extends PayloadTransformers with MongoHelpers{
   implicit val positionFormat: Format[Position] = Json.format[Position]
   implicit val nodeFormat: Format[Node] = Json.format[Node]
   implicit val edgeFormat: Format[Edge] = Json.format[Edge]
   implicit val clusterFormat: Format[Cluster] = Json.format[Cluster]
   implicit val graphFormat: OFormat[Graph] = Json.format[Graph]
 
-  val reducePayloadToId =
+  val replacePayloadContentWithId =
     (__ \ 'payload).json.update((__ \ 'id).json.pick)
+
+  def replacePayloadIdWithContent(content: JsValue) =
+    (__).json.update((__ \ 'payload).json.put(content))
+
+  def transformNode(node: JsValue)(implicit ctx: DBAccessContext): Future[JsValue] = {
+    node
+      .asOpt[Node]
+      .map { node: Node =>
+        payloadTypMapping
+          .get(node.typ)
+          .map(_(node.payload.id))
+          .getOrElse(Future.successful(None))
+      }
+      .getOrElse(Future.successful(None))
+      .map {
+        case Some(p) =>
+          val beautifiedPayload = (p transform beautifyObjectId).get
+          node.transform(replacePayloadIdWithContent(beautifiedPayload)).get
+        case _ =>
+          Logger.warn("Couldn't find node payload: " + node)
+          node.transform(replacePayloadIdWithContent(Json.obj())).get
+      }
+  }
 
   def includePayloadDetails(implicit ctx: DBAccessContext) =
     (__ \ 'nodes).json.update(
       of[JsArray].map {
         case JsArray(list) => {
           Await.result(Future
-            .sequence(list.map { jsNode =>
-              jsNode
-                .asOpt[Node]
-                .map { node: Node =>
-                  payloadTypMapping
-                    .get(node.payload.typ)
-                    .map(_(node.payload.id))
-                    .getOrElse(Future.successful(None))
-                }
-                .getOrElse(Future.successful(None))
+            .sequence(list.map { jsNode: JsValue =>
+              transformNode(jsNode)
             })
-            .map(l => JsArray(l.flatten)), 5 seconds)
+            .map(l => JsArray(l)), 5 seconds)
         }
       })
 }

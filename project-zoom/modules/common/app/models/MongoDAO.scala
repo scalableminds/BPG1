@@ -91,7 +91,11 @@ trait MongoDAO[T] extends DAO[T] {
   def findHeadOption(attribute: String, value: String)(implicit ctx: DBAccessContext) = {
     find(attribute, value).one[T]
   }
-
+  
+  def findOne(implicit ctx: DBAccessContext) = {
+    collectionFind(Json.obj()).one[T]
+  }
+  
   def find(attribute: String, value: String)(implicit ctx: DBAccessContext): GenericQueryBuilder[JsObject, play.api.libs.json.Reads, play.api.libs.json.Writes] = {
     collectionFind(Json.obj(attribute -> value))
   }

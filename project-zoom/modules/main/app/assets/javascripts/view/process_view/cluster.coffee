@@ -8,33 +8,57 @@ class Cluster
     @waypoints = []
     @nodes = []
 
+    @id = 0
+
 
   getLineSegment : ->
 
-    lineSegement = ""
+    lineFunction = d3.svg.line(@waypoints)
+      .x( (data) -> data.x )
+      .y( (data) -> data.y )
+      .interpolate("basis") # smoothing bitches!!!
 
-    for waypoint, i in @waypoints
-
-      if i == 0
-        lineSegement += "M #{waypoint.x},#{waypoint.y} "
-      else
-        lineSegement += "L #{waypoint.x},#{waypoint.y} "
-
-    return lineSegement
+    lineFunction(@waypoints)
 
 
-  finialize : (nodes) ->
+  finalize : ->
 
     #connect last waypoint with first
     firstWaypoint = _.deepClone(@waypoints[0])
     @waypoints.push firstWaypoint
 
-    for node in nodes
 
-      #save the reference both in the cluster and in the node
-      if @pointInPolygon(node)
+  checkForNode : (node) ->
+
+
+    #save the reference both in the cluster and in the node
+    if @pointInPolygon(node)
+
+      #if node is already associated with cluster, then dont do anything
+      unless node.cluster == @
+
+        #else, associate it
         node.cluster = @
         @nodes.push node
+
+      return true
+
+    return false
+
+
+  checkForNodes : (nodes) ->
+
+    for node in nodes
+      @checkForNode(node)
+
+
+  removeNode : (node) ->
+
+    index = @nodes.indexOf(node)
+
+    if index > -1
+      @nodes.splice(index, 1)
+      node.cluster = null
 
 
   # alogrithm uses even-odd-rule
@@ -44,8 +68,8 @@ class Cluster
     {x, y} = point
 
     #calculate from the center of a node
-    x += point.getSize() / 2
-    y += point.getSize() / 2
+    #x += point.getSize() / 2
+    #y += point.getSize() / 2
 
     j = _.last(@waypoints)
     result = false
@@ -64,3 +88,17 @@ class Cluster
       j = i
 
     return result
+
+
+  getCenter : ->
+
+    minX = _.min(waypoints, (waypoint) -> waypoint.x)
+    maxX = _.mx(waypoints, (waypoint) -> waypoint.x)
+
+    minY = _.min(waypoints, (waypoint) -> waypoint.y)
+    maxY = _.max(waypoints, (waypoint) -> waypoint.y)
+
+    return {
+      x : (maxX - minX) / 2
+      y : (maxY - minY) / 2
+    }

@@ -35,11 +35,11 @@ object ProjectDAO extends SecuredMongoJsonDAO {
     collectionUpdate(Json.obj("name" -> p.name),
       Json.obj("$set" -> p), upsert = true)
       
-  override def findQueryFilter(implicit ctx: DBAccessContext): JsObject = {
+  /*override def findQueryFilter(implicit ctx: DBAccessContext): JsObject = {
     ctx.user.map{ user =>
       val email = user.email.getOrElse("")
       Json.obj(
         "participants._user" -> email)
     } getOrElse Json.obj()
-  }
+  }*/
 }

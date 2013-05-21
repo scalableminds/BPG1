@@ -15,7 +15,7 @@ class Tagbar
 
 
   constructor : () ->
-    @tags = taglist
+    @availableTags = taglist
 
     domElement = $('<div/>', {})
 
@@ -33,9 +33,9 @@ class Tagbar
     dateTaglist = $("#datetags")
     partnerTaglist = $("#partnertags")
 
-    for tag of @tags
-      tagName = @tags[tag].name
-      tagType = @tags[tag].type
+    for tag of @availableTags
+      tagName = @availableTags[tag].name
+      tagType = @availableTags[tag].type
 
       checkbox = document.createElement("input")
       checkbox.type = "checkbox"
@@ -61,6 +61,8 @@ class Tagbar
   activate : ->
 
   deactivate : ->
+
+
 
 
 
