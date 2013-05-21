@@ -12,17 +12,10 @@ import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import models.PermanentValueService
-
-case class BoxAccessTokens(access_token: String, expires: Long, token_type: String, refresh_token: String)
-
-object BoxAccessTokens extends Function4[String, Long, String, String, BoxAccessTokens]{
-  implicit val boxAccessTokensFormat = Json.format[BoxAccessTokens]
-}
+import projectZoom.connector.box.BoxAccessTokens.boxExpirationReader
 
 object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with PlayConfig {
-  val BoxExpirationReader = (__).json.update(( __ \ 'expires).json.copyFrom((__ \ 'expires_in).json.pick[JsNumber].map{
-    case JsNumber(t) => JsNumber(System.currentTimeMillis / 1000 + t)})) andThen (__ \ 'expires_in).json.prune
-      
+
   def beginBoxOAuth = SecuredAction { implicit request =>
     (for{client_id <- config.getString("box.client_id")
     } yield {
@@ -40,8 +33,7 @@ object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with 
               "code" -> Seq(code), 
               "client_id" -> Seq(client_id),
               "client_secret" -> Seq(client_secret))).map{ response =>
-              Logger.info(Json.parse(response.body).validate(BoxExpirationReader).toString)
-              Json.parse(response.body).validate(BoxExpirationReader) match {
+              Json.parse(response.body).transform(boxExpirationReader) match {
                 case JsSuccess(boxAccessTokens, _) => 
                   PermanentValueService.put("box.tokens", boxAccessTokens)
                   Ok(views.html.admin.dataSources())
