@@ -16,20 +16,18 @@ object FilemakerConnector extends Connector with PlayActorSystem {
   val SSHPassword = "toor"
   def startAggregating(context: ActorRefFactory) = {
     Future(SSH.createTunnel(rHost, 22, SSHUserName, SSHPassword, fmPort, "127.0.0.1", fmPort)).map { created =>
-      if (created) {
-        FilemakerAPI
-          .create(FileMakerDBInfo("127.0.0.1", "dschoolDB.fmp12", "admin", "admin"))
-          .map { api =>
-            val actor = context.actorOf(Props(new FilemakerActor(api)))
-            actor ! StartAggregating
-          }
-          .recover {
-            case e: Exception =>
-              Logger.error("Failed to initialize FileMakerApi due to: " + e)
-          }
-      } else {
-        Logger.error("Failed to create ssh tunnel")
-      }
+      if (created) Logger.info("created SSH Tunnel to filemaker")
+      else Logger.info("Failed to create SSH Tunnel, maybe it's already open")
+      FilemakerAPI
+        .create(FileMakerDBInfo("127.0.0.1", "dschoolDB.fmp12", "admin", "admin"))
+        .map { api =>
+          val actor = context.actorOf(Props(new FilemakerActor(api)))
+          actor ! StartAggregating
+        }
+        .recover {
+          case e: Exception =>
+            Logger.error("Failed to initialize FileMakerApi due to: " + e)
+        }
     }
   }
 }
