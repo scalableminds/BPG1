@@ -32,9 +32,9 @@ class Project
   image : () ->
     @image
 
-  moveNode : (pos_x, pos_Y) ->
-    @node.x.baseVal.value = pos_x
-    @node.y.baseVal.value = pos_y
+  moveNode : (pos_x, pos_y) ->
+    @node.x.baseVal.value = pos_x #- (@node.getSize()/2)
+    @node.y.baseVal.value = pos_y #- (@node.getSize()/2)
     @node
 
 
