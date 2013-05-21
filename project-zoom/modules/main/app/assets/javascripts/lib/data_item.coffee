@@ -35,21 +35,34 @@ class DataItem
 
   get : (key, self, callback) ->
 
-    callback = @dispatcher.register(this, self, null, callback)
-    
-    if key.indexOf("/") == -1
-      @getDirect(key, self, (value) -> callback.oneShot(value) )
+    if arguments.length == 1
+
+      if key.indexOf("/") == -1
+        @attributes[key]
+
+      else
+        remainingKey = key.substring(key.indexOf("/") + 1)
+        key = key.substring(0, key.indexOf("/"))
+
+        @attributes[key].get(remainingKey)
 
     else
 
-      remainingKey = key.substring(key.indexOf("/") + 1)
-      key = key.substring(0, key.indexOf("/"))
+      callback = @dispatcher.register(this, self, null, callback)
+      
+      if key.indexOf("/") == -1
+        @getDirect(key, self, (value) -> callback.oneShot(value) )
 
-      @getDirect(key, self, (value) -> 
-        value.get(remainingKey, self, (value) -> callback.oneShot(value) )
-      )
+      else
 
-    return
+        remainingKey = key.substring(key.indexOf("/") + 1)
+        key = key.substring(0, key.indexOf("/"))
+
+        @getDirect(key, self, (value) -> 
+          value.get(remainingKey, self, (value) -> callback.oneShot(value) )
+        )
+
+      return
 
 
   getLazy : (key, self, callback) ->
@@ -303,18 +316,31 @@ class DataItem.Collection
 
   get : (key, self, callback) ->
 
-    callback = @dispatcher.register(this, self, null, callback)
-    
-    if key.indexOf("/") == -1
-      _.defer => callback.oneShot( @at(parseInt(key)) )
+    if arguments.length == 1
+
+      if key.indexOf("/") == -1
+        @at(parseInt(key))
+
+      else
+        remainingKey = key.substring(key.indexOf("/") + 1)
+        key = key.substring(0, key.indexOf("/"))
+
+        @at( parseInt(key) ).get(remainingKey)
 
     else
-      remainingKey = key.substring(key.indexOf("/") + 1)
-      key = key.substring(0, key.indexOf("/"))
+    
+      callback = @dispatcher.register(this, self, null, callback)
+      
+      if key.indexOf("/") == -1
+        _.defer => callback.oneShot( @at(parseInt(key)) )
 
-      @at( parseInt(key) ).get(remainingKey, self, (value) -> callback.oneShot( value ))
+      else
+        remainingKey = key.substring(key.indexOf("/") + 1)
+        key = key.substring(0, key.indexOf("/"))
 
-    return
+        @at( parseInt(key) ).get(remainingKey, self, (value) -> callback.oneShot( value ))
+
+      return
 
 
   at : (index) ->

@@ -8,7 +8,7 @@ d3 : d3
 
 class Graph
 
-  constructor : (@container) ->
+  constructor : (@container, @graphModel) ->
 
     @nodes = []
     @edges = []
@@ -19,8 +19,6 @@ class Graph
     @foreignObjects = @container.append("svg:g").selectAll("foreignObject")
 
     @colors = d3.scale.category10()
-
-    @nodeId = 0
 
 
   addForeignObject : (object) ->
@@ -39,13 +37,7 @@ class Graph
 
   addNode : (x, y, artifact) =>
 
-    @nodes.push new Node(
-      x ,
-      y,
-      @nodeId++,
-      artifact
-    )
-
+    @nodes.push(new Node(x, y, @nodeId++, artifact))
     @drawNodes()
 
 
@@ -57,7 +49,6 @@ class Graph
       for node in @nodes
         sourceNode = node if node.id == source
         targetNode = node if node.id == target
-
 
       tmp = new Edge(sourceNode, targetNode)
       @edges.push(tmp)
@@ -99,35 +90,38 @@ class Graph
 
   drawNodes : ->
 
-    HTML = ""
-    @foreignObjects = @foreignObjects.data(@nodes, (d) -> d.id)
+    @graphModel.get("nodes", this, (nodes) -> 
 
-    #add new nodes or update existing one
-    foreignObject = @foreignObjects.enter()
-      .append("svg:g")
-        .attr( class : "node" )
-      .append("svg:foreignObject")
-        .attr(
+      @foreignObjects = @foreignObjects.data(nodes.toObject(), (d) -> d.id)
 
-          width : 68
-          height : 68
+      #add new nodes or update existing one
+      foreignObject = @foreignObjects.enter()
+        .append("svg:g")
+          .attr( class : "node" )
+        .append("svg:foreignObject")
+          .attr(
 
-          x : (d) -> d.x - d.getSize() / 2
-          y : (d) -> d.y - d.getSize() / 2
+            width : 68
+            height : 68
 
-          workaround : (d, i) ->
+            x : (d) -> d.x - d.getSize() / 2
+            y : (d) -> d.y - d.getSize() / 2
 
-            if d.artifact?
-              html = d.artifact.domElement
-            else
-              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
+            workaround : (d, i) ->
 
-            $(this).append(html)
-            return ""
-        )
+              if d.artifact?
+                html = d.artifact.domElement
+              else
+                html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" data-id="#{d.id}" style="background-color:#{d3.scale.category10()(d.id)}"></body></html>""" #return HTML element
 
-    #remove deleted nodes
-    @foreignObjects.exit().remove()
+              $(this).append(html)
+              return ""
+          )
+
+      #remove deleted nodes
+      @foreignObjects.exit().remove()
+
+    )
 
 
   drawEdges : ->

@@ -133,12 +133,19 @@ describe "DataItem.Collection", ->
       @dataCollection.remove(dataItem)
 
 
-  describe "at", ->
+  describe "at/get", ->
 
     it "should retrieve elements", ->
 
       @dataCollection.add("test1", "test2")
       @dataCollection.at(1).should.equal("test2")
+
+
+    it "should retrieve elements synchronously", ->
+
+      @dataCollection.add("test1")
+
+      @dataCollection.get("0").should.equal("test1")
 
 
   describe "parts management", ->

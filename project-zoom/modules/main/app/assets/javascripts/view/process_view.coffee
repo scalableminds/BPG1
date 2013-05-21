@@ -21,7 +21,7 @@ class ProcessView
 
 
 
-  constructor : ->
+  constructor : (@projectModel) ->
 
     EventMixin.extend(this)
     @initArtifactFinder()
@@ -30,6 +30,7 @@ class ProcessView
     @initEventHandlers()
 
     @gui = new GUI()
+
 
   initArtifactFinder : ->
 
@@ -59,13 +60,11 @@ class ProcessView
 
     @graphContainer = @svg.append("svg:g")
 
-    @graph = new InteractiveGraph(@graphContainer, @svg)
-    for i in [0..5]
-      @graph.addNode(i*70, i*70)
+    @projectModel.get("graphs/0", this, (graphModel) ->
 
-    @graph.addEdge(0,1)
-    @graph.addEdge(2,3)
-    @graph.addEdge(4,3)
+      @graph = new InteractiveGraph(@graphContainer, @svg, graphModel)
+
+    )
 
 
   initEventHandlers : ->

@@ -95,6 +95,30 @@ describe "DataItem", ->
       ], done)
 
 
+    it "should get attributes synchronously", ->
+
+      @dataItem.set(
+        test :
+          test1 : "test"
+      )
+
+      @dataItem.get("test/test1").should.equal("test")
+
+
+    it "should keep the 'this' context", (done) ->
+
+      @dataItem.set(
+        test :
+          test1 : "test"
+      )
+
+      that = this
+      @dataItem.get("test/test1", that, (value) ->
+        this.should.equal(that)
+        done()
+      )
+
+
   describe "changes", ->
 
 
