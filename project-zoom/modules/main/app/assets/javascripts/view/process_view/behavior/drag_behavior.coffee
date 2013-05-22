@@ -24,7 +24,7 @@ class DragBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = $("svg").offset()
-    @scaleValue = $(".zoomSlider input").val()
+    @scaleValue = $(".zoom-slider input").val()
 
     @startX = @mousePosition(event).x
     @startY = @mousePosition(event).y

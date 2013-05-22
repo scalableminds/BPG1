@@ -3,19 +3,21 @@ svg {
   border: 2px solid black;
   border-radius: 4px;
   margin-bottom: 5px;
+
+  width: 100%;
 }
 
-#artifactFinder {
+#artifact-finder {
 
   background-color: #fafafa;
 }
 
-#toolBar {
+#toolbar {
 
   margin-bottom: 20px;
 }
 
-#mainBody {
+body {
 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -25,7 +27,7 @@ svg {
 
 }
 
-.zoomSlider {
+.zoom-slider {
 
   button {
     display: block;
@@ -34,13 +36,20 @@ svg {
   input {
 
     margin: 5px 0 5px 20px;
-    width: 0px;
+    width: 100px;
+    margin-top: 105px;
 
-    -webkit-appearance: slider-vertical;
+    //-webkit-appearance: slider-vertical;
 
-    // -webkit-transform: rotate(-90deg);
-    // -ms-transform: rotate(-90deg);
-    // -moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+
+    -webkit-transform-origin: center left;
+    -moz-transform-origin: center left;
+    -ms-transform-origin: center left;
+    transform-origin: center left;
   }
 }
 

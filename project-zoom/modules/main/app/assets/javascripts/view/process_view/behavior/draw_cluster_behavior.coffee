@@ -53,7 +53,7 @@ class DrawClusterBehavior extends Behavior
     @preview.data(@cluster)
 
     @offset = $("svg").offset()
-    @scaleValue = $(".zoomSlider input").val()
+    @scaleValue = $(".zoom-slider input").val()
 
 
   dragMove : (event) =>

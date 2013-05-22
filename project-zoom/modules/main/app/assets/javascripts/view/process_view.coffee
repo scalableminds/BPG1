@@ -15,12 +15,6 @@ jquery.mousewheel : Mousewheel
 
 class ProcessView
 
-  WIDTH = 960
-  HEIGHT = 500
-  time : null
-
-
-
   constructor : ->
 
     EventMixin.extend(this)
@@ -34,7 +28,7 @@ class ProcessView
   initArtifactFinder : ->
 
     @artifactFinder = new ArtifactFinder()
-    $("#artifactFinder").append( @artifactFinder.domElement )
+    $("#artifact-finder").append( @artifactFinder.domElement )
 
     #make first tab activate
     $("a[data-toggle=tab]").first().tab("show")
@@ -42,15 +36,18 @@ class ProcessView
 
   initD3 : ->
 
+    height = $(window).height() - $("#graph").height()
+    width = $("#graph").width()
+
     @svg = d3.select("#graph")
       .append("svg")
-      .attr("WIDTH", WIDTH)
-      .attr("HEIGHT", HEIGHT)
+      .attr("WIDTH", width)
+      .attr("HEIGHT", height)
       .attr("pointer-events", "all")
 
     @hitbox = @svg.append("svg:rect")
-          .attr("width", WIDTH)
-          .attr("height", HEIGHT)
+          .attr("width", width)
+          .attr("height", height)
           .attr("fill", "white")
           .classed("hitbox", true)
 
@@ -74,14 +71,14 @@ class ProcessView
     Hammer( $("svg")[0] ).on "tap", @addNode
 
     # drag artifact into graph
-    Hammer($("body")[0]).on "dragend", "#artifactFinder .artifact-image", @addArtifact
+    Hammer($("body")[0]).on "dragend", "#artifact-finder .artifact-image", @addArtifact
 
     # change tool from toolbox
     processView = this
     $(".btn-group a").on "click", (event) -> processView.changeBehavior(this)
 
     # zooming
-    $(".zoomSlider")
+    $(".zoom-slider")
       .on("change", "input", @zoom)
       .on("click", ".plus", => @changeZoomSlider(0.1) )
       .on("click", ".minus", => @changeZoomSlider(-0.1) )
@@ -119,7 +116,7 @@ class ProcessView
   addNode : (evt, nodeId, artifact = null) =>
 
     offset = $("svg").offset()
-    scaleValue = $(".zoomSlider input").val()
+    scaleValue = $(".zoom-slider input").val()
 
     x = event.gesture.touches[0].pageX - offset.left
     y = event.gesture.touches[0].pageY - offset.top
@@ -154,7 +151,7 @@ class ProcessView
 
   zoom : (event) =>
 
-    scaleValue = $(".zoomSlider input").val()
+    scaleValue = $(".zoom-slider input").val()
 
     @graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
@@ -162,7 +159,7 @@ class ProcessView
 
   changeZoomSlider : (delta) ->
 
-    $slider = $(".zoomSlider input")
+    $slider = $(".zoom-slider input")
     sliderValue = parseFloat($slider.val())
     $slider.val( sliderValue + delta )
 
