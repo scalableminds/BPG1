@@ -47,6 +47,7 @@ class ProjectsOverviewView
 
 
   constructor : ->
+
     @selectedTags = []
     @clusters = []
     @projects = []
@@ -185,26 +186,27 @@ class ProjectsOverviewView
 
 
   arrangeProjectsInClusters : () ->
+
     left = right = bottom = lr = lb = br = middle = no_cluster = []
+
+    projectClusters =
+      "left" : []
+      "right" : []
+      "bottom" : []
+      "lr" : []
+      "lb" : []
+      "br" : []
+      "middle" : []
+      "no_cluster" : []
 
     for p in @projects
       selectedProjectTags = []
       for t in p.tags
         selectedProjectTags.push t.name if t.name in @selectedTags
 
-      position = @getPosition selectedProjectTags
+      assignedCluster = @getAssignedCluster selectedProjectTags
 
-      switch position
-        when "left" then left.push p.node
-        when "right" then right.push p.node
-        when "bottom" then bottom.push p.node
-        when "lr" then lr.push p.node
-        when "lb" then lb.push p.node
-        when "br" then br.push p.node
-        when "middle" then middle.push p.node
-        when "no_cluster" then no_cluster.push p.node
-
-    all = [left, right, bottom, middle, lb, lr, br, no_cluster]
+      projectClusters[assignedCluster].push p.node
 
     # @resizeCircles all
     # @arrangeProjects all
@@ -220,18 +222,13 @@ class ProjectsOverviewView
 
 ######################### Calculating: #########################
 
-  collectSelectedTags : ->
-    @selectedTags = $("input[type=checkbox]:checked").map( ->
-      @value
-    ).get()
+  getAssignedCluster : (assignedTags) ->
 
-
-  getPosition : (clusters) ->
     positions = []
 
-    for c in clusters
-      [cluster] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{c}"
-      positions.push cluster.pos
+    for c in assignedTags
+      [cluster] = assignedTags.filter (c) -> c[0][0][0].id == "cluster_#{c}"
+      positions.push $(cluster).data("pos")
 
     if "left" in positions
       if "right" in positions
@@ -250,15 +247,22 @@ class ProjectsOverviewView
     else return "no_cluster"
 
 
-  hasProjectTag : (project, tag) ->
-
-    for t in project.tags
-      if t.name == tag
-        return true
-      else return false
-
-
 ######################### Deprecated: #########################
+
+
+
+  # collectSelectedTags : ->
+  #   @selectedTags = $("input[type=checkbox]:checked").map( ->
+  #     @value
+  #   ).get()
+
+
+  # hasProjectTag : (project, tag) ->
+
+  #   for t in project.tags
+  #     if t.name == tag
+  #       return true
+  #     else return false
 
   # updateNode : (project, selectedProjectTags) ->
   #   if selectedProjectTags.length > 3
