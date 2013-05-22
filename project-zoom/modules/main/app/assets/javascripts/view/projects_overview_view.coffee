@@ -1,7 +1,7 @@
 ### define
 lib/event_mixin : EventMixin
 d3 : d3
-./process_view/interactive_graph : InteractiveGraph
+./projectGraph : ProjectGraph
 ../component/tagbar : Tagbar
 ../component/project : Project
 
@@ -88,7 +88,7 @@ class ProjectsOverviewView
   initGraph : ->
 
     @graphContainer = @svg.append("svg:g")
-    @graph = new InteractiveGraph(@graphContainer, @svg)
+    @graph = new ProjectGraph(@graphContainer, @svg)
 
     pos_x = 20
     pos_y = 20
@@ -114,48 +114,14 @@ class ProjectsOverviewView
 
 
   initEventHandlers : ->
-    $(".checkbox-group input").on "click", @updateClusters
+
+    $(".checkbox-group input").on "click", (event) => @updateClusters(event.currentTarget)
 
 
 ######################### Drawing: #########################
 
-  # drawCluster : (name) ->
 
-
-  #   # console.log name
-  #   switch @selectedTags.length
-  #     when 1 then @venn1(name)
-  #     when 2 then @venn2(name)
-  #     when 3 then @venn3(name)
-  #     else @noVenn()
-
-
-  # removeCluster : (name) ->
-  #   if d3.select("#cluster_#{name}")?
-  #     d3.select("#cluster_#{name}").remove()
-  #   if d3.select("#label_#{name}")?
-  #     d3.select("#label_#{name}").remove()
-
-  #   @clusters.filter (c) -> c[0][0][0].id.toString() isnt "cluster_#{name}"
-
-
-  # venn1 : (name) ->
-  #   @drawCircle("left", "steelblue", name)
-
-  # venn2 : (name) ->
-  #   @drawCircle("right", "yellow", name)
-
-  # venn3 : (name) ->
-  #   @drawCircle("bottom", "forestgreen", name)
-
-  # noVenn : ->
-  #   $("circle").each( ->
-  #     @remove()
-  #   )
-  #   console.log "no Venn Diagramm possible."
-
-
-  drawCircle : ->
+  drawClusters : ->
 
     @circles = @circles.data(@clusters, (data) -> data.id)
     g = @circles.enter().append("svg:g")
@@ -182,24 +148,9 @@ class ProjectsOverviewView
     @circles.exit().remove()
 
 
-  # drawLabel : (name, x, y, color) ->
-  #   label = @svg.append("svg:text")
-
-  #   label.attr({
-  #     "id": "text1",
-  #     "x": x,
-  #     "y": y,
-  #     "id": "label_#{name}",
-  #     "class": "label",
-  #   })
-
-  #   label.text name
-  #   label
-
-
 ######################### Arranging: #########################
 
-  updateClusters : =>
+  updateClusters : (checkbox) =>
 
     location =
       0: [300, 200, 250, 50]
@@ -211,7 +162,11 @@ class ProjectsOverviewView
       1: "yellow"
       2: "forestgreen"
 
-    @collectSelectedTags()
+    if $(checkbox).is(":checked")
+      @selectedTags.push checkbox.value
+    else
+      @selectedTags = (tag for tag in @selectedTags when tag isnt checkbox.value)
+
     @clusters = []
 
     if @selectedTags.length <= 3
@@ -224,7 +179,7 @@ class ProjectsOverviewView
 
         @clusters.push cluster
 
-    @drawCircle()
+    @drawClusters()
 
     @arrangeProjectsInClusters()
 
@@ -251,8 +206,8 @@ class ProjectsOverviewView
 
     all = [left, right, bottom, middle, lb, lr, br, no_cluster]
 
-    @resizeCircles all
-    @arrangeProjects all
+    # @resizeCircles all
+    # @arrangeProjects all
 
     # @layouter.arrangeInSquare()
     # @layouter.resizeCircle()
@@ -305,38 +260,38 @@ class ProjectsOverviewView
 
 ######################### Deprecated: #########################
 
-  updateNode : (project, selectedProjectTags) ->
-    if selectedProjectTags.length > 3
-      console.log "no venn anyway"
+  # updateNode : (project, selectedProjectTags) ->
+  #   if selectedProjectTags.length > 3
+  #     console.log "no venn anyway"
 
-    else if selectedProjectTags.length == 0
-      console.log "no venn anyway --> 0"
+  #   else if selectedProjectTags.length == 0
+  #     console.log "no venn anyway --> 0"
 
-    else if selectedProjectTags.length == 1
-      [cluster] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[0]}"
-      x = cluster[0][0][0].cx.baseVal.value
-      y = cluster[0][0][0].cy.baseVal.value
-      project.moveNode(x, y)
+  #   else if selectedProjectTags.length == 1
+  #     [cluster] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[0]}"
+  #     x = cluster[0][0][0].cx.baseVal.value
+  #     y = cluster[0][0][0].cy.baseVal.value
+  #     project.moveNode(x, y)
 
-    else if selectedProjectTags.length == 2
-      [cluster1] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[0]}"
-      [cluster2] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[1]}"
+  #   else if selectedProjectTags.length == 2
+  #     [cluster1] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[0]}"
+  #     [cluster2] = @clusters.filter (c) -> c[0][0][0].id == "cluster_#{selectedProjectTags[1]}"
 
-      x1 = cluster1[0][0][0].cx.baseVal.value
-      x2 = cluster2[0][0][0].cx.baseVal.value
-      y1 = cluster1[0][0][0].cy.baseVal.value
-      y2 = cluster2[0][0][0].cy.baseVal.value
+  #     x1 = cluster1[0][0][0].cx.baseVal.value
+  #     x2 = cluster2[0][0][0].cx.baseVal.value
+  #     y1 = cluster1[0][0][0].cy.baseVal.value
+  #     y2 = cluster2[0][0][0].cy.baseVal.value
 
-      x = x1+(x2-x1)/2 ? x1 < x2 : x2+(x1-x2)/2
-      y = y1+(y2-y1)/2 ? y1 < y2 : y2+(y1-y2)/2
-      console.log "2!!!!!!!!!!!!!!!!!!!!!!!!!!"
-      console.log x
-      project.moveNode(x, y)
+  #     x = x1+(x2-x1)/2 ? x1 < x2 : x2+(x1-x2)/2
+  #     y = y1+(y2-y1)/2 ? y1 < y2 : y2+(y1-y2)/2
+  #     console.log "2!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  #     console.log x
+  #     project.moveNode(x, y)
 
-    else
-      x = MIDDLE_X
-      y = MIDDLE_Y
-      project.moveNode(x, y)
+  #   else
+  #     x = MIDDLE_X
+  #     y = MIDDLE_Y
+  #     project.moveNode(x, y)
 
 
   # arrangeProjectsInClusters : () ->
