@@ -73,6 +73,7 @@ class ProcessView
     Hammer( $("svg")[0] ).on "tap", @addNode
 
     # drag artifact into graph
+    $("body").on( "dragstart", "#artifactFinder .artifact-image", (e) -> e.preventDefault() )
     Hammer($("body")[0]).on "dragend", "#artifactFinder .artifact-image", @addArtifact
 
     # change tool from toolbox

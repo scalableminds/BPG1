@@ -12,11 +12,12 @@ Node = (node) ->
   getCenter : ->
 
     centerPosition =
-      x : node.x + HALF_SIZE
-      y : node.y + HALF_SIZE
+      x : node.get("x") + HALF_SIZE
+      y : node.get("y") + HALF_SIZE
 
 
   getSize : ->
 
-    NODE_SIZE
+    width : NODE_SIZE
+    height : NODE_SIZE
 

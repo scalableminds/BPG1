@@ -11,127 +11,124 @@ class Graph
 
   constructor : (@container, @graphModel) ->
 
-    @nodes = []
-    @edges = []
-    @clusters = []
-
     @clusterPaths = @container.append("svg:g").selectAll("path")
     @paths = @container.append("svg:g").selectAll("path")
     @foreignObjects = @container.append("svg:g").selectAll("foreignObject")
 
     @colors = d3.scale.category10()
 
+    @drawNodes()
+    @drawEdges()
+    @drawClusters()
 
-  addNode : (x, y, nodeId, artifact) =>
 
-    id = nodeId ? @nodeId++
+  addNode : (x, y, artifact) ->
 
-    node = new DataItem({ x, y, artifact })
+    node = new DataItem({ x, y })
+    node.artifact = artifact
 
     @graphModel.get("nodes").add(node)
 
     #was the node dropped in a cluster?
-    for cluster in @clusters
-      cluster.checkForNode(node)
+    @graphModel.get("clusters").each (cluster) ->
+      Cluster(cluster).checkForNode(node)
 
     @drawNodes()
 
 
-  addEdge : (source, target) =>
+  addEdge : (source, target) ->
 
-    maxNode = @nodes[@nodes.length - 1]
-    if source <= maxNode.id and target <= maxNode.id
-
-      for node in @nodes
-        sourceNode = node if node.id == source
-        targetNode = node if node.id == target
-
-      tmp = new Edge(sourceNode, targetNode)
-      @edges.push(tmp)
-
-      @drawEdges()
+    edge = new DataItem(
+      from : source.get("id")
+      to : target.get("id")
+    )
+    @graphModel.get("edges").add(edge)
+    @drawEdges()
 
 
-  addCluster : (cluster) =>
+  addCluster : (cluster) ->
 
-    cluster.id = @clusterId++
-    cluster.checkForNodes(@nodes)
-    @clusters.push( cluster )
+    @graphModel.get("nodes").each(Cluster(cluster).checkForNodes)
+    @graphModel.get("clusters").add(cluster)
     @drawClusters()
 
 
   removeNode : (node) ->
 
-    index = @nodes.indexOf(node)
-    if index > -1
+    @graphModel.get("nodes").remove(node)
 
-      @nodes.splice(index, 1)
+    @graphModel.get("edges")
+      .select( (edge) -> edge.to == node.get("id") or edge.from == node.get("id") )
+      .each( (edge) => @graphModel.get("edges").remove(edge) )
 
-      #remove all edges connected to the node
-      # for edge,i in @edges
-      #   if edge.source == node or edge.target == node
-      #     @edges.splice(i,1)
-
-      @drawNodes()
-      @drawEdges()
+    @drawNodes()
+    @drawEdges()
 
 
   removeEdge : (edge) ->
 
-    index = @edges.indexOf(edge)
-    if index > -1
-
-      @edges.splice(index, 1)
-      @drawEdges()
+    @graphModel.get("edges").remove(edge)
+    @drawEdges()
 
 
   drawNodes : ->
 
-    @graphModel.get("nodes", this, (nodes) -> 
+    nodes = @graphModel.get("nodes")
 
-      @foreignObjects = @foreignObjects.data(nodes.toObject(), (data) -> data.id)
+    @foreignObjects = @foreignObjects.data(nodes.items, (data) -> data.__uid)
 
-      #add new nodes
-      foreignObject = @foreignObjects.enter()
-        .append("svg:g")
-          .attr( class : "node" )
-        .append("svg:foreignObject")
-          .attr( class : "node" )
-          .attr(
+    #add new nodes
+    foreignObject = @foreignObjects.enter()
+      .append("svg:foreignObject")
+      .attr( class : "node" )
+      .attr(
 
-            x : (data) -> data.x - Node(data).getSize() / 2
-            y : (data) -> data.y - Node(data).getSize() / 2
+        x : (data) -> data.get("x") - Node(data).getSize().width / 2
+        y : (data) -> data.get("y") - Node(data).getSize().height / 2
 
-            workaround : (data, i) ->
+        width : (data) -> Node(data).getSize().width
+        height : (data) -> Node(data).getSize().height
 
-              if data.artifact?
-                html = data.artifact.domElement
-              else
-                html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" style="background-color: rgb(0,127,255)"><img class="nodeElement" draggable="false" data-id="#{data.id}"></img></body></html>""" #return HTML element
+        workaround : (data, i) ->
 
-              $(this).append(html)
-              return ""
-          )
+          if data.artifact?
+            html = data.artifact.domElement
+          else
+            html = """
+              <html xmlns="http://www.w3.org/1999/xhtml">
+                <body>
+                  <div class="nodeElement" style="background-color: rgb(0,127,255)">
+                    <img class="nodeElement" draggable="false" data-id="#{data.__uid}">
+                </body>
+              </html>""" #return HTML element
 
-      #update existing ones
-      @foreignObjects.attr(
-        x : (data) -> data.x - Node(data).getSize() / 2
-        y : (data) -> data.y - Node(data).getSize() / 2
+          $(this).append(html)
+          return ""
       )
 
-      #remove deleted nodes
-      @foreignObjects.exit().remove()
-
+    #update existing ones
+    @foreignObjects.attr(
+      x : (data) -> data.get("x") - Node(data).getSize().width / 2
+      y : (data) -> data.get("y") - Node(data).getSize().height / 2
     )
+
+    #remove deleted nodes
+    @foreignObjects.exit().remove()
 
 
   drawEdges : ->
 
-    @paths = @paths.data(@edges)
+    @paths = @paths.data(
+      @graphModel.get("edges")
+        .map( (edge) => new Edge(
+          @graphModel.get("nodes").find( (n) -> edge.get("from") == n.get("id") ),
+          @graphModel.get("nodes").find( (n) -> edge.get("to") == n.get("id") )
+        )
+      )
+    )
 
     #add new edges
-    path = @paths.enter().append("svg:path")
-    path
+    @paths.enter().append("svg:path")
       .attr(
         class : "edge"
         d : (data) -> data.getLineSegment()
@@ -149,20 +146,20 @@ class Graph
 
   drawClusters : ->
 
-    @clusterPaths = @clusterPaths.data(@clusters)
+    @clusterPaths = @clusterPaths.data(@graphModel.get("clusters").items)
 
     #add new edges or update existing ones
     clusterPath = @clusterPaths.enter().append("svg:path")
     clusterPath
       .attr(
         class : "cluster"
-        "data-id" : (data) -> data.id
-        d : (data) -> data.getLineSegment()
+        "data-id" : (data) -> data.get("id")
+        d : (data) -> Cluster(data).getLineSegment()
       )
 
     #update existing ones
     @clusterPaths.attr(
-      d : (data) -> data.getLineSegment()
+      d : (data) -> Cluster(data).getLineSegment()
     )
 
     #remove deleted edges
@@ -172,15 +169,18 @@ class Graph
   # position.x/y are absolute positions
   moveNode : (nodeId, position, checkForCluster = false) ->
 
-    node = _.find(@nodes, (node) -> node.id == nodeId )
+    node = @graphModel.get("nodes").find( (node) -> node.__uid == nodeId )
 
-    node.x = position.x
-    node.y = position.y
+    node.set( 
+      x : position.x
+      y : position.y
+    )
 
     if checkForCluster
-      for cluster in @clusters
-        unless cluster.checkForNode(node)
-          cluster.removeNode(node)
+      @graphModel.get("clusters")
+        .filter( (cluster) -> not Cluster(cluster).checkForNode(node) )
+        .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
+       
 
     @drawNodes()
     @drawEdges()
@@ -188,18 +188,21 @@ class Graph
 
   moveCluster : (clusterId, distance) ->
 
-    cluster = _.find(@clusters, (cluster) -> cluster.id == clusterId )
+    cluster = @graphModel.get("clusters").find( (cluster) -> cluster.get("id") == clusterId )
 
     #move waypoints
-    for waypoint in cluster.waypoints
-      waypoint.x += distance.x
-      waypoint.y += distance.y
+    cluster.get("waypoints").each (waypoint) ->
+      waypoint.set(
+        x : waypoint.get("x") + distance.x
+        y : waypoint.get("y") + distance.y
+      )
 
     #move child nodes
-    for node in cluster.nodes
+    cluster.get("nodes").each (node) ->
+      
       position =
-        x : node.x + distance.x
-        y : node.y + distance.y
+        x : node.get("x") + distance.x
+        y : node.get("y") + distance.y
 
       @moveNode(node.id, position)
 

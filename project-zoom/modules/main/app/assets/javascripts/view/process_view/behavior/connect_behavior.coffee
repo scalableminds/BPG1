@@ -44,11 +44,13 @@ class ConnectBehavior extends Behavior
 
   dragEnd : (event) =>
 
-    startID = $(event.gesture.startEvent.target).data("id")
-    nodeID = $(event.target).data("id")
+    startNode = d3.select($(event.gesture.startEvent.target).closest("foreignObject")[0]).datum()
 
-    unless startID == nodeID
-      @graph.addEdge(startID, nodeID)
+    if targetElement = $(event.target).closest("foreignObject")[0]
+      currentNode = d3.select(targetElement).datum()
+
+      unless startNode == currentNode
+        @graph.addEdge(startNode, currentNode)
 
     @dragLine.classed("hidden", true)
 
@@ -60,8 +62,8 @@ class ConnectBehavior extends Behavior
     mouse = @mousePosition(event)
 
     nodeData = d3.select(svgContainer).datum()
-    lineStartX = nodeData.x
-    lineStartY = nodeData.y
+    lineStartX = nodeData.get("x")
+    lineStartY = nodeData.get("y")
 
     @dragLine
       .classed("hidden", false)

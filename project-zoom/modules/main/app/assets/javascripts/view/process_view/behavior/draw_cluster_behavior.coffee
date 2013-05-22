@@ -3,6 +3,7 @@ core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
 ../cluster : Cluster
+lib/data_item : DataItem
 ###
 
 class DrawClusterBehavior extends Behavior
@@ -38,14 +39,18 @@ class DrawClusterBehavior extends Behavior
 
   dragEnd : (event) =>
 
-    @cluster.finalize()
+    Cluster(@cluster).finalize()
     @graph.addCluster(@cluster)
     @preview.classed("hidden, true")
 
 
   dragStart : (event) =>
 
-    @cluster = new Cluster()
+    @cluster = new DataItem(
+      id : Math.random() * 1e5 | 0
+      waypoints : []
+      nodes : []
+    )
     @preview.data(@cluster)
 
     @offset = $("svg").offset()
@@ -60,13 +65,9 @@ class DrawClusterBehavior extends Behavior
     x /= @scaleValue
     y /= @scaleValue
 
-    tmp =
-      x : x
-      y : y
-
-    @cluster.waypoints.push(tmp)
+    @cluster.get("waypoints").add({ x, y })
 
     @preview
       .classed("hidden", false)
-      .attr("d", @cluster.getLineSegment())
+      .attr("d", Cluster(@cluster).getLineSegment())
 

@@ -223,6 +223,12 @@ class DataItem
   @lazyCache : {}
 
 
+  ['keys', 'values', 'pairs', 'invert', 'pick', 'omit'].forEach (method) ->
+    
+    DataItem::[method] = (args...) ->
+      _[method](@attributes, args...)
+
+
 
 class DataItem.Collection
 
@@ -391,6 +397,17 @@ class DataItem.Collection
       else
         item
     )
+
+  ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl',
+    'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select',
+    'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke',
+    'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest',
+    'tail', 'drop', 'last', 'without', 'indexOf', 'shuffle', 'lastIndexOf',
+    'isEmpty', 'chain'
+  ].forEach (method) ->
+
+    Collection::[method] = (args...) ->
+      _[method](@items, args...)
 
 
 DataItem

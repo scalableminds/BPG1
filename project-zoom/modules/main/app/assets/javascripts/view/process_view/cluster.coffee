@@ -1,31 +1,26 @@
 ### define
 ###
 
-class Cluster
-
-  constructor : ->
-
-    @waypoints = []
-    @nodes = []
-
-    @id = 0
-
+Cluster = (cluster) ->
 
   getLineSegment : ->
 
-    lineFunction = d3.svg.line(@waypoints)
-      .x( (data) -> data.x )
-      .y( (data) -> data.y )
+    waypoints = cluster.get("waypoints")
+
+    lineFunction = d3.svg.line(waypoints.items)
+      .x( (data) -> data.get("x") )
+      .y( (data) -> data.get("y") )
       .interpolate("basis") # smoothing bitches!!!
 
-    lineFunction(@waypoints)
+    lineFunction(waypoints.items)
 
 
   finalize : ->
 
     #connect last waypoint with first
-    firstWaypoint = _.deepClone(@waypoints[0])
-    @waypoints.push firstWaypoint
+    waypoints = cluster.get("waypoints")
+
+    waypoints.add(waypoints.first().toObject())
 
 
   checkForNode : (node) ->
@@ -35,11 +30,11 @@ class Cluster
     if @pointInPolygon(node)
 
       #if node is already associated with cluster, then dont do anything
-      unless node.cluster == @
+      unless node.cluster == cluster
 
         #else, associate it
-        node.cluster = @
-        @nodes.push node
+        node.cluster = cluster
+        cluster.get("nodes").add(node)
 
       return true
 
@@ -54,49 +49,52 @@ class Cluster
 
   removeNode : (node) ->
 
-    index = @nodes.indexOf(node)
-
-    if index > -1
-      @nodes.splice(index, 1)
-      node.cluster = null
+    cluster.get("nodes").remove(node)
+    node.cluster = null if node.cluster == cluster
 
 
   # alogrithm uses even-odd-rule
   # http://alienryderflex.com/polygon/
   pointInPolygon : (point) ->
 
-    {x, y} = point
+    waypoints = cluster.get("waypoints")
+
+    { x, y } = point
 
     #calculate from the center of a node
     #x += point.getSize() / 2
     #y += point.getSize() / 2
 
-    j = _.last(@waypoints)
+    [ lX, lY ] = waypoints.last().pick("x", "y")
     result = false
 
-    for i in @waypoints
+    waypoints.each (p) ->
+
+      [ pX, pY ] = p.pick("x", "y")
 
       if (
-        ((i.y < y and j.y >= y) or
-        (j.y < y and i.y >= y)) and
-        (i.x <= x or j.y <= x)
+        ((pY < y and Y >= y) or
+        (pY < y and pY >= y)) and
+        (pX <= x or pY <= x)
       )
 
-        if (i.x + (y - i.y) / (j.y - i.y) * (j.x - i.x)) < x
+        if (pX + (y - pY) / (lY - pY) * (lX - pX)) < x
           result = not result
 
-      j = i
+      [ lX, lY ] = [ pX, pY ]
 
     return result
 
 
   getCenter : ->
 
-    minX = _.min(waypoints, (waypoint) -> waypoint.x)
-    maxX = _.mx(waypoints, (waypoint) -> waypoint.x)
+    waypoints = cluster.get("waypoints")
 
-    minY = _.min(waypoints, (waypoint) -> waypoint.y)
-    maxY = _.max(waypoints, (waypoint) -> waypoint.y)
+    minX = waypoints.min( (waypoint) -> waypoint.get("x") )
+    maxX = waypoints.max( (waypoint) -> waypoint.get("x") )
+
+    minY = waypoints.min( (waypoint) -> waypoint.get("y") )
+    maxY = waypoints.max( (waypoint) -> waypoint.get("y") )
 
     return {
       x : (maxX - minX) / 2
