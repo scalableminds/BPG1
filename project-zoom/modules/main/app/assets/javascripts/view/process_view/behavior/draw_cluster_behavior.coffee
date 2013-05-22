@@ -34,6 +34,7 @@ class DrawClusterBehavior extends Behavior
       .off("dragend", @dragEnd)
 
     @preview.attr("d", "M 0,0 L 0,0") # move it out of the way
+    @preview.classed("hidden, true")
 
 
   dragEnd : (event) =>
@@ -41,6 +42,9 @@ class DrawClusterBehavior extends Behavior
     @cluster.finalize()
     @graph.addCluster(@cluster)
     @preview.classed("hidden, true")
+
+    # switch to drag tool again (reset)
+    window.setTimeout( (->$(".btn-group a").first().trigger("click")), 100)
 
 
   dragStart : (event) =>

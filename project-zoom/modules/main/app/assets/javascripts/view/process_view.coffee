@@ -95,6 +95,8 @@ class ProcessView
         @changeZoomSlider(-0.1)
 
 
+
+
   addArtifact : (evt) =>
 
     artifact = $(evt.gesture.target)
