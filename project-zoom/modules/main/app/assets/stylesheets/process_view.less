@@ -1,22 +1,3 @@
-svg {
-
-  border: 2px solid black;
-  border-radius: 4px;
-  margin-bottom: 5px;
-
-  width: 100%;
-}
-
-#artifact-finder {
-
-  background-color: #fafafa;
-}
-
-#toolbar {
-
-  margin-bottom: 20px;
-}
-
 body {
 
   -webkit-touch-callout: none;
@@ -27,7 +8,51 @@ body {
 
 }
 
+svg {
+
+  border: 2px solid black;
+  border-radius: 4px;
+  margin-bottom: 5px;
+
+  width: 100%;
+}
+
+.side-bar {
+
+  border: 2px solid black;
+  border-radius: 4px;
+
+  margin-left: 1% !important;
+  padding: 5px;
+
+  textarea {
+
+    width: 90%;
+    height: 100px;
+  }
+}
+
+#artifact-finder {
+
+  background-color: #fafafa;
+}
+
+.toolbar {
+
+  margin-bottom: 20px;
+}
+
+
+.graph {
+
+  position: relative;
+}
+
 .zoom-slider {
+
+  position: absolute;
+  right: -70px; // hacky
+  top: 10px;
 
   button {
     display: block;
@@ -58,11 +83,12 @@ body {
   padding: 10px;
 }
 
-#cluster-tool {
+.cluster-tool {
 
+  //overwrite bootstrap to fix design
   a {
-    margin-left: -1px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    margin-left: -1px !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
   }
 }

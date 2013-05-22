@@ -17,13 +17,13 @@ class ProcessView
 
   constructor : ->
 
+    @gui = new GUI()
+
     EventMixin.extend(this)
     @initArtifactFinder()
-    @initD3()
     @initGraph()
     @initEventHandlers()
 
-    @gui = new GUI()
 
   initArtifactFinder : ->
 
@@ -34,26 +34,9 @@ class ProcessView
     $("a[data-toggle=tab]").first().tab("show")
 
 
-  initD3 : ->
-
-    height = $(window).height() - $("#graph").height()
-    width = $("#graph").width()
-
-    @svg = d3.select("#graph")
-      .append("svg")
-      .attr("WIDTH", width)
-      .attr("HEIGHT", height)
-      .attr("pointer-events", "all")
-
-    @hitbox = @svg.append("svg:rect")
-          .attr("width", width)
-          .attr("height", height)
-          .attr("fill", "white")
-          .classed("hitbox", true)
-
-
   initGraph : ->
 
+    @svg = d3.select("svg")
     @graphContainer = @svg.append("svg:g")
 
     @graph = new InteractiveGraph(@graphContainer, @svg)
