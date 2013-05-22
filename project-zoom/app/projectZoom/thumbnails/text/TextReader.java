@@ -10,6 +10,8 @@ import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Transparency;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.PixelGrabber;
@@ -29,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -60,18 +63,89 @@ import javax.swing.*;
 
 public class TextReader {
 	
-	private String getText(File file) throws IOException, SAXException, TikaException {
+	String[] MIME_TYPES = {};
+	
+	public Boolean isSupported(String mimetype)
+	{
+		for (int i = 0; i < this.MIME_TYPES.length; i++)
+		{
+			String supportedMimeType = this.MIME_TYPES[i];
+			if (mimetype.equals(supportedMimeType))
+				return true;
+		}
+		return false;
+	}
+	
+	
+	public List<Artifact> getThumbnails(File file, int[] widths) {
+		List<Artifact> output = new ArrayList<Artifact>();
+		try {
+			List<BufferedImage> images = this.pdfToImages2(file, 1);
+			for (int width: widths) {				
+				Artifact art = new Artifact(width + ".png");
+				BufferedImage image = resizeBufferedImage(images.get(0), width);
+				if (image != null)
+				{
+					ImageIO.write(image, "png", art.getFile());
+					output.add(art);
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return output;
+	}
+	
+	private BufferedImage resizeBufferedImage(BufferedImage image, int width) {
+
+		int w = image.getWidth();
+		int h = image.getHeight();
+		int size = Math.max(w, h);
+		float scale = (float)width/size;
+		BufferedImage newImage = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
+		AffineTransform at = new AffineTransform();
+		at.scale(scale, scale);
+		AffineTransformOp scaleOp = 
+		   new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+		newImage = scaleOp.filter(image, newImage);
+		
+		return newImage;
+	}
+	
+	public List<Artifact> getGifs(File file, int[] widths, int pagecount) {
+		List<Artifact> output = new ArrayList<Artifact>();
+		try {
+			List<BufferedImage> images = this.pdfToImages2(file, pagecount);
+			for(int width: widths) {
+				List<BufferedImage> resizedImages = new ArrayList<BufferedImage>();
+				for (BufferedImage b: images)
+					resizedImages.add(resizeBufferedImage(b, width));
+				Artifact art = imagesToGif(resizedImages, width);
+				if (art != null)
+					output.add(art);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return output;		
+	}
+		
+	
+	private String getText(File file) {
 		
 		Parser parser = new AutoDetectParser();
 		
 		BodyContentHandler handler = new BodyContentHandler(10000000);
         Metadata metadata = new Metadata();
-        InputStream is;
+        InputStream is = null;
         
         String output = ""; 
-        is = new FileInputStream(file);
+        
         
         try {
+        	is = new FileInputStream(file);
             parser.parse (is, handler, metadata, new ParseContext());           
             output = handler.toString();            
         } catch (FileNotFoundException e) {
@@ -80,8 +154,19 @@ public class TextReader {
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+		} catch (TikaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace(); 
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();			
         } finally {
-            is.close();  
+	        if (is != null)
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
         }
    
         return output;
@@ -127,9 +212,16 @@ public class TextReader {
 	}
 	
 	
-	public void getTagClouds(File file, int[] widths) throws IOException, SAXException, TikaException {
+	public List<Artifact> getTagClouds(File file, int[] widths) {
 		
-		String text = this.getText(file);
+		List<Artifact> output = new ArrayList<Artifact>();
+
+		String text = "";
+		try {
+			text = this.getText(file);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		List<Entry<String, Integer>> words = this.getWordList(text);
 		Random rand = new Random();
 		
@@ -180,29 +272,22 @@ public class TextReader {
 				j++;
 			}
 	
+			
+			Artifact art = new Artifact(width + ".png");
 
-			File fileOut=new File("/home/user/output" + Integer.toString(width) + ".png");
 			wordle.doLayout();
 			try {
-				wordle.getAsPNG(fileOut, width);
+				wordle.getAsPNG(art.getFile(), width);
+				output.add(art);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
+		return output;
 	}
 	
-	public void docToPdf(File fileIn, File fileOut, int count)
-	{
-		OfficeManager officeManager = new DefaultOfficeManagerConfiguration().buildOfficeManager();
-	    officeManager.start();
-
-	    OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-	    converter.convert(fileIn, fileOut);
-	        
-	    officeManager.stop();
-		
-	}
 	
 	public List<BufferedImage> pdfToImages(String url) throws IOException
 	{
@@ -236,18 +321,16 @@ public class TextReader {
 		
 	}
 	
-	public List<BufferedImage> pdfToImages2(String url) throws IOException
+	public List<BufferedImage> pdfToImages2(File file, int pagecount) throws IOException
 	{
-		File file = new File(url);
         RandomAccessFile raf = new RandomAccessFile(file, "r");
         FileChannel channel = raf.getChannel();
         ByteBuffer buf = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
         PDFFile pdffile = new PDFFile(buf);
-        
-        int pageCount = 3;
 
 		List<BufferedImage> images = new ArrayList<BufferedImage>();
-		for (int i = 1; i <= pageCount; i++)
+		int maxpages = Math.min(pagecount, pdffile.getNumPages()); 
+		for (int i = 1; i <= maxpages; i++)
 		{
 	        // draw the first page to an image
 	        PDFPage page = pdffile.getPage(i);
@@ -269,36 +352,37 @@ public class TextReader {
 		
 	}	
 	
-	public void imagesToGif(List<BufferedImage> images)
-	{
+	public Artifact imagesToGif(List<BufferedImage> images, int width) {
 		
-		  List<GifFrame> gifFrames = new ArrayList<GifFrame>();
-
-		   for(BufferedImage image: images)
-		   {
-		      int transparantColor = 0xFF00FF; // purple
-		      BufferedImage gif = GifUtil.convertRGBAToGIF(image, transparantColor);
-
-		      // every frame takes 100ms
-		      long delay = 1000;
-
-		      // make transparent pixels not 'shine through'
-		      String disposal = GifFrame.RESTORE_TO_BGCOLOR;
-
-		      // add frame to sequence
-		      gifFrames.add(new GifFrame(gif, delay, disposal));
-		   }
-
-		   int loopCount = 0; // loop indefinitely
-		   File outFile = new File("/home/user/test22.gif");
-
-		   try {
-			   OutputStream out = new FileOutputStream(outFile);			   
+		Artifact output = new Artifact(width + ".gif");
+		List<GifFrame> gifFrames = new ArrayList<GifFrame>();
+		
+		for(BufferedImage image: images)
+		{
+			int transparantColor = 0xFF00FF; // purple
+			BufferedImage gif = GifUtil.convertRGBAToGIF(image, transparantColor);
+			
+			// every frame takes 1000ms
+			long delay = 1000;
+			
+			// make transparent pixels not 'shine through'
+			String disposal = GifFrame.RESTORE_TO_BGCOLOR;
+			
+			// add frame to sequence
+			gifFrames.add(new GifFrame(gif, delay, disposal));
+		}
+		
+		int loopCount = 0; // loop indefinitely
+	
+		try {
+			OutputStream out = new FileOutputStream(output.getFile());			   
 			GifUtil.saveAnimatedGIF(out, gifFrames, loopCount);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
+		   
+		return output;
 	}
 	
 	   // This method returns a buffered image with the contents of an image

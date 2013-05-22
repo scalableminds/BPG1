@@ -1,26 +1,22 @@
 package projectZoom.thumbnails.text;
 
-import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.*;
-//import org.eclipse.zest.cloudio.ICloudLabelProvider;
-//import org.eclipse.zest.cloudio.TagCloud;
-//import org.eclipse.zest.cloudio.Word;
 
+import models.ResourceInfo;
+
+import java.awt.Color;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.tika.exception.TikaException;
-import org.xml.sax.SAXException;
+import org.apache.tika.Tika;
 
 import projectZoom.thumbnails.text.MyWordle.Word;
 import projectZoom.thumbnails.text.PdfReader;
+import projectZoom.thumbnails.text.OfficeReader;
 import projectZoom.thumbnails.text.MyWordle;
 
 import cue.lang.*;
@@ -30,36 +26,49 @@ import cue.lang.stop.StopWords;
 public class TextThumbnailPlugin {
 	
 	private List<TextReader> readers;
-	int[] widths = {64, 128};
+	static int[] CLOUD_WIDTHS = {64, 128};
+	static int[] THUMBNAIL_WIDTHS = {256, 512};
+	static int[] GIF_WIDTHS = {32, 64, 128, 256, 512};
+	static int GIF_PAGECOUNT = 3;
+	static String TEMP_FOLDER = "/home/user/";
 
+	
 	public TextThumbnailPlugin() {
 		
 		readers = new ArrayList<TextReader>();
-		
 		readers.add(new PdfReader());
+		readers.add(new OfficeReader());
 
 	}
 	
-	public String onResourceFound(File file) {
+	public List<Artifact> onResourceFound(ResourceInfo ressourceInfo) {
+		
 		System.out.print("onResourceFound called ");
-		String output = ""; 
+
+		List<Artifact> output = new ArrayList<Artifact>(); 
+		
+		if (!ressourceInfo.typ().equals("default"))
+			return output;
+		
+		String filename = ressourceInfo.fileName();
+		File file = new File(filename); 
+		
+		String mimetype = getMimeType(file);
+		System.out.print(mimetype);
+		
 		Iterator<TextReader> iterator = readers.iterator();
 		while (iterator.hasNext()) {
 			TextReader reader = iterator.next();
-			try {
-				reader.getTagClouds(file, this.widths);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SAXException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (TikaException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}			
+
+			if (!reader.isSupported(mimetype))
+				continue;
+
+			output.addAll(reader.getTagClouds(file, CLOUD_WIDTHS));
+			output.addAll(reader.getThumbnails(file, THUMBNAIL_WIDTHS));
+			output.addAll(reader.getGifs(file, THUMBNAIL_WIDTHS, GIF_PAGECOUNT));
+	
 		}
-		//createTagCloud2(output);
+
 		return output;
 		
 	}
@@ -121,36 +130,57 @@ public class TextThumbnailPlugin {
 		}
 
 }
-	/*
-	public void createTagCloud() {
-		final Display display = new Display();
-		final Shell shell = new Shell(display);
-		TagCloud cloud = new TagCloud(shell, SWT.NONE);
-		// Generate some dummy words - color, weight and fontdata must
-		// always be defined.
-		List<Word> words = new ArrayList<Word>();
-		Word w = new Word("Hello");
-		w.setColor(display.getSystemColor(SWT.COLOR_DARK_CYAN));
-		w.weight = 1;
-		w.setFontData(cloud.getFont().getFontData().clone());
-		words.add(w);
-		w = new Word("Cloudio");
-		w.setColor(display.getSystemColor(SWT.COLOR_DARK_GREEN));
-		w.setFontData(cloud.getFont().getFontData().clone());
-		w.weight = 0.5;
-		w.angle = -45;
-		words.add(w);
-		shell.setBounds(50,50, 300, 300);
-		cloud.setBounds(0,0, shell.getBounds().width, shell.getBounds().height);
-		   // Assign the list of words to the cloud:
-		   //cloud.setWords(words, null);
-		shell.open();
-		while (!shell.isDisposed()) {
-		    if (!display.readAndDispatch()) display.sleep();
-		}
-		display.dispose();		
+
+	public String getMimeType(File file) {
+		/*
+		String mimeType = "";
+		FileInputStream is = null;
+		
+		try {
+		      is = new FileInputStream(file);
+	
+		      ContentHandler contenthandler = new BodyContentHandler();
+		      Metadata metadata = new Metadata();
+		      metadata.set(Metadata.RESOURCE_NAME_KEY, file.getName());
+		      Parser parser = new AutoDetectParser();
+		      parser.parse(is, contenthandler, metadata, null);
+		      mimeType = metadata.get(Metadata.CONTENT_TYPE);
+	    }
+	    catch (Exception e) {
+	      e.printStackTrace();
+	    }
+	    finally {
+	        if (is != null)
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+	    }
+		
+		return mimeType;
+		*/
+
+        String mimeType = null;
+ 
+        try {
+ 
+            Tika tika = null;
+ 
+            // Creating new Instance of org.apache.tika.Tika
+            tika = new Tika();
+ 
+            // Detecting MIME Type of the File 
+            mimeType = tika.detect(file);
+ 
+        } catch (FileNotFoundException e) {
+        	e.printStackTrace();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
+ 
+        // returning detected MIME Type
+        return mimeType;
+
 	}
-	*/
-
-
 }
