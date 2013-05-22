@@ -1,0 +1,24 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET    /                                                          controllers.main.Application.index
+GET    /test                                                      controllers.main.Application.test
+GET    /overview                                                  controllers.main.Application.overview
+GET    /processView                                               controllers.main.Application.processView
+
+# CRUD Urls
+GET    /projects                                                  controllers.main.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /projects/:_project/artifacts/:id/:artifactType/download   controllers.main.ArtifactController.download(_project: String, id: String, artifactType: String)
+
+GET    /tags                                                      controllers.main.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
+
+GET    /users                                                     controllers.main.ProfileController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /users/:name                                               controllers.main.ProfileController.read(name)
+
+GET    /graphs                                                    controllers.main.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
+PATCH  /graphs/:id                                                controllers.main.GraphController.patch(id: String)
+
+# Map static resources from the /public folder to the /assets URL path
+GET    /assets/*file                                              controllers.main.Assets.at(path="/public", file)
