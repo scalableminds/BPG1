@@ -1,4 +1,3 @@
-package test;
 
 import static org.junit.Assert.*;
 
@@ -16,6 +15,7 @@ import org.junit.Test;
 import projectZoom.thumbnails.text.TextThumbnailPlugin;
 
 import projectZoom.thumbnails.text.TextReader;
+import projectZoom.thumbnails.text.Artifact;
 
 import models.Resource;
 import models.ResourceInfo;
