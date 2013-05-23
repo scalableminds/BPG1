@@ -10,11 +10,11 @@ import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import play.api.Logger
 
-case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String])
+case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[BSONObjectID] = Nil)
 
 case class Participant(duty: String, _user: String)
 
-case class Project(name: String, picUrl: String, _tags: List[String], participants: List[Participant], _graphs: List[BSONObjectID], _id: BSONObjectID = BSONObjectID.generate)
+case class Project(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[BSONObjectID], _id: BSONObjectID = BSONObjectID.generate)
 
 object ProjectDAO extends SecuredMongoJsonDAO {
   override val collectionName = "projects"

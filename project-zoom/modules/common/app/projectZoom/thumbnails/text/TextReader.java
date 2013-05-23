@@ -1,17 +1,42 @@
 package projectZoom.thumbnails.text;
 
 import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Transparency;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.PixelGrabber;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Map.Entry;
+import java.util.UUID;
 
+import javax.imageio.ImageIO;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.util.PDFImageWriter;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
@@ -20,26 +45,107 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
 
+import org.artofsolving.jodconverter.OfficeDocumentConverter;
+import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
+import org.artofsolving.jodconverter.office.OfficeManager;
+
+
 import projectZoom.thumbnails.text.MyWordle.Word;
 import cue.lang.Counter;
 import cue.lang.WordIterator;
 import cue.lang.stop.StopWords;
 
+import com.sun.pdfview.PDFFile;
+import com.sun.pdfview.PDFPage;
+import javax.swing.*;
+
+
 
 public class TextReader {
 	
-	private String getText(File file) throws IOException, SAXException, TikaException {
+	String[] MIME_TYPES = {};
+	
+	public Boolean isSupported(String mimetype)
+	{
+		for (int i = 0; i < this.MIME_TYPES.length; i++)
+		{
+			String supportedMimeType = this.MIME_TYPES[i];
+			if (mimetype.equals(supportedMimeType))
+				return true;
+		}
+		return false;
+	}
+	
+	
+	public List<Artifact> getThumbnails(File file, int[] widths) {
+		List<Artifact> output = new ArrayList<Artifact>();
+		try {
+			List<BufferedImage> images = this.pdfToImages2(file, 1);
+			for (int width: widths) {				
+				Artifact art = new Artifact(width + ".png");
+				BufferedImage image = resizeBufferedImage(images.get(0), width);
+				if (image != null)
+				{
+					ImageIO.write(image, "png", art.getFile());
+					output.add(art);
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return output;
+	}
+	
+	private BufferedImage resizeBufferedImage(BufferedImage image, int width) {
+
+		int w = image.getWidth();
+		int h = image.getHeight();
+		int size = Math.max(w, h);
+		float scale = (float)width/size;
+		BufferedImage newImage = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
+		AffineTransform at = new AffineTransform();
+		at.scale(scale, scale);
+		AffineTransformOp scaleOp = 
+		   new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+		newImage = scaleOp.filter(image, newImage);
+		
+		return newImage;
+	}
+	
+	public List<Artifact> getGifs(File file, int[] widths, int pagecount) {
+		List<Artifact> output = new ArrayList<Artifact>();
+		try {
+			List<BufferedImage> images = this.pdfToImages2(file, pagecount);
+			for(int width: widths) {
+				List<BufferedImage> resizedImages = new ArrayList<BufferedImage>();
+				for (BufferedImage b: images)
+					resizedImages.add(resizeBufferedImage(b, width));
+				Artifact art = imagesToGif(resizedImages, width);
+				if (art != null)
+					output.add(art);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return output;		
+	}
+		
+	
+	private String getText(File file) {
 		
 		Parser parser = new AutoDetectParser();
 		
 		BodyContentHandler handler = new BodyContentHandler(10000000);
         Metadata metadata = new Metadata();
-        InputStream is;
+        InputStream is = null;
         
         String output = ""; 
-        is = new FileInputStream(file);
+        
         
         try {
+        	is = new FileInputStream(file);
             parser.parse (is, handler, metadata, new ParseContext());           
             output = handler.toString();            
         } catch (FileNotFoundException e) {
@@ -48,8 +154,19 @@ public class TextReader {
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+		} catch (TikaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace(); 
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();			
         } finally {
-            is.close();  
+	        if (is != null)
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
         }
    
         return output;
@@ -95,9 +212,16 @@ public class TextReader {
 	}
 	
 	
-	public void getTagClouds(File file, int[] widths) throws IOException, SAXException, TikaException {
+	public List<Artifact> getTagClouds(File file, int[] widths) {
 		
-		String text = this.getText(file);
+		List<Artifact> output = new ArrayList<Artifact>();
+
+		String text = "";
+		try {
+			text = this.getText(file);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		List<Entry<String, Integer>> words = this.getWordList(text);
 		Random rand = new Random();
 		
@@ -148,16 +272,181 @@ public class TextReader {
 				j++;
 			}
 	
+			
+			Artifact art = new Artifact(width + ".png");
 
-			File fileOut=new File("/home/user/output" + Integer.toString(width) + ".png");
 			wordle.doLayout();
 			try {
-				wordle.getAsPNG(fileOut, width);
+				wordle.getAsPNG(art.getFile(), width);
+				output.add(art);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		
+		return output;
 	}
-}
+	
+	
+	public List<BufferedImage> pdfToImages(String url) throws IOException
+	{
+		PDDocument document;
 
+		document = PDDocument.load(url);
+
+		int imageType = BufferedImage.TYPE_INT_RGB;
+		String pwd = "";
+		String imageFormat = "png";
+		String prefix = "/home/user/test22";
+		int pageCount = 3;
+		int resolution = 160;
+		PDFImageWriter imageWriter = new PDFImageWriter();
+		boolean success = imageWriter.writeImage(document, imageFormat, pwd,
+                1, pageCount, prefix, imageType, resolution);
+		
+		List<BufferedImage> images = new ArrayList<BufferedImage>();
+		for (int i = 1; i <= pageCount; i++)
+		{
+			File img = new File(prefix + i + ".png");
+			BufferedImage in = ImageIO.read(img);
+			BufferedImage newImage = new BufferedImage(in.getWidth(), in.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g = newImage.createGraphics();
+			g.drawImage(in, 0, 0, null);
+			g.dispose();			
+			images.add(in);
+		}
+		
+		return images;
+		
+	}
+	
+	public List<BufferedImage> pdfToImages2(File file, int pagecount) throws IOException
+	{
+        RandomAccessFile raf = new RandomAccessFile(file, "r");
+        FileChannel channel = raf.getChannel();
+        ByteBuffer buf = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+        PDFFile pdffile = new PDFFile(buf);
+
+		List<BufferedImage> images = new ArrayList<BufferedImage>();
+		int maxpages = Math.min(pagecount, pdffile.getNumPages()); 
+		for (int i = 1; i <= maxpages; i++)
+		{
+	        // draw the first page to an image
+	        PDFPage page = pdffile.getPage(i);
+	        // get the width and height for the doc at the default zoom
+	        Rectangle rect = new Rectangle(0, 0, (int) page.getBBox().getWidth(), (int) page.getBBox().getHeight());
+	        // generate the image
+	        Image img = page.getImage(rect.width, rect.height, // width & height
+	                rect, // clip rect
+	                null, // null for the ImageObserver
+	                true, // fill background with white
+	                true // block until drawing is done
+	                );
+	        // save it as a file
+	        BufferedImage bImg = toBufferedImage(img);
+	        images.add(bImg);
+		}
+		
+		return images;
+		
+	}	
+	
+	public Artifact imagesToGif(List<BufferedImage> images, int width) {
+		
+		Artifact output = new Artifact(width + ".gif");
+		List<GifFrame> gifFrames = new ArrayList<GifFrame>();
+		
+		for(BufferedImage image: images)
+		{
+			int transparantColor = 0xFF00FF; // purple
+			BufferedImage gif = GifUtil.convertRGBAToGIF(image, transparantColor);
+			
+			// every frame takes 1000ms
+			long delay = 1000;
+			
+			// make transparent pixels not 'shine through'
+			String disposal = GifFrame.RESTORE_TO_BGCOLOR;
+			
+			// add frame to sequence
+			gifFrames.add(new GifFrame(gif, delay, disposal));
+		}
+		
+		int loopCount = 0; // loop indefinitely
+	
+		try {
+			OutputStream out = new FileOutputStream(output.getFile());			   
+			GifUtil.saveAnimatedGIF(out, gifFrames, loopCount);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		   
+		return output;
+	}
+	
+	   // This method returns a buffered image with the contents of an image
+    public static BufferedImage toBufferedImage(Image image) {
+        if (image instanceof BufferedImage) {
+            return (BufferedImage) image;
+        }
+        // This code ensures that all the pixels in the image are loaded
+        image = new ImageIcon(image).getImage();
+        // Determine if the image has transparent pixels; for this method's
+        // implementation, see e661 Determining If an Image Has Transparent
+        // Pixels
+        boolean hasAlpha = hasAlpha(image);
+        // Create a buffered image with a format that's compatible with the
+        // screen
+        BufferedImage bimage = null;
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        try {
+            // Determine the type of transparency of the new buffered image
+            int transparency = Transparency.OPAQUE;
+            if (hasAlpha) {
+                transparency = Transparency.BITMASK;
+            }
+            // Create the buffered image
+            GraphicsDevice gs = ge.getDefaultScreenDevice();
+            GraphicsConfiguration gc = gs.getDefaultConfiguration();
+            bimage = gc.createCompatibleImage(image.getWidth(null), image.getHeight(null), transparency);
+        } catch (HeadlessException e) {
+            // The system does not have a screen
+        }
+        if (bimage == null) {
+            // Create a buffered image using the default color model
+            int type = BufferedImage.TYPE_INT_RGB;
+            if (hasAlpha) {
+                type = BufferedImage.TYPE_INT_ARGB;
+            }
+            bimage = new BufferedImage(image.getWidth(null), image.getHeight(null), type);
+        }
+        // Copy image to buffered image
+        Graphics g = bimage.createGraphics();
+        // Paint the image onto the buffered image
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return bimage;
+    }	
+
+    public static boolean hasAlpha(Image image) {
+        // If buffered image, the color model is readily available
+        if (image instanceof BufferedImage) {
+            BufferedImage bimage = (BufferedImage)image;
+            return bimage.getColorModel().hasAlpha();
+        }
+    
+        // Use a pixel grabber to retrieve the image's color model;
+        // grabbing a single pixel is usually sufficient
+         PixelGrabber pg = new PixelGrabber(image, 0, 0, 1, 1, false);
+        try {
+            pg.grabPixels();
+        } catch (InterruptedException e) {
+        }
+    
+        // Get the image's color model
+        ColorModel cm = pg.getColorModel();
+        return cm.hasAlpha();
+    }
+	
 }

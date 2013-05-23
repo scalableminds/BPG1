@@ -3,18 +3,18 @@ core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
 ../cluster : Cluster
+lib/data_item : DataItem
 ###
 
 class DrawClusterBehavior extends Behavior
 
-  constructor : ( @graph, @container ) ->
+  constructor : ( @graph, @container, @type ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
-
     if $(".preview").length == 0
       @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @preview
-        .attr("class", "hidden preview cluster")
+        .attr("class", "hide preview cluster")
     else
       @preview = d3.select(".preview")
 
@@ -35,22 +35,30 @@ class DrawClusterBehavior extends Behavior
       .off("dragend", @dragEnd)
 
     @preview.attr("d", "M 0,0 L 0,0") # move it out of the way
+    @preview.classed("hidden, true")
 
 
   dragEnd : (event) =>
 
-    @cluster.finalize()
+    Cluster(@cluster).finalize()
     @graph.addCluster(@cluster)
-    @preview.classed("hidden, true")
+    @preview.classed("hide", true)
+
+    # switch to drag tool again (reset)
+    window.setTimeout( (->$(".btn-group a").first().trigger("click")), 100)
 
 
   dragStart : (event) =>
 
-    @cluster = new Cluster()
+    @cluster = new DataItem(
+      id : @graph.nextId()
+      waypoints : []
+      nodes : []
+    )
     @preview.data(@cluster)
 
     @offset = $("svg").offset()
-    @scaleValue = $(".zoomSlider input").val()
+    @scaleValue = $(".zoom-slider input").val()
 
 
   dragMove : (event) =>
@@ -61,13 +69,9 @@ class DrawClusterBehavior extends Behavior
     x /= @scaleValue
     y /= @scaleValue
 
-    tmp =
-      x : x
-      y : y
-
-    @cluster.waypoints.push(tmp)
+    @cluster.get("waypoints").add({ x, y })
 
     @preview
-      .classed("hidden", false)
-      .attr("d", @cluster.getLineSegment())
+      .classed("hide", false)
+      .attr("d", Cluster(@cluster).getLineSegment())
 

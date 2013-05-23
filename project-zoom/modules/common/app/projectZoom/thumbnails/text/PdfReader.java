@@ -1,24 +1,18 @@
 package projectZoom.thumbnails.text;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.Parser;
-import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.SAXException;
-
 public class PdfReader extends TextReader {
 
-	/**
-	 * @param args
-	 */
-	public PdfReader() {
+	String[] MIME_TYPES = {"application/pdf"};
 	
-	}
+	@Override
+	public Boolean isSupported(String mimetype)
+	{
+		for (int i = 0; i < this.MIME_TYPES.length; i++)
+		{
+			String supportedMimeType = this.MIME_TYPES[i];
+			if (mimetype.equals(supportedMimeType))
+				return true;
+		}
+		return false;
+	}	
 }

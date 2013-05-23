@@ -9,21 +9,21 @@ class ConnectBehavior extends Behavior
   constructor : ( @graph, @container ) ->
 
     # line that is displayed when dragging a new edge between nodes
-    if $(".dragLine").length == 0
+    if $(".drag-line").length == 0
       @dragLine = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @dragLine
-        .attr("class", "hidden dragLine")
+        .attr("class", "hide drag-line")
         .style('marker-end', 'url(#end-arrow)')
     else
-      @dragLine = d3.select(".dragLine")
+      @dragLine = d3.select(".drag-line")
 
 
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".nodeElement", @dragMove)
-      .on("dragend", ".nodeElement", @dragEnd)
-      .on("dragstart", ".nodeElement", @dragStart)
+      .on("drag", ".node-image", @dragMove)
+      .on("dragend", ".node-image", @dragEnd)
+      .on("dragstart", ".node-image", @dragStart)
 
 
   deactivate : ->
@@ -33,24 +33,26 @@ class ConnectBehavior extends Behavior
       .off("dragend", @dragEnd)
       .off("dragstart", @dragStart)
 
-    @dragLine.classed("hidden", true)
+    @dragLine.classed("hide", true)
 
 
   dragStart : (event) =>
 
     @offset = $("svg").offset()
-    @scaleValue = $(".zoomSlider input").val()
+    @scaleValue = $(".zoom-slider input").val()
 
 
   dragEnd : (event) =>
 
-    startID = $(event.gesture.startEvent.target).data("id")
-    nodeID = $(event.target).data("id")
+    startNode = d3.select($(event.gesture.startEvent.target).closest("foreignObject")[0]).datum()
 
-    unless startID == nodeID
-      @graph.addEdge(startID, nodeID)
+    if targetElement = $(event.target).closest("foreignObject")[0]
+      currentNode = d3.select(targetElement).datum()
 
-    @dragLine.classed("hidden", true)
+      unless startNode == currentNode
+        @graph.addEdge(startNode, currentNode)
+
+    @dragLine.classed("hide", true)
 
 
   dragMove : (event) =>
@@ -60,9 +62,9 @@ class ConnectBehavior extends Behavior
     mouse = @mousePosition(event)
 
     nodeData = d3.select(svgContainer).datum()
-    lineStartX = nodeData.x
-    lineStartY = nodeData.y
+    lineStartX = nodeData.get("x")
+    lineStartY = nodeData.get("y")
 
     @dragLine
-      .classed("hidden", false)
+      .classed("hide", false)
       .attr("d", "M #{lineStartX},#{lineStartY} L #{mouse.x},#{mouse.y}")
