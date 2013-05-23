@@ -77,12 +77,33 @@ public class pdfTextExtraction {
 	}
 	*/
 	@Test
-	public void onRessourceFoundDocxTest() {
-		String filename = "/home/user/test.docx";
+	public void onRessourceFoundPptTest() {
+		
+		String filename = "/home/user/test.ppt";
 		TextThumbnailPlugin textThumbnailPlugin = new TextThumbnailPlugin();
 		ResourceInfo res = new ResourceInfo(filename, "default"); 
 		List<Artifact> arts = textThumbnailPlugin.onResourceFound(res);
 		
 		assertTrue(true);	
 	}	
+	@Test
+	public void onRessourceFoundPptxTest() {
+		
+		String filename = "/home/user/test.pptx";
+		TextThumbnailPlugin textThumbnailPlugin = new TextThumbnailPlugin();
+		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		List<Artifact> arts = textThumbnailPlugin.onResourceFound(res);
+		
+		assertTrue(true);	
+	}	
+	@Test
+	public void onRessourceFoundOdpTest() {
+		
+		String filename = "/home/user/test.odp";
+		TextThumbnailPlugin textThumbnailPlugin = new TextThumbnailPlugin();
+		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		List<Artifact> arts = textThumbnailPlugin.onResourceFound(res);
+		
+		assertTrue(true);	
+	}		
 }
