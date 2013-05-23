@@ -1,4 +1,5 @@
 ### define
+underscore : _
 ###
 
 Cluster = (cluster) ->
@@ -23,67 +24,68 @@ Cluster = (cluster) ->
     waypoints.add(waypoints.first().toObject())
 
 
-  checkForNode : (node) ->
-
+  ensureNode : (node) ->
 
     #save the reference both in the cluster and in the node
     if @pointInPolygon(node)
 
-      #if node is already associated with cluster, then dont do anything
+      #if node is already associated with a cluster, then dont do anything
       unless node.cluster == cluster
 
         #else, associate it
         node.cluster = cluster
-        cluster.get("nodes").add(node)
+        cluster.get("nodes").add(node.get("id"))
 
       return true
 
     return false
 
 
-  checkForNodes : (nodes) ->
+  ensureNodes : (nodes) ->
 
-    for node in nodes
-      @checkForNode(node)
+    nodes.forEach (node) =>
+      @ensureNode(node); return
+
+
+  getNodes : (nodeList) ->
+
+    nodeList.filter( (node) -> cluster.get("nodes").contains(node.get("id")) )
 
 
   removeNode : (node) ->
 
-    cluster.get("nodes").remove(node)
+    cluster.get("nodes").remove(node.get("id"))
     node.cluster = null if node.cluster == cluster
 
 
   # alogrithm uses even-odd-rule
   # http://alienryderflex.com/polygon/
-  pointInPolygon : (point) ->
+  pointInPolygon : (node) ->
 
     waypoints = cluster.get("waypoints")
 
-    { x, y } = point
+    { x, y } = node.pick("x", "y")
 
-    #calculate from the center of a node
-    #x += point.getSize() / 2
-    #y += point.getSize() / 2
+    { x : lX, y : lY } = waypoints.last().pick("x", "y")
 
-    [ lX, lY ] = waypoints.last().pick("x", "y")
-    result = false
+    waypoints.reduce(
 
-    waypoints.each (p) ->
+      (result, p) ->
 
-      [ pX, pY ] = p.pick("x", "y")
+        { x : pX, y : pY } = p.pick("x", "y")
 
-      if (
-        ((pY < y and Y >= y) or
-        (pY < y and pY >= y)) and
-        (pX <= x or pY <= x)
-      )
-
-        if (pX + (y - pY) / (lY - pY) * (lX - pX)) < x
+        if (
+          ((pY < y and lY >= y) or
+          (lY < y and pY >= y)) and
+          (pX <= x or lY <= x)
+        ) and (pX + (y - pY) / (lY - pY) * (lX - pX)) < x
           result = not result
 
-      [ lX, lY ] = [ pX, pY ]
+        [ lX, lY ] = [ pX, pY ]
+        result
 
-    return result
+      false
+    )
 
 
   getCenter : ->

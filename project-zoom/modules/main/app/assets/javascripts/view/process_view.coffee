@@ -74,7 +74,7 @@ class ProcessView
 
     # drag artifact into graph
     $("body").on( "dragstart", "#artifactFinder .artifact-image", (e) -> e.preventDefault() )
-    Hammer($("body")[0]).on "dragend", "#artifactFinder .artifact-image", @addArtifact
+    Hammer(document.body).on "dragend", "#artifactFinder .artifact-image", @addArtifact
 
     # change tool from toolbox
     processView = this
@@ -86,13 +86,22 @@ class ProcessView
       .on("click", ".plus", => @changeZoomSlider(0.1) )
       .on("click", ".minus", => @changeZoomSlider(-0.1) )
 
-    $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+    do =>
 
-      evt.preventDefault()
-      if deltaY > 0
-        @changeZoomSlider(0.1)
-      else
-        @changeZoomSlider(-0.1)
+      mouseDown = false
+
+      Hammer(document.body)
+        .on("touch", -> mouseDown = true; return )
+        .on("release", -> mouseDown = false; return )
+
+      $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+
+        evt.preventDefault()
+        return if mouseDown
+        if deltaY > 0
+          @changeZoomSlider(0.1)
+        else
+          @changeZoomSlider(-0.1)
 
 
   addArtifact : (evt) =>

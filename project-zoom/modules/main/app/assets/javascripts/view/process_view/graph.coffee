@@ -17,6 +17,10 @@ class Graph
 
     @colors = d3.scale.category10()
 
+    @nodes = @graphModel.get("nodes")
+    @edges = @graphModel.get("edges")
+    @clusters = @graphModel.get("clusters")
+
     @drawNodes()
     @drawEdges()
     @drawClusters()
@@ -27,11 +31,11 @@ class Graph
     node = new DataItem({ x, y })
     node.artifact = artifact
 
-    @graphModel.get("nodes").add(node)
+    @nodes.add(node)
 
     #was the node dropped in a cluster?
     @graphModel.get("clusters").each (cluster) ->
-      Cluster(cluster).checkForNode(node)
+      Cluster(cluster).ensureNode(node)
 
     @drawNodes()
 
@@ -42,24 +46,24 @@ class Graph
       from : source.get("id")
       to : target.get("id")
     )
-    @graphModel.get("edges").add(edge)
+    @edges.add(edge)
     @drawEdges()
 
 
   addCluster : (cluster) ->
 
-    @graphModel.get("nodes").each(Cluster(cluster).checkForNodes)
-    @graphModel.get("clusters").add(cluster)
+    Cluster(cluster).ensureNodes(@nodes)
+    @clusters.add(cluster)
     @drawClusters()
 
 
   removeNode : (node) ->
 
-    @graphModel.get("nodes").remove(node)
+    @nodes.remove(node)
 
     @graphModel.get("edges")
       .select( (edge) -> edge.to == node.get("id") or edge.from == node.get("id") )
-      .each( (edge) => @graphModel.get("edges").remove(edge) )
+      .forEach( (edge) => @edges.remove(edge) )
 
     @drawNodes()
     @drawEdges()
@@ -67,15 +71,13 @@ class Graph
 
   removeEdge : (edge) ->
 
-    @graphModel.get("edges").remove(edge)
+    @edges.remove(edge)
     @drawEdges()
 
 
   drawNodes : ->
 
-    nodes = @graphModel.get("nodes")
-
-    @foreignObjects = @foreignObjects.data(nodes.items, (data) -> data.__uid)
+    @foreignObjects = @foreignObjects.data(@nodes.items, (data) -> data.get("id"))
 
     #add new nodes
     foreignObject = @foreignObjects.enter()
@@ -98,7 +100,7 @@ class Graph
               <html xmlns="http://www.w3.org/1999/xhtml">
                 <body>
                   <div class="nodeElement" style="background-color: rgb(0,127,255)">
-                    <img class="nodeElement" draggable="false" data-id="#{data.__uid}">
+                    <img class="nodeElement" draggable="false" data-id="#{data.get("id")}">
                 </body>
               </html>""" #return HTML element
 
@@ -118,26 +120,19 @@ class Graph
 
   drawEdges : ->
 
-    @paths = @paths.data(
-      @graphModel.get("edges")
-        .map( (edge) => new Edge(
-          @graphModel.get("nodes").find( (n) -> edge.get("from") == n.get("id") ),
-          @graphModel.get("nodes").find( (n) -> edge.get("to") == n.get("id") )
-        )
-      )
-    )
+    @paths = @paths.data(@edges.items, (data) -> data.__uid)
 
     #add new edges
     @paths.enter().append("svg:path")
       .attr(
         class : "edge"
-        d : (data) -> data.getLineSegment()
+        d : (data) => Edge(data, @nodes).getLineSegment()
       )
       .style("marker-end", -> "url(#end-arrow)")
 
     #update existing ones
     @paths.attr(
-      d : (data) -> data.getLineSegment()
+      d : (data) => Edge(data, @nodes).getLineSegment()
     )
 
     #remove deleted edges
@@ -146,7 +141,7 @@ class Graph
 
   drawClusters : ->
 
-    @clusterPaths = @clusterPaths.data(@graphModel.get("clusters").items)
+    @clusterPaths = @clusterPaths.data(@clusters.items, (data) -> data.get("id"))
 
     #add new edges or update existing ones
     clusterPath = @clusterPaths.enter().append("svg:path")
@@ -169,7 +164,7 @@ class Graph
   # position.x/y are absolute positions
   moveNode : (nodeId, position, checkForCluster = false) ->
 
-    node = @graphModel.get("nodes").find( (node) -> node.__uid == nodeId )
+    node = @nodes.find( (node) -> node.get("id") == nodeId )
 
     node.set( 
       x : position.x
@@ -177,8 +172,8 @@ class Graph
     )
 
     if checkForCluster
-      @graphModel.get("clusters")
-        .filter( (cluster) -> not Cluster(cluster).checkForNode(node) )
+      @clusters
+        .filter( (cluster) -> not Cluster(cluster).ensureNode(node) )
         .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
        
 
@@ -188,7 +183,7 @@ class Graph
 
   moveCluster : (clusterId, distance) ->
 
-    cluster = @graphModel.get("clusters").find( (cluster) -> cluster.get("id") == clusterId )
+    cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
 
     #move waypoints
     cluster.get("waypoints").each (waypoint) ->
@@ -198,13 +193,13 @@ class Graph
       )
 
     #move child nodes
-    cluster.get("nodes").each (node) ->
+    Cluster(cluster).getNodes(@nodes).forEach (node) =>
       
       position =
         x : node.get("x") + distance.x
         y : node.get("y") + distance.y
 
-      @moveNode(node.id, position)
+      @moveNode(node.get("id"), position)
 
     #actually move the svg elements
     @drawClusters()

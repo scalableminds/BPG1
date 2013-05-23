@@ -3,8 +3,7 @@ define
 ./node : Node
 ###
 
-
-class Edge
+Edge = (edge, nodeList) ->
 
   MARGIN = 2
 
@@ -13,8 +12,8 @@ class Edge
   PI_HALF = PI / 2
   PI_QUARTER = PI / 4
 
-  constructor : (@source, @target) ->
-
+  source : nodeList.find( (node) -> node.get("id") == edge.get("from"))
+  target : nodeList.find( (node) -> node.get("id") == edge.get("to"))
 
   getArrowDirection : ->
 
