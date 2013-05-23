@@ -1,7 +1,5 @@
 ### define
 jquery : $
-lib/venn : Venn
-lib/numeric : Numeric
 ###
 
 class Layouter
@@ -41,6 +39,8 @@ class Layouter
 
 
   getSquareInArea : (area) ->
+
+  arrangeNodesInClusters : (nodeClusters) ->
 
 
 

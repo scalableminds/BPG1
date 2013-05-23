@@ -32,19 +32,19 @@ class Tagbar
   populateTagForm : ->
     # jquery elemente mit $-zeichen am anfang benennen.
 
-    branchTaglist = $("#branchtags")
-    dateTaglist = $("#datetags")
-    partnerTaglist = $("#partnertags")
+    $branchTaglist = $("#branchtags")
+    $dateTaglist = $("#datetags")
+    $partnerTaglist = $("#partnertags")
 
     for tag in @availableTags
       tagName = tag.name
       tagType = tag.type
 
-      container = $("<div>",
+      $container = $("<div>",
         class: "tagbarItem"
       )
 
-      checkbox = $("<input>",
+      $checkbox = $("<input>",
         type: "checkbox"
         name: tagName
         value: tagName
@@ -52,18 +52,18 @@ class Tagbar
 
       label = document.createElement("label") #jquery!
       label.innerHTML = tagName
-      container.append checkbox
-      container.append label
 
-      listToAppend = null
+      #       $label = $("label")
+      # $label.text tagName
+
+      $container.append $checkbox
+      $container.append label
+
       switch tagType
-        when "date" then dateTaglist.append container
-        when "project_partner" then partnerTaglist.append container
-        when "branch" then branchTaglist.append container
+        when "date" then $dateTaglist.append $container
+        when "project_partner" then $partnerTaglist.append $container
+        when "branch" then $branchTaglist.append $container
         else console.log "tag with strange type"
-
-      # listToAppend.append checkbox
-      # listToAppend.append label
 
 
   destroy : ->
