@@ -28,7 +28,7 @@ class Graph
 
   addNode : (x, y, artifact) ->
 
-    node = new DataItem({ x, y })
+    node = new DataItem({ x, y, id : @nextId() })
     node.artifact = artifact
 
     @nodes.add(node)
@@ -61,9 +61,14 @@ class Graph
 
     @nodes.remove(node)
 
-    @graphModel.get("edges")
-      .select( (edge) -> edge.to == node.get("id") or edge.from == node.get("id") )
+    @edges
+      .filter( (edge) -> edge.get("to") == node.get("id") or edge.get("from") == node.get("id") )
       .forEach( (edge) => @edges.remove(edge) )
+
+    @clusters
+      .filter( (cluster) -> cluster.get("nodes").contains(node.get("id")) )
+      .forEach( (cluster) -> Cluster(cluster).removeNode(node) )
+
 
     @drawNodes()
     @drawEdges()
@@ -73,6 +78,17 @@ class Graph
 
     @edges.remove(edge)
     @drawEdges()
+
+
+  removeCluster : (cluster) ->
+
+    Cluster(cluster).getNodes(@nodes).forEach (node) =>
+      Cluster(cluster).removeNode(node)
+
+    @clusters.remove(cluster)
+
+    @drawClusters()
+    @drawNodes()
 
 
   drawNodes : ->
@@ -204,6 +220,17 @@ class Graph
     #actually move the svg elements
     @drawClusters()
     @drawNodes()
+
+
+  nextId : ->
+
+    _.max(
+      _.flatten [
+        @nodes.pluck("id")
+        @clusters.pluck("id")
+      ]
+    ) + 1
+
 
 
 

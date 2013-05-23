@@ -378,14 +378,15 @@ class DataItem.Collection
   remove : (items...) ->
 
     for item in items
-      index = _.findIndex(@items, item)
-      if item instanceof DataItem or item instanceof DataItem.Collection
-        item.off(this, "change", @trackChanges)
-      @items.splice(index, 1)
-      @removeParts(index, 1)
-      @trigger("remove", item, index, this) 
-      @trigger("change:#{index}", undefined, this)
-      @trigger("change", _.object([index], [undefined]), this)
+      index = _.indexOf(@items, item)
+      if index >= 0
+        if item instanceof DataItem or item instanceof DataItem.Collection
+          item.off(this, "change", @trackChanges)
+        @items.splice(index, 1)
+        @removeParts(index, 1)
+        @trigger("remove", item, index, this) 
+        @trigger("change:#{index}", undefined, this)
+        @trigger("change", _.object([index], [undefined]), this)
     return
 
 
@@ -408,6 +409,12 @@ class DataItem.Collection
 
     Collection::[method] = (args...) ->
       _[method](@items, args...)
+
+
+  pluck : (property) ->
+
+    @map( (a) -> a.get(property) )
+
 
 
 DataItem

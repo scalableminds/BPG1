@@ -14,7 +14,7 @@ class DrawClusterBehavior extends Behavior
     if $(".preview").length == 0
       @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @preview
-        .attr("class", "hidden preview cluster")
+        .attr("class", "hide preview cluster")
     else
       @preview = d3.select(".preview")
 
@@ -41,13 +41,13 @@ class DrawClusterBehavior extends Behavior
 
     Cluster(@cluster).finalize()
     @graph.addCluster(@cluster)
-    @preview.classed("hidden, true")
+    @preview.classed("hide", true)
 
 
   dragStart : (event) =>
 
     @cluster = new DataItem(
-      id : Math.random() * 1e5 | 0
+      id : @graph.nextId()
       waypoints : []
       nodes : []
     )
@@ -68,6 +68,6 @@ class DrawClusterBehavior extends Behavior
     @cluster.get("waypoints").add({ x, y })
 
     @preview
-      .classed("hidden", false)
+      .classed("hide", false)
       .attr("d", Cluster(@cluster).getLineSegment())
 

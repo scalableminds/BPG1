@@ -2,7 +2,7 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET /test controllers.Application.index()
-->  /admin admin.Routes
+GET /dummy controllers.Application.index()
+-> /admin admin.Routes
 -> / common.Routes
 -> / main.Routes

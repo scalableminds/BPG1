@@ -35,6 +35,18 @@ describe "DataItem.Collection", ->
       @dataCollection.length.should.be.equal(0)
 
 
+    it "should not not remove elements not in the collection", ->
+
+      dataItem1 = new DataItem(test : "test1")
+      dataItem2 = new DataItem(test : "test2")
+
+      @dataCollection.add(dataItem1)
+      @dataCollection.length.should.be.equal(1)
+
+      @dataCollection.remove(dataItem2)
+      @dataCollection.length.should.be.equal(1)
+
+
   describe "changes", ->
 
     it "should trigger add events", (done) ->

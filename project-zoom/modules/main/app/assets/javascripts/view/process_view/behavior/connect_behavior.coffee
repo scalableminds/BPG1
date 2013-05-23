@@ -12,7 +12,7 @@ class ConnectBehavior extends Behavior
     if $(".dragLine").length == 0
       @dragLine = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @dragLine
-        .attr("class", "hidden dragLine")
+        .attr("class", "hide dragLine")
         .style('marker-end', 'url(#end-arrow)')
     else
       @dragLine = d3.select(".dragLine")
@@ -33,7 +33,7 @@ class ConnectBehavior extends Behavior
       .off("dragend", @dragEnd)
       .off("dragstart", @dragStart)
 
-    @dragLine.classed("hidden", true)
+    @dragLine.classed("hide", true)
 
 
   dragStart : (event) =>
@@ -52,7 +52,7 @@ class ConnectBehavior extends Behavior
       unless startNode == currentNode
         @graph.addEdge(startNode, currentNode)
 
-    @dragLine.classed("hidden", true)
+    @dragLine.classed("hide", true)
 
 
   dragMove : (event) =>
@@ -66,5 +66,5 @@ class ConnectBehavior extends Behavior
     lineStartY = nodeData.get("y")
 
     @dragLine
-      .classed("hidden", false)
+      .classed("hide", false)
       .attr("d", "M #{lineStartX},#{lineStartY} L #{mouse.x},#{mouse.y}")

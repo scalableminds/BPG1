@@ -70,7 +70,7 @@ class ProcessView
   initEventHandlers : ->
 
     # add new node
-    Hammer( $("svg")[0] ).on "tap", @addNode
+    # Hammer( $("svg")[0] ).on "tap", @addNode
 
     # drag artifact into graph
     $("body").on( "dragstart", "#artifactFinder .artifact-image", (e) -> e.preventDefault() )
