@@ -15,6 +15,7 @@ class Artifact
 
     @domElement = $('<div/>', {
       title: "#{artifact.name}"
+      class: "node-object"
     })
 
     @domElement.width(width())

@@ -94,6 +94,8 @@ class ProcessView
       @on "view:zooming", artifact.resize
 
       @addNode(evt, id, artifact)
+      artifact.resize() #call once so, that the right-sized image is loaded
+
 
 
   addNode : (evt, nodeId, artifact = null) =>
