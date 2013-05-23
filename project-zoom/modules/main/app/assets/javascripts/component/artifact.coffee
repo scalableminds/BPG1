@@ -11,28 +11,31 @@ class Artifact
 
   constructor : (artifact, @width) ->
 
-    images = []
-
-    @domElement = $('<div/>', {
-      title: "#{artifact.name}"
-      class: "node-object"
-    })
-
-    @domElement.width(width())
-
+    @images = []
     for resource in artifact.resources
 
       if resource.type isnt "thumbnail"
         continue
 
-      image = $("""<img draggable="false" title="#{artifact.name}" class="artifact-image" src="#{resource.path}" data-id="#{artifact.id}"/>""")
+      #image = new Image().src = resource.path
+      @images.push resource.path
 
-      images.push image
+    @domElement = $("<div/>",
+      title: "#{artifact.name}"
+      class: "node-object"
+    ).append(
+      $("<img>",
+        src: @images[0].src
+        draggable: false
+        title: artifact.name
+        class: "artifact-image"
+        "data-id": artifact.id
+      )
+    )
 
-    @domElement.append(images[0])
+    @domElement.width(width())
 
-    @images = images
-    #@resize()
+    @resize()
 
 
   resize : () =>
@@ -41,18 +44,18 @@ class Artifact
 
     return unless @domElement?
     @domElement.width(width)
+    $img = @domElement.find("img")
 
     width = @domElement[0].getBoundingClientRect().width
 
-    @domElement.empty()
     if width > 192
-      @domElement.append(@images[3])
+      $img.attr("src", @images[3])
     else if width > 96
-      @domElement.append(@images[2])
+      $img.attr("src", @images[2])
     else if width > 48
-      @domElement.append(@images[1])
+      $img.attr("src", @images[1])
     else
-      @domElement.append(@images[0])
+      $img.attr("src", @images[0])
 
 
   destroy : ->
