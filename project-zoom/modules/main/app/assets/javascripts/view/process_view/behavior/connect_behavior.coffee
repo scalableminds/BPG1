@@ -9,21 +9,21 @@ class ConnectBehavior extends Behavior
   constructor : ( @graph, @container ) ->
 
     # line that is displayed when dragging a new edge between nodes
-    if $(".dragLine").length == 0
+    if $(".drag-line").length == 0
       @dragLine = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @dragLine
-        .attr("class", "hide dragLine")
+        .attr("class", "hide drag-line")
         .style('marker-end', 'url(#end-arrow)')
     else
-      @dragLine = d3.select(".dragLine")
+      @dragLine = d3.select(".drag-line")
 
 
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".nodeElement", @dragMove)
-      .on("dragend", ".nodeElement", @dragEnd)
-      .on("dragstart", ".nodeElement", @dragStart)
+      .on("drag", ".node-image", @dragMove)
+      .on("dragend", ".node-image", @dragEnd)
+      .on("dragstart", ".node-image", @dragStart)
 
 
   deactivate : ->
@@ -39,7 +39,7 @@ class ConnectBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = $("svg").offset()
-    @scaleValue = $(".zoomSlider input").val()
+    @scaleValue = $(".zoom-slider input").val()
 
 
   dragEnd : (event) =>

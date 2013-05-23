@@ -1,11 +1,38 @@
+body {
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+}
+
 svg {
 
   border: 2px solid black;
   border-radius: 4px;
   margin-bottom: 5px;
+
+  width: 100%;
 }
 
-#artifactFinder {
+.side-bar {
+
+  border: 2px solid black;
+  border-radius: 4px;
+
+  margin-left: 1% !important;
+  padding: 5px;
+
+  textarea {
+
+    width: 90%;
+    height: 100px;
+  }
+}
+
+#artifact-finder {
 
   background-color: #fafafa;
   -webkit-touch-callout: none;
@@ -15,22 +42,22 @@ svg {
   user-select: none;
 }
 
-#toolBar {
+.toolbar {
 
   margin-bottom: 20px;
 }
 
-#mainBody {
 
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+.graph {
 
+  position: relative;
 }
 
-.zoomSlider {
+.zoom-slider {
+
+  position: absolute;
+  right: -70px; // hacky
+  top: 10px;
 
   button {
     display: block;
@@ -39,17 +66,34 @@ svg {
   input {
 
     margin: 5px 0 5px 20px;
-    width: 0px;
+    width: 100px;
+    margin-top: 105px;
 
-    -webkit-appearance: slider-vertical;
+    //-webkit-appearance: slider-vertical;
 
-    // -webkit-transform: rotate(-90deg);
-    // -ms-transform: rotate(-90deg);
-    // -moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+
+    -webkit-transform-origin: center left;
+    -moz-transform-origin: center left;
+    -ms-transform-origin: center left;
+    transform-origin: center left;
   }
 }
 
 .container-fluid {
 
   padding: 10px;
+}
+
+.cluster-tool {
+
+  //overwrite bootstrap to fix design
+  a {
+    margin-left: -1px !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+  }
 }

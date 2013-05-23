@@ -115,10 +115,12 @@ class Graph
             html = """
               <html xmlns="http://www.w3.org/1999/xhtml">
                 <body>
-                  <div class="nodeElement" style="background-color: rgb(0,127,255)">
-                    <img class="nodeElement" draggable="false" data-id="#{data.get("id")}">
+                  <div class="node-object" style="background-color: rgb(0,127,255)">
+                    <img class="node-image" draggable="false" data-id="#{data.get("id")}">
+                  </div>
                 </body>
-              </html>""" #return HTML element
+              </html>
+              """
 
           $(this).append(html)
           return ""
