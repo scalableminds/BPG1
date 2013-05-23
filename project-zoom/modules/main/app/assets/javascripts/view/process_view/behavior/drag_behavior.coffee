@@ -8,7 +8,7 @@ class DragBehavior extends Behavior
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".nodeElement", @dragMoveNode)
+      .on("drag", ".node-image", @dragMoveNode)
       .on("drag", ".cluster", @dragMoveCluster)
       .on("dragstart", @dragStart)
 

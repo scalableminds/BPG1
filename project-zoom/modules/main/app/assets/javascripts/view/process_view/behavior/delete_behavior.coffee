@@ -8,7 +8,7 @@ class DeleteBehavior extends Behavior
   activate : ->
 
     @hammerContext = Hammer( $("svg")[0] )
-      .on("tap", ".nodeElement", @removeNode)
+      .on("tap", ".node-image", @removeNode)
       .on("tap", ".edge", @removeEdge)
 
 

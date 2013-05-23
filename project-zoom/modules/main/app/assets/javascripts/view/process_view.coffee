@@ -89,7 +89,7 @@ class ProcessView
 
       id = artifact.data("id")
       artifact = @artifactFinder.getArtifact(id)
-      $(artifact.domElement).find("img").addClass("nodeElement")
+      $(artifact.domElement).find("img").addClass("node-image")
 
       @on "view:zooming", artifact.resize
 

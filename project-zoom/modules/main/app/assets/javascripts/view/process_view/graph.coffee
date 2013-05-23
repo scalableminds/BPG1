@@ -115,7 +115,7 @@ class Graph
             if data.artifact?
               html = data.artifact.domElement
             else
-              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="nodeElement" style="background-color: rgb(0,127,255)"><img class="nodeElement" draggable="false" data-id="#{data.id}"></img></body></html>""" #return HTML element
+              html = """<html xmlns="http://www.w3.org/1999/xhtml"><body><div class="node-object" style="background-color: rgb(0,127,255)"><img class="node-image" draggable="false" data-id="#{data.id}"></img></body></html>""" #return HTML element
 
             $(this).append(html)
             return ""
