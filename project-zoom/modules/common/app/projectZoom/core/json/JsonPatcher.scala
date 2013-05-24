@@ -7,6 +7,7 @@ import play.api.libs.json.util._
 import play.api.libs.functional.syntax._
 import projectZoom.util.ExtendedTypes._
 import play.api.data.validation.ValidationError
+import play.api.Logger
 
 trait JsonPatch {
 
@@ -22,14 +23,14 @@ trait JsonPatch {
 }
 
 object JsonPatch {
-  def equalReads[T](v: T)(implicit r: Reads[T]): Reads[T] = 
+  def equalReads[T](v: T)(implicit r: Reads[T]): Reads[T] =
     Reads.filter(ValidationError("validate.error.expected.value", v))(_ == v)
 
-  def verifyPath(implicit r: Reads[String]): Reads[String] = 
-    Reads.filter(ValidationError("validate.error.invalidPath"))( p =>
+  def verifyPath(implicit r: Reads[String]): Reads[String] =
+    Reads.filter(ValidationError("validate.error.invalidPath"))(p =>
       p == "" ||
-      p.startsWith("/") && p.split("/").drop(1).forall(pE => pE.size > 0))
-  
+        p.startsWith("/") && p.split("/").drop(1).forall(pE => pE.size > 0))
+
   def verifyOperation(op: String) =
     (__ \ "op").read[String](equalReads(op))
 
@@ -41,7 +42,7 @@ object JsonPatch {
 
   val addPatch: Reads[JsonPatch] =
     (verifyOperation("add") andKeep path and value)(JsonAdd)
- 
+
   val removePatch: Reads[JsonPatch] =
     (verifyOperation("remove") andKeep path).map(JsonRemove)
 
@@ -56,13 +57,13 @@ object JsonPatch {
 
   def patchesRead =
     __.read(list(patchRead))
-    
+
   def applyPatches(obj: JsObject, patches: Seq[JsonPatch]) = {
     def patchTillFailure(patches: Seq[JsonPatch])(obj: JsObject): JsResult[JsObject] = {
       patches match {
         case patcher :: tail =>
-          patcher.patch.reads(obj).flatMap{ o =>
-            println("ZR: " + Json.stringify(o))
+          patcher.patch.reads(obj).flatMap { o =>
+            Logger.trace("ZR: " + Json.stringify(o))
             patchTillFailure(tail)(o)
           }
         case _ =>
@@ -70,10 +71,11 @@ object JsonPatch {
       }
     }
     patchTillFailure(patches)(obj)
-  }  
-  
-  def patch(obj: JsObject, patchObj: JsValue) = 
+  }
+
+  def patch(obj: JsObject, patchObj: JsValue) = {
     JsonPatch.patchesRead.reads(patchObj).flatMap(patches => applyPatches(obj, patches))
+  }
 }
 
 case class JsonTest(path: String, value: JsValue) extends JsonPatch {
@@ -99,7 +101,7 @@ case class JsonTest(path: String, value: JsValue) extends JsonPatch {
 
     val verifyArray = (__ \~ parentPath)(_.read(equalArrayElementReads(value, last)))
 
-     ( verifyObject orElse verifyArray) andKeep __.json.pick[JsObject]
+    (verifyObject orElse verifyArray) andKeep __.json.pick[JsObject]
   }
 }
 
@@ -150,21 +152,19 @@ case class JsonAdd(path: String, value: JsValue) extends JsonPatch {
 
     val updateObject = __.json.pick[JsObject] andThen ((__ \ last).json.put(value))
 
-    val updateArray = of[JsArray] map {
+    val updateArray = Reads.apply{
       case JsArray(l) =>
-        val updated = {
           if (last == "-")
-            l :+ value
+            JsSuccess(JsArray(l :+ value))
           else {
             last.toIntOpt match {
-              case Some(idx) if idx < l.size =>
-                l.updated(idx, value)
+              case Some(idx) if idx <= l.size =>
+                val (pre, post) = l.splitAt(idx)
+                JsSuccess(JsArray((pre :+ value) ++ post))
               case _ =>
-                l
+                JsError()
             }
           }
-        }
-        JsArray(updated)
     }
 
     (__ \~ parentPath)(_.json.update(updateArray)) orElse (__ \~ parentPath)(_.json.update(updateObject))

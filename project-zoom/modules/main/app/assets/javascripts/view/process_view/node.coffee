@@ -8,6 +8,7 @@ HALF_SIZE = 32
 Node = (node) ->
 
   cluster = null
+  comment = null
 
   getCenter : ->
 
