@@ -55,8 +55,11 @@ svg {
 .zoom-slider {
 
   position: absolute;
-  right: -70px; // hacky
+  right: 0px;
   top: 10px;
+
+  width: 45px;
+  overflow: hidden;
 
   button {
     display: block;
@@ -84,7 +87,7 @@ svg {
 
 .container-fluid {
 
-  padding: 10px;
+  padding: 0px;
 }
 
 .cluster-tool {
@@ -92,7 +95,37 @@ svg {
   //overwrite bootstrap to fix design
   a {
     margin-left: -1px !important;
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
+    margin-right: -1px !important;
+    border-radius: 0 !important;
   }
+}
+
+#comment-modal {
+
+  .modal-body {
+
+    min-height: 200px;
+    position: relative;
+  }
+
+  textarea {
+
+    position: absolute;
+
+    width:  94%;
+    height: 91%;
+    box-sizing: border-box;
+
+    resize: none;
+  }
+}
+
+a.toggles {
+    position:fixed;
+    left:0;
+    bottom:0;
+    display:block;
+    background-color:black;
+    color:white;
+    padding:10px 20px;
 }
