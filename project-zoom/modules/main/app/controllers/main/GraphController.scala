@@ -34,11 +34,11 @@ object GraphController extends ControllerBase with JsonCRUDController with Event
               GraphDAO.insert(updatedGraph).map { _ =>
                 publish(GraphUpdated(updatedGraph, patch))
               }
-              Ok
+              JsonOk
             }
             .recoverTotal {
               case e: JsError =>
-                BadRequest(e.toString)
+                BadRequest(JsError.toFlatJson(e))
             }
         case _ =>
           NotFound
