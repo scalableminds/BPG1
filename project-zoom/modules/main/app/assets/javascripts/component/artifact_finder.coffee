@@ -68,8 +68,6 @@ class ArtifactFinder
     @addArtifacts(@SAMPLE_ARTIFACTS)
 
 
-
-
   initSlider : (domElement) -> 
 
     slider = $("<input/>", {

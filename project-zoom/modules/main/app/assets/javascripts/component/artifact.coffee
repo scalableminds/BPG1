@@ -25,13 +25,13 @@ class Artifact
         draggable: false
         title: artifact.name
         class: "artifact-image"
-        "data-id": artifact.id
-        
+        "data-id": artifact.id)
+
     @domElement = $("<div/>",
       title: "#{artifact.name}"
       class: "node-object artifact"
     ).append(image)
-    )
+    
 
     @domElement.width(width())
 

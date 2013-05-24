@@ -12,6 +12,7 @@ class GUI
     @initToolbar()
     @initSVG()
     @initSideBar()
+    @initToggle()
 
 
   initSVG : ->
@@ -42,3 +43,11 @@ class GUI
     $(".side-bar").css("height", @height)
 
 
+  initToggle : ->
+
+    $("a.toggles").click ->
+      $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
+      $("#artifact-finder").animate
+        width: "toggle"
+      , 100
+      $("#main").toggleClass "span12 span8"
