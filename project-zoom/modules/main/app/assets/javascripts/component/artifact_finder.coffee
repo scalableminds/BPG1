@@ -12,20 +12,51 @@ class ArtifactFinder
 
   domElement : null
   groups : null
-  artifacts : []
 
-  SAMPLE_ARTIFACT : {
-    name:"test1"
-    id : 12345
-    source : "Dropbox"
-    resources : [
-      {type :"thumbnail", id : 123, path : "assets/images/thumbnails/0.png"}
-      {type :"thumbnail", id : 456, path : "assets/images/thumbnails/1.png"}
-      {type :"thumbnail", id : 789, path : "assets/images/thumbnails/2.png"}
-      {type :"thumbnail", id : 112, path : "assets/images/thumbnails/3.png"}
-      {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
-    ]
-  }
+  SAMPLE_ARTIFACTS : [
+    {
+      name:"test1"
+      id : 12345
+      source : "Dropbox"
+      resources : [
+        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
+        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
+        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
+        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
+        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
+        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"} 
+        {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
+      ]
+    }
+    {
+      name:"test2"
+      id : 12346
+      source : "Dropbox"
+      resources : [
+        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
+        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
+        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
+        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
+        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
+        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"} 
+        {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
+      ]
+    }      
+    {
+      name:"test3"
+      id : 12347
+      source : "Incom"
+      resources : [
+        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
+        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
+        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
+        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
+        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
+        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"}        
+        {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
+      ]
+    }  
+  ]
 
   constructor : () ->
 
@@ -33,50 +64,59 @@ class ArtifactFinder
     @artifactComponents = []
 
     domElement = $('<div/>', {
-
+      class : "artifact-container"
     })
 
+    @createGroups(domElement, @GROUP_NAMES)
+
+    @domElement = domElement
+    @initSlider(domElement)
+    @addArtifacts(@SAMPLE_ARTIFACTS)
+
+
+  initSlider : (domElement) -> 
+
     slider = $("<input/>", {
-      id : "defaultSlider"
+      class : "finder-slider"
       type : "range"
       min : "1"
       max : "500"
       value: "40"
     })
-
-    domElement.append(slider)
-
-    @artifacts.push new Artifact( @SAMPLE_ARTIFACT, -> 64 )
-    artifact = @SAMPLE_ARTIFACT
-
-    @createGroups(domElement, @GROUP_NAMES)
-
-    func = -> this.value
-    x = _.bind(func, slider[0])
-
-    artifactC = new Artifact(
-      artifact
-      x
-    )
-    @artifactComponents.push artifactC
-
     slider.on(
       "change"
-      => artifactC.resize()
+      => @resize()
     )
 
-    domElement.append(artifactC.domElement)
+    func = -> this.value
+    @getSliderValue = _.bind(func, slider[0])
 
-    group = _.find(@groups, (g) => g.name is artifact.source)
-    group.div.append(artifactC.domElement)
+    domElement.prepend(slider)
 
 
-    @domElement = domElement
+  addArtifacts : (artifacts) ->
+
+    { group, getSliderValue, domElement } = @
+     
+    for artifact in artifacts
+
+      artifactC = new Artifact(artifact, getSliderValue)    
+      @artifactComponents.push artifactC
+      domElement.append(artifactC.domElement)     
+
+      group = _.find(@groups, (g) => g.name is artifact.source)
+      group.div.append(artifactC.domElement)
 
 
   setResized : (func) ->
+
     @onResized = func
 
+
+  resize : ->
+
+    for artifact in @artifactComponents
+      artifact.resize()
 
 
   destroy : ->
@@ -86,11 +126,9 @@ class ArtifactFinder
   deactivate : ->
 
   getArtifact : (id) =>
-
-    for artifact in @artifacts
+    for artifact in @SAMPLE_ARTIFACTS
       if artifact.id = id
-        return _.cloneDeep(artifact)
-
+        return new Artifact( artifact, -> 64 )
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
@@ -107,9 +145,6 @@ class ArtifactFinder
       <div class="tab-content">
         <% groupNames.forEach(function (group) { %>
           <div class="tab-pane" id="tab<%= group %>">
-            <p>
-              <%= group %>test
-            </p>
           </div>
         <% }) %>
       </div>

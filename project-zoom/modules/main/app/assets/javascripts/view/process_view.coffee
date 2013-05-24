@@ -27,25 +27,6 @@ class ProcessView
     @initArtifactFinder()
     @initGraph()
     @initEventHandlers()
-    @initToggle()
-
-
-
-  initToggle : ->
-
-    $("a.toggles").click ->
-      $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
-      $("#artifact-finder").animate
-        width: "toggle"
-      , 100
-      $("#main").toggleClass "span12 span8"
-
-    #$("#main").toggle (->
-    #  $(this).css "margin-left": "0"
-    #), ->
-    #  $(this).css "margin-left": "2.127659574%"
-
-
 
 
   initArtifactFinder : ->
