@@ -5,13 +5,12 @@ define
 
 Edge = (edge, nodeList) ->
 
-  MARGIN = 2
-
   PI = Math.PI
   PI2 = 2 * Math.PI
   PI_HALF = PI / 2
   PI_QUARTER = PI / 4
 
+  comment : null
   source : nodeList.find( (node) -> node.get("id") == edge.get("from"))
   target : nodeList.find( (node) -> node.get("id") == edge.get("to"))
 
@@ -25,9 +24,8 @@ Edge = (edge, nodeList) ->
 
   getLineSegment : ->
 
-    #use center of the rectangles
-    target = @target#.getCenter()
-    source = @source#.getCenter()
+    target = @target
+    source = @source
 
     @HALF_SIZE = Node(@target).getSize().width / 2
 

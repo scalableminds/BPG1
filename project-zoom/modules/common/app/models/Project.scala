@@ -27,6 +27,13 @@ object ProjectDAO extends SecuredMongoJsonDAO {
     find("name", _project).one[JsObject]
   }
 
+  def addGraphTo(projectId: String, graph: Graph)(implicit ctx: DBAccessContext) = {
+    withValidId(projectId) { id =>
+      collectionUpdate(Json.obj("_id" -> id),
+        Json.obj("$push" -> Json.obj("_graphs" -> graph._id)))
+    }
+  }
+
   def update(p: Project)(implicit ctx: DBAccessContext): Future[LastError] =
     collectionUpdate(Json.obj("name" -> p.name),
       Json.obj("$set" -> p), upsert = true)
@@ -34,7 +41,7 @@ object ProjectDAO extends SecuredMongoJsonDAO {
   def update(p: ProjectLike)(implicit ctx: DBAccessContext): Future[LastError] =
     collectionUpdate(Json.obj("name" -> p.name),
       Json.obj("$set" -> p), upsert = true)
-      
+
   /*override def findQueryFilter(implicit ctx: DBAccessContext): JsObject = {
     ctx.user.map{ user =>
       val email = user.email.getOrElse("")
