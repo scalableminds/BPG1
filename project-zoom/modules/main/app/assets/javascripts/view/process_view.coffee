@@ -28,6 +28,18 @@ class ProcessView
     @initGraph()
     @initEventHandlers()
 
+    @initToggle()
+
+
+  initToggle : ->
+
+    $("a.toggles").click ->
+      $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
+      $("#artifact-finder").toggle()
+      $("#main").toggleClass "span12 span8"
+
+
+
 
   initArtifactFinder : ->
 

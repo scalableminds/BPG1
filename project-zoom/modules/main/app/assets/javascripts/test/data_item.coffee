@@ -269,30 +269,168 @@ describe "DataItem", ->
         ]
       )
 
+    describe "compact", ->
 
-    it "should compact patches", ->
+      it "should remove added then removed patches", ->
 
-      @dataItem.set(
-        test : [
-          test2 : "test2"
-        ]
-      )
+        @dataItem.set("test", "test2")
 
-      @dataItem.patchAcc.flush()
+        @dataItem.patchAcc.peek().should.deep.equal([
+          op : "add", path : "/test", value : "test2"
+        ])
 
-      @dataItem.get("test/0").set("test2", "test3")
-      @dataItem.get("test/0").set("test2", "test4")
+        @dataItem.unset("test")
 
-      @dataItem.get("test/0").set("test3", "test4")
-      @dataItem.get("test/0").unset("test3")
+        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch.should.deep.equal([])
 
-      @dataItem.patchAcc.compact()
-      jsonPatch = @dataItem.patchAcc.flush()
-      jsonPatch.should.deep.equal(
-        [
-          { op : "replace", path : "/test/0/test2", value : "test4" }
-        ]
-      )
+
+      it "should merge redundant (replace after add) patches", ->
+
+        @dataItem.set("test", "test2")
+        @dataItem.set("test", "test3")
+
+        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch.should.deep.equal([
+          op : "add", path : "/test", value : "test3"
+        ])
+
+
+      it "should merge nested patches", ->
+
+        @dataItem.set(
+          test :
+            test2 : "test3"
+            test4 : []
+        )
+
+        @dataItem.patchAcc.peek().should.deep.equal([
+          op : "add"
+          path : "/test"
+          value : 
+            test2 : "test3"
+            test4 : []
+        ])
+
+        @dataItem.set("test/test2", "test4")
+
+        @dataItem.patchAcc.compact().should.deep.equal([
+          op : "add"
+          path : "/test"
+          value : 
+            test2 : "test4"
+            test4 : []
+        ])
+
+        @dataItem.set("test/test3", "test5")
+        @dataItem.get("test/test4").add("test6")
+
+        @dataItem.patchAcc.compact().should.deep.equal([
+          op : "add"
+          path : "/test"
+          value : 
+            test2 : "test4"
+            test3 : "test5"
+            test4 : ["test6"]
+        ])
+
+        @dataItem.set("test/test4/0", "test7")
+
+        @dataItem.patchAcc.compact().should.deep.equal([
+          op : "add"
+          path : "/test"
+          value : 
+            test2 : "test4"
+            test3 : "test5"
+            test4 : ["test7"]
+        ])
+
+
+      it "should merge array addings", ->
+
+        @dataItem.set("test", [])
+        @dataItem.patchAcc.flush()
+
+        @dataItem.get("test").add("test1")
+        @dataItem.get("test").add("test2")
+        @dataItem.set("test/1", "test3")
+
+        @dataItem.patchAcc.compact().should.deep.equal([
+          { op : "add", path : "/test/-", value : "test1" }
+          { op : "add", path : "/test/-", value : "test2" }
+          { op : "replace", path : "/test/1", value : "test3" }
+        ])
+
+
+      it "should merge weird array operations", ->
+
+        @dataItem.set("test", [])
+        @dataItem.get("test").add("test1")
+        @dataItem.get("test").add("test2")
+        @dataItem.set("test/1", "test3")
+        @dataItem.get("test").add("test4")
+
+        @dataItem.patchAcc.compact().should.deep.equal([
+          op : "add"
+          path : "/test"
+          value : [
+            "test1"
+            "test3"
+            "test4"
+          ]
+        ])
+
+
+
+      it "should compact for simple items", ->
+
+        @dataItem.set(
+          test : [
+            test2 : "test2"
+          ]
+        )
+
+        @dataItem.patchAcc.flush()
+
+        @dataItem.get("test/0").set("test2", "test3")
+        @dataItem.get("test/0").set("test2", "test4")
+
+        @dataItem.get("test/0").set("test3", "test4")
+        @dataItem.get("test/0").unset("test3")
+
+        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch.should.deep.equal(
+          [
+            { op : "replace", path : "/test/0/test2", value : "test4" }
+          ]
+        )
+
+
+      it "should merge nested items", ->
+
+        @dataItem.set(
+          test : [
+            test2 :
+              test3 : "test3"
+          ]
+        )
+
+        @dataItem.set("test/0/test2/test3" : "test4")
+
+        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch.should.deep.equal(
+          [
+            { 
+              op : "add"
+              path : "/test"
+              value : [
+                test2 : {
+                  test3 : "test4"
+                }
+              ] 
+            }
+          ]
+        )
 
 
 

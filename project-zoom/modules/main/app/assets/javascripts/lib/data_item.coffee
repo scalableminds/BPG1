@@ -34,6 +34,7 @@ class DataItem
     @on(this, "patch:*", @trackChanges)
 
 
+
   trackPatches : (key) -> (op, path, value) =>
 
     @trigger("patch:#{op}", "#{key}/#{path}", value, this)
@@ -181,11 +182,11 @@ class DataItem
 
       if _.isArray(value)
         @lazyAttributes[key.substring(1)] = value.map( (a) ->
-          "/#{_.pluralize(key.substring(1))}/#{a}"
+          "/#{_.pluralize(key.substring(1))}/#{a.$oid ? a}"
         )
 
       else
-        @lazyAttributes[key.substring(1)] = "/#{_.pluralize(key.substring(1))}/#{value}"
+        @lazyAttributes[key.substring(1)] = "/#{_.pluralize(key.substring(1))}/#{value.$oid ? value}"
 
     else
 
@@ -252,7 +253,20 @@ class DataItem
       value
 
 
+  @fetch : (url) ->
+
+    Request.send(
+      url : url
+      method : "POST"
+      dataType : "json"
+    ).then(
+      (json) ->
+        new DataItem(json)
+    )
+
+
   @lazyCache : {}
+  
 
 
   ['keys', 'values', 'pairs', 'invert', 'pick', 'omit'].forEach (method) ->
@@ -264,7 +278,7 @@ class DataItem
 
 class DataItem.Collection
 
-  DEFAULT_LIMIT : 50
+  DEFAULT_LIMIT : 200
 
   constructor : (items = []) ->
 
@@ -275,7 +289,6 @@ class DataItem.Collection
       items = []
 
     @items = []
-    @parts = []
 
     Object.defineProperty( this, "length", get : => @items.length )
 
@@ -321,8 +334,6 @@ class DataItem.Collection
         for item, i in result.content when i < result.limit
           @set(result.offset + i, item)
 
-        @addParts(result.offset, result.limit)
-
         return
 
     )
@@ -330,44 +341,7 @@ class DataItem.Collection
 
   fetchNext : ->
 
-    if lastPart = _.last(@parts)
-      @fetch(lastPart.end, @DEFAULT_LIMIT)
-
-    else
-      @fetch(0, @DEFAULT_LIMIT)
-
-
-  addParts : (offset, count) ->
-
-    { parts } = this
-    lastPart = null
-    for part, i in parts
-      
-      if offset <= part.start <= offset + count or offset <= part.end <= offset + count
-
-        part.start = Math.min(part.start, offset)
-        part.end = Math.max(part.end, offset + count)
-
-        if i + 1 < parts.length and parts[i + 1].start <= part.end
-          part.end = Math.max(parts[i + 1].end, part.end)
-          parts.splice(i + 1, 1)
-
-        return
-
-      if part.start > offset + count
-
-        parts.splice(i, 0, start : offset, end : offset + count)
-        return
-
-      lastPart = part
-
-    parts.push( start : offset, end : offset + count )
-    return
-
-
-  removeParts : (offset, count) ->
-
-
+    @fetch(@length, @DEFAULT_LIMIT)
 
 
   get : (key, self, callback) ->
@@ -410,7 +384,6 @@ class DataItem.Collection
     if items.length > 0
       offset = @length - 1
       @set(@length, item) for item in items
-      @addParts(offset, items.length)
 
     return
 
@@ -440,6 +413,9 @@ class DataItem.Collection
       if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
         oldValue.off(this, "patch:*", @trackPatches)
 
+    isAppending = index >= @length
+    index = Math.min(index, @length) if isAppending # prevent array holes
+
     item = DataItem.prepareValue(item)
     if item instanceof DataItem or item instanceof DataItem.Collection
       item.on(this, "patch:*", @trackPatches)
@@ -448,6 +424,7 @@ class DataItem.Collection
     if oldValue
       @trigger("patch:replace", index, item, this)
     else
+      index = "-" if isAppending
       @trigger("patch:add", index, item, this)
 
     
@@ -459,7 +436,6 @@ class DataItem.Collection
         if item instanceof DataItem or item instanceof DataItem.Collection
           item.off(this, "patch:*", @trackPatches)
         @items.splice(index, 1)
-        @removeParts(index, 1)
         @trigger("patch:remove", index, item, this)
     return
 

@@ -69,6 +69,16 @@ describe "DataItem.Collection", ->
       @dataCollection.at(0).should.equal("test3")
 
 
+    it "shouldn't allow holes in collection", ->
+
+      @dataCollection.set(0, "test0")
+      @dataCollection.set(2, "test1")
+
+      @dataCollection.should.have.length(2)
+      @dataCollection.at(0).should.be.equal("test0")
+      @dataCollection.at(1).should.be.equal("test1")
+
+
   describe "changes", ->
 
     it "should trigger add events", (done) ->
@@ -81,13 +91,13 @@ describe "DataItem.Collection", ->
         (callback) =>
           @dataCollection.on(this, "patch:add", (index, value, collection) =>
             value.should.equal(dataItem)
-            index.should.equal(1)
+            index.should.equal("-")
             collection.should.equal(@dataCollection)
             callback()
           )
 
         (callback) =>
-          @dataCollection.on(this, "change:1", (value, collection) =>
+          @dataCollection.on(this, "change:-", (value, collection) =>
             value.should.equal(dataItem)
             collection.should.equal(@dataCollection)
             callback()
@@ -95,7 +105,7 @@ describe "DataItem.Collection", ->
 
         (callback) =>
           @dataCollection.on(this, "change", (changeSet, collection) =>
-            changeSet[1].should.equal(dataItem)
+            changeSet["-"].should.equal(dataItem)
             collection.should.equal(@dataCollection)
             callback()
           )
@@ -179,8 +189,9 @@ describe "DataItem.Collection", ->
 
       jsonPatch.should.deep.equal(
         [
-          { op : "add", path : "/0", value : "test" }
-          { op : "add", path : "/1", value : "test2" }
+          { op : "add", path : "/-", value : "test" }
+          { op : "add", path : "/-", value : "test1" }
+          { op : "replace", path : "/1", value : "test2" }
         ]
       )
 
@@ -201,49 +212,6 @@ describe "DataItem.Collection", ->
       @dataCollection.get("0").should.equal("test1")
 
 
-  describe "parts management", ->
-
-    it "should merge with before part", ->
-
-      @dataCollection.addParts(0, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 10 )
-
-      @dataCollection.addParts(10, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 20 )
-
-
-    it "should merge with after part", ->
-
-      @dataCollection.addParts(10, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 10, end : 20 )
-
-      @dataCollection.addParts(0, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 20 )
-
-
-    it "should merge in between", ->
-
-      @dataCollection.addParts(0, 5)
-      @dataCollection.addParts(10, 5)
-
-      @dataCollection.parts.should.have.length(2)
-      @dataCollection.parts[0].should.eql( start : 0, end : 5 )
-      @dataCollection.parts[1].should.eql( start : 10, end : 15 )
-
-      @dataCollection.addParts(5, 5)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 15 )
-
-
   describe "fetching", ->
 
     it "should insert data", (done) ->
@@ -256,17 +224,19 @@ describe "DataItem.Collection", ->
         =>
           Request.send.restore()
 
+          @dataCollection.at(0).get("test").should.equal("1")
+          @dataCollection.at(1).get("test").should.equal("2")
           @dataCollection.should.have.length(2)
 
           sinon.stub(Request, "send").returns(
-            (new $.Deferred()).resolve( offset : 3, limit : 1, content : [ { test : "3" }, { test : "4" } ] ).promise()
+            (new $.Deferred()).resolve( offset : 2, limit : 1, content : [ { test : "3" }, { test : "4" } ] ).promise()
           )
           @dataCollection.fetch(3, 10).then(
             =>
               Request.send.restore()
 
-              @dataCollection.should.have.length(4)
-              @dataCollection.parts.should.have.length(2)
+              @dataCollection.at(2).get("test").should.equal("3")
+              @dataCollection.should.have.length(3)
 
               done()
           )
@@ -281,6 +251,8 @@ describe "DataItem.Collection", ->
       @dataCollection.fetchNext().then(
         =>
           Request.send.restore()
+          @dataCollection.at(0).get("test").should.equal("1")
+          @dataCollection.at(1).get("test").should.equal("2")
           @dataCollection.should.have.length(2)
 
           sinon.stub(Request, "send").returns(
@@ -289,8 +261,9 @@ describe "DataItem.Collection", ->
           @dataCollection.fetchNext().then(
             =>
               Request.send.restore()
+              @dataCollection.at(2).get("test").should.equal("3")
+              @dataCollection.at(3).get("test").should.equal("4")
               @dataCollection.should.have.length(4)
-              @dataCollection.parts.should.have.length(1)
               done()
           )
 
@@ -304,12 +277,6 @@ describe "DataItem.Collection", ->
       @dataCollection.add(new DataItem(test : "test2"))
 
       @dataCollection.toObject().should.deep.equal([{test : "test2"}])
-
-
-
-
-
-
 
 
 

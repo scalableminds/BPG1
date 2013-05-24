@@ -258,6 +258,7 @@ class Graph
       _.flatten [
         @nodes.pluck("id")
         @clusters.pluck("id")
+        [0]
       ]
     ) + 1
 

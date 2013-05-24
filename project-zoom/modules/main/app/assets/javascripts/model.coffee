@@ -12,13 +12,24 @@ app.addInitializer (options, callback) ->
     project : null
 
 
-  model.projects.fetchNext().done ->
+  model.projects.fetchNext().then( 
+    ->
 
-    model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
-    model.project = model.projects.at(0)
+      model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
+      model.project = model.projects.find((p) -> p.get("id") == "519b693d030655c8752c2983")
 
-    app.model = model
+      new $.Deferred (deferred) ->
+        model.project.get("graphs/0", model.project, deferred.resolve)
+        return
 
-    callback()
+  ).then(
+    ->
+
+      app.model = model
+
+      callback()
+  )
+
+    
 
   return
