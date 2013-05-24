@@ -35,6 +35,8 @@ trait DAO[T] extends BaseDAO[T] {
   def removeById(id: String)(implicit ctx: DBAccessContext): Future[LastError]
 
   def removeAll(implicit ctx: DBAccessContext): Future[LastError]
+  
+  def collectionName: String
 }
 
 trait BaseDAO[T] {

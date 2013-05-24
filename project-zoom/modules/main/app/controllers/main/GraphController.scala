@@ -12,21 +12,15 @@ import models.DBAccessContext
 import play.api.libs.json.Json
 import play.api.libs.json.JsObject
 import controllers.common.ControllerBase
+import play.api.libs.json.Reads
 
 case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 
 object GraphController extends ControllerBase with JsonCRUDController with EventPublisher with GraphTransformers {
   val dao = GraphDAO
 
-  def transformResult(ctx: DBAccessContext)(obj: JsObject) = {
-    Json.toJson(obj).transform(
-      beautifyObjectId andThen GraphDAO.includePayloadDetails(ctx)).get
-  }
-
-  override def list(offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
-    Async {
-      listItems(offset, limit)(transformResult(requestToDBAccess(request)))
-    }
+  override def displayReader(implicit ctx: DBAccessContext): Reads[JsObject] = {
+    GraphDAO.includePayloadDetails(ctx)
   }
 
   def patch(graphId: String) = SecuredAction(true, None, parse.json) { implicit request =>

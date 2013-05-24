@@ -5,6 +5,7 @@ import reactivemongo.core.commands.LastError
 import play.api.libs.json.JsObject
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.Json
+import reactivemongo.bson.BSONObjectID
 
 trait SecuredMongoJsonDAO extends MongoJsonDAO with SecuredJsonDAO
 
@@ -36,7 +37,7 @@ trait GlobalDBAccess {
   implicit val ctx: DBAccessContext = GlobalAccessContext
 }
 
-trait AllowEverytingDBAccessValidator extends DBAccessValidator{
+trait AllowEverytingDBAccessValidator extends DBAccessValidator {
   def isAllowedToInsert(implicit ctx: DBAccessContext): Boolean = true
 
   def removeQueryFilter(implicit ctx: DBAccessContext): JsObject = Json.obj()
@@ -46,7 +47,7 @@ trait AllowEverytingDBAccessValidator extends DBAccessValidator{
   def findQueryFilter(implicit ctx: DBAccessContext): JsObject = Json.obj()
 }
 
-trait AllowEyerthingDBAccessFactory extends DBAccessFactory{
+trait AllowEyerthingDBAccessFactory extends DBAccessFactory {
   def createACL(toInsert: JsObject)(implicit ctx: DBAccessContext): JsObject = Json.obj()
 }
 
@@ -65,6 +66,13 @@ trait DBAccessValidator {
 }
 
 trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEyerthingDBAccessFactory with AllowEverytingDBAccessValidator { this: MongoDAO[T] =>
+
+  def withValidId(sid: String)(f: BSONObjectID => Future[LastError]) =
+    BSONObjectID
+      .parse(sid)
+      .map(f)
+      .getOrElse(Future.successful(
+        LastError(false, None, None, Some("Couldn't parse ObjectId"), None, 0, false)))
 
   def collectionInsert(js: JsObject)(implicit ctx: DBAccessContext): Future[LastError] = {
     if (ctx.globalAccess || isAllowedToInsert) {
