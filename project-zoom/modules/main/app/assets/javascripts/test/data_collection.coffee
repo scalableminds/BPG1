@@ -47,6 +47,28 @@ describe "DataItem.Collection", ->
       @dataCollection.length.should.be.equal(1)
 
 
+    it "should work with paths", ->
+
+      dataItem1 = new DataItem(test : "test1")
+      @dataCollection.add(dataItem1)
+
+      @dataCollection.get("0/test").should.equal("test1")
+
+      @dataCollection.set("0/test", "test2")
+      @dataCollection.get("0/test").should.equal("test2")
+
+    it "should update", ->
+
+      @dataCollection.add("test2")
+
+      @dataCollection.update(0, (value) ->
+        value.should.equal("test2")
+        "test3"
+      )
+
+      @dataCollection.at(0).should.equal("test3")
+
+
   describe "changes", ->
 
     it "should trigger add events", (done) ->
@@ -57,7 +79,7 @@ describe "DataItem.Collection", ->
       async.parallel([
 
         (callback) =>
-          @dataCollection.on(this, "add", (value, index, collection) =>
+          @dataCollection.on(this, "patch:add", (index, value, collection) =>
             value.should.equal(dataItem)
             index.should.equal(1)
             collection.should.equal(@dataCollection)
@@ -92,7 +114,7 @@ describe "DataItem.Collection", ->
       async.parallel([
 
         (callback) =>
-          @dataCollection.on(this, "remove", (value, index, collection) =>
+          @dataCollection.on(this, "patch:remove", (index, value, collection) =>
             value.should.equal(dataItem)
             index.should.equal(1)
             collection.should.equal(@dataCollection)
@@ -136,13 +158,32 @@ describe "DataItem.Collection", ->
       dataItem = new DataItem(test : "test")
       @dataCollection.add(dataItem)
 
-      @dataCollection.one(this, "remove", (value) =>
+      @dataCollection.one(this, "patch:remove", (index, value) =>
         value.should.equal(dataItem)
-        dataItem.__callbacks.change.should.have.length(changeCallbackCount - 1)
+        dataItem.__callbacks["patch:*"].should.have.length(changeCallbackCount - 1)
         done()
       )
-      changeCallbackCount = dataItem.__callbacks.change.length
+      changeCallbackCount = dataItem.__callbacks["patch:*"].length
       @dataCollection.remove(dataItem)
+
+
+  describe "json patch", ->
+
+    it "should record member add", ->
+
+      @dataCollection.add("test")
+      @dataCollection.add("test1")
+      @dataCollection.set(1, "test2")
+
+      jsonPatch = @dataCollection.patchAcc.flush()
+
+      jsonPatch.should.deep.equal(
+        [
+          { op : "add", path : "/0", value : "test" }
+          { op : "add", path : "/1", value : "test2" }
+        ]
+      )
+
 
 
   describe "at/get", ->

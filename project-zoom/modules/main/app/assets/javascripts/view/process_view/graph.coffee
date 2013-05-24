@@ -204,11 +204,14 @@ class Graph
     cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
 
     #move waypoints
-    cluster.get("waypoints").each (waypoint) ->
-      waypoint.set(
-        x : waypoint.get("x") + distance.x
-        y : waypoint.get("y") + distance.y
+    cluster.update("waypoints", (waypoints) ->
+
+      waypoints.toObject().map( (waypoint) ->
+        x : waypoint.x + distance.x
+        y : waypoint.y + distance.y
       )
+      
+    )
 
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>

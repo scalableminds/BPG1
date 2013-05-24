@@ -119,6 +119,20 @@ describe "DataItem", ->
       )
 
 
+    it "should update", ->
+
+      @dataItem.set(test : "test2")
+
+      @dataItem.update("test", (value) ->
+        value.should.equal("test2")
+        "test3"
+      )
+
+      @dataItem.get("test").should.equal("test3")
+
+
+
+
   describe "changes", ->
 
 
@@ -177,12 +191,12 @@ describe "DataItem", ->
           obj.should.equal(@dataItem)
           @dataItem.attributes.should.not.have.property("test")
 
-          subDataItem.__callbacks.change.should.have.length(changeCallbackCount - 1)
+          subDataItem.__callbacks["patch:*"].should.have.length(changeCallbackCount - 1)
 
           done()
         )
 
-        changeCallbackCount = subDataItem.__callbacks.change.length
+        changeCallbackCount = subDataItem.__callbacks["patch:*"].length
         @dataItem.unset("test")
       )
 
@@ -192,21 +206,97 @@ describe "DataItem", ->
       @dataItem.set(
         test :
           test1 : "test"
+          test2 : [1, 2, 3]
       )
 
-      @dataItem.set("test2", "test2")
+      @dataItem.set("test3", "test3")
 
-      @dataItem.unset("test2")
+      @dataItem.unset("test3")
+
+      @dataItem.get("test/test2").remove(2)
 
       changeSet = @dataItem.changeAcc.flush()
       changeSet.should.deep.equal(
         test :
           test1 : "test"
-        test2 : undefined
+          test2 : [1, undefined, 3]
+        test3 : undefined
       )
 
       changeSet.__timestamp.should.be.closeTo(Date.now(), 10)
       done()
+
+
+  describe "json patch", ->
+
+    it "should record member add/set", ->
+
+      @dataItem.set(
+        test : "test"
+      )
+
+      @dataItem.patchAcc.flush()
+
+      @dataItem.set("test1", "test1")
+      @dataItem.unset("test")
+
+      jsonPatch = @dataItem.patchAcc.flush()
+
+      jsonPatch.should.deep.equal(
+        [
+          { op : "add", path : "/test1", value : "test1" }
+          { op : "remove", path : "/test" }
+        ]
+      )
+
+
+    it "should propagate patches", ->
+
+      @dataItem.set(
+        test : [
+          test2 : "test2"
+        ]
+      )
+
+      @dataItem.patchAcc.flush()
+
+      @dataItem.get("test/0").set("test2", "test3")
+
+      jsonPatch = @dataItem.patchAcc.flush()
+      jsonPatch.should.deep.equal(
+        [
+          { op : "replace", path : "/test/0/test2", value : "test3" }
+        ]
+      )
+
+
+    it "should compact patches", ->
+
+      @dataItem.set(
+        test : [
+          test2 : "test2"
+        ]
+      )
+
+      @dataItem.patchAcc.flush()
+
+      @dataItem.get("test/0").set("test2", "test3")
+      @dataItem.get("test/0").set("test2", "test4")
+
+      @dataItem.get("test/0").set("test3", "test4")
+      @dataItem.get("test/0").unset("test3")
+
+      @dataItem.patchAcc.compact()
+      jsonPatch = @dataItem.patchAcc.flush()
+      jsonPatch.should.deep.equal(
+        [
+          { op : "replace", path : "/test/0/test2", value : "test4" }
+        ]
+      )
+
+
+
+
 
 
 

@@ -6,9 +6,6 @@ class GUI
 
   constructor : ->
 
-    margin = 10
-    @height = $(window).height() - $(".graph").offset().top - margin
-
     @initToolbar()
     @initSVG()
     @initSideBar()
@@ -16,13 +13,14 @@ class GUI
 
   initSVG : ->
 
-    width = $(".graph").width()
-
     @svg = d3.select(".graph")
       .append("svg")
-      .attr("width", width)
-      .attr("height", @height)
+      .attr("width", $(".graph").width())
       .attr("pointer-events", "all")
+
+    $(window).resize(
+      => @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+    ).resize()
 
 
   initToolbar : ->
