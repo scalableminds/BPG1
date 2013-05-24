@@ -19,10 +19,12 @@ class ArtifactFinder
       id : 12345
       source : "Dropbox"
       resources : [
-        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/0.png"}
-        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/1.png"}
-        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/2.png"}
-        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/3.png"}
+        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
+        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
+        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
+        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
+        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
+        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"} 
         {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
       ]
     }
@@ -31,10 +33,12 @@ class ArtifactFinder
       id : 12346
       source : "Dropbox"
       resources : [
-        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/0.png"}
-        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/1.png"}
-        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/2.png"}
-        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/3.png"}
+        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
+        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
+        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
+        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
+        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
+        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"} 
         {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
       ]
     }      
@@ -43,10 +47,12 @@ class ArtifactFinder
       id : 12347
       source : "Incom"
       resources : [
-        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/0.png"}
-        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/1.png"}
-        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/2.png"}
-        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/3.png"}
+        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
+        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
+        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
+        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
+        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
+        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"}        
         {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
       ]
     }  
