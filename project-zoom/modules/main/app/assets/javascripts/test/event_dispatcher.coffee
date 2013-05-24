@@ -2,6 +2,7 @@
 lib/event_mixin : EventMixin
 lib/event_dispatcher : EventDispatcher
 lib/sinon : sinon
+async : async
 ###
 
 describe "EventDispatcher", ->
@@ -51,6 +52,26 @@ describe "EventDispatcher", ->
       
       callback("test")
       @spy.should.have.been.called.once
+
+
+    it "should execute in sender's context", (done) ->
+
+      that = this
+      async.parallel [
+        
+        (callback) =>
+          @dispatcher.register(@eventMixin, @self, null, ->
+            this.should.equal(that.self)
+            callback()
+          )()
+
+        (callback) =>
+          @dispatcher.register(@eventMixin, @self, null, ->
+            this.should.equal(that.self)
+            callback()
+          ).oneShot()
+
+      ], done
 
 
     it "should work without a sender", ->

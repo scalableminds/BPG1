@@ -15,7 +15,11 @@ jquery.mousewheel : Mousewheel
 
 class ProcessView
 
-  constructor : ->
+  WIDTH = 960
+  HEIGHT = 500
+  time : null
+
+  constructor : (@projectModel) ->
 
     @gui = new GUI()
 
@@ -43,6 +47,7 @@ class ProcessView
 
 
 
+
   initArtifactFinder : ->
 
     @artifactFinder = new ArtifactFinder()
@@ -57,22 +62,21 @@ class ProcessView
     @svg = d3.select("svg")
     @graphContainer = @svg.append("svg:g")
 
-    @graph = new InteractiveGraph(@graphContainer, @svg)
-    for i in [0..5]
-      @graph.addNode(i*70, i*70)
+    @projectModel.get("graphs/0", this, (graphModel) ->
 
-    @graph.addEdge(0,1)
-    @graph.addEdge(2,3)
-    @graph.addEdge(4,3)
+      @graph = new InteractiveGraph(@graphContainer, @svg, graphModel)
+
+    )
 
 
   initEventHandlers : ->
 
     # add new node
-    Hammer( $("svg")[0] ).on "tap", @addNode
+    # Hammer( $("svg")[0] ).on "tap", @addNode
 
     # drag artifact into graph
-    Hammer($("body")[0]).on "dragend", "#artifact-finder .artifact-image", @addArtifact
+    $("body").on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
+    Hammer(document.body).on "dragend", "#artifact-finder .artifact-image", @addArtifact
 
     # change tool from toolbox
     processView = this
@@ -84,13 +88,22 @@ class ProcessView
       .on("click", ".plus", => @changeZoomSlider(0.1) )
       .on("click", ".minus", => @changeZoomSlider(-0.1) )
 
-    $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+    do =>
 
-      evt.preventDefault()
-      if deltaY > 0
-        @changeZoomSlider(0.1)
-      else
-        @changeZoomSlider(-0.1)
+      mouseDown = false
+
+      Hammer(document.body)
+        .on("touch", -> mouseDown = true; return )
+        .on("release", -> mouseDown = false; return )
+
+      $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+
+        evt.preventDefault()
+        return if mouseDown
+        if deltaY > 0
+          @changeZoomSlider(0.1)
+        else
+          @changeZoomSlider(-0.1)
 
 
 

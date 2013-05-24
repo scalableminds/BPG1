@@ -17,4 +17,7 @@ _.mixin
 
   pluralize : (string) ->
 
-    string.replace(/[^s]$/, (a) -> "#{a}s") 
+    string.replace(/[^s]$/, (a) -> "#{a}s")
+
+
+  unionAll : (args...) -> _.flatten(args)

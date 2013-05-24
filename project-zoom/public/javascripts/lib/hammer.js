@@ -163,6 +163,8 @@ Hammer.Instance.prototype = {
 
             selectorHandler = function(evt) {
 
+                if (!evt.gesture) return;
+
                 var eventTarget = (evt.gesture.startEvent.target) ? evt.gesture.startEvent.target : evt.gesture.target;
 
                 if (Hammer.utils.matchesSelector(eventTarget, selector)){

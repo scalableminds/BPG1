@@ -1,102 +1,102 @@
 ### define
+underscore : _
 ###
 
-class Cluster
-
-  constructor : ->
-
-    @waypoints = []
-    @nodes = []
-
-    @id = 0
-
+Cluster = (cluster) ->
 
   getLineSegment : ->
 
-    lineFunction = d3.svg.line(@waypoints)
-      .x( (data) -> data.x )
-      .y( (data) -> data.y )
+    waypoints = cluster.get("waypoints")
+
+    lineFunction = d3.svg.line(waypoints.items)
+      .x( (data) -> data.get("x") )
+      .y( (data) -> data.get("y") )
       .interpolate("basis") # smoothing bitches!!!
 
-    lineFunction(@waypoints)
+    lineFunction(waypoints.items)
 
 
   finalize : ->
 
     #connect last waypoint with first
-    firstWaypoint = _.deepClone(@waypoints[0])
-    @waypoints.push firstWaypoint
+    waypoints = cluster.get("waypoints")
+
+    waypoints.add(waypoints.first().toObject())
 
 
-  checkForNode : (node) ->
-
+  ensureNode : (node) ->
 
     #save the reference both in the cluster and in the node
     if @pointInPolygon(node)
 
-      #if node is already associated with cluster, then dont do anything
-      unless node.cluster == @
+      #if node is already associated with a cluster, then dont do anything
+      unless node.cluster == cluster
 
         #else, associate it
-        node.cluster = @
-        @nodes.push node
+        node.cluster = cluster
+        cluster.get("nodes").add(node.get("id"))
 
       return true
 
     return false
 
 
-  checkForNodes : (nodes) ->
+  ensureNodes : (nodes) ->
 
-    for node in nodes
-      @checkForNode(node)
+    nodes.forEach (node) =>
+      @ensureNode(node); return
+
+
+  getNodes : (nodeList) ->
+
+    nodeList.filter( (node) -> cluster.get("nodes").contains(node.get("id")) )
 
 
   removeNode : (node) ->
 
-    index = @nodes.indexOf(node)
-
-    if index > -1
-      @nodes.splice(index, 1)
-      node.cluster = null
+    cluster.get("nodes").remove(node.get("id"))
+    node.cluster = null if node.cluster == cluster
 
 
   # alogrithm uses even-odd-rule
   # http://alienryderflex.com/polygon/
-  pointInPolygon : (point) ->
+  pointInPolygon : (node) ->
 
-    {x, y} = point
+    waypoints = cluster.get("waypoints")
 
-    #calculate from the center of a node
-    #x += point.getSize() / 2
-    #y += point.getSize() / 2
+    { x, y } = node.pick("x", "y")
 
-    j = _.last(@waypoints)
-    result = false
+    { x : lX, y : lY } = waypoints.last().pick("x", "y")
 
-    for i in @waypoints
+    waypoints.reduce(
 
-      if (
-        ((i.y < y and j.y >= y) or
-        (j.y < y and i.y >= y)) and
-        (i.x <= x or j.y <= x)
-      )
+      (result, p) ->
 
-        if (i.x + (y - i.y) / (j.y - i.y) * (j.x - i.x)) < x
+        { x : pX, y : pY } = p.pick("x", "y")
+
+        if (
+          ((pY < y and lY >= y) or
+          (lY < y and pY >= y)) and
+          (pX <= x or lY <= x)
+        ) and (pX + (y - pY) / (lY - pY) * (lX - pX)) < x
           result = not result
 
-      j = i
+        [ lX, lY ] = [ pX, pY ]
+        result
 
-    return result
+      false
+    )
 
 
   getCenter : ->
 
-    minX = _.min(waypoints, (waypoint) -> waypoint.x)
-    maxX = _.mx(waypoints, (waypoint) -> waypoint.x)
+    waypoints = cluster.get("waypoints")
 
-    minY = _.min(waypoints, (waypoint) -> waypoint.y)
-    maxY = _.max(waypoints, (waypoint) -> waypoint.y)
+    minX = waypoints.min( (waypoint) -> waypoint.get("x") )
+    maxX = waypoints.max( (waypoint) -> waypoint.get("x") )
+
+    minY = waypoints.min( (waypoint) -> waypoint.get("y") )
+    maxY = waypoints.max( (waypoint) -> waypoint.get("y") )
 
     return {
       x : (maxX - minX) / 2
