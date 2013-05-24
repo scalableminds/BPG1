@@ -9,8 +9,8 @@ jquery.mousewheel : Mousewheel
 ./process_view/behavior/drag_behavior : DragBehavior
 ./process_view/behavior/delete_behavior : DeleteBehavior
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
+./process_view/behavior/comment_behavior : CommentBehavior
 ../component/artifact_finder : ArtifactFinder
-../component/artifact : Artifact
 ###
 
 class ProcessView
@@ -51,7 +51,7 @@ class ProcessView
   initEventHandlers : ->
 
     # add new node
-    Hammer( $("svg")[0] ).on "tap", @addNode
+    #Hammer( $("svg")[0] ).on "tap", @addNode
 
     # drag artifact into graph
     Hammer($("body")[0]).on "dragend", "#artifact-finder .artifact-image", @addArtifact
@@ -73,8 +73,6 @@ class ProcessView
         @changeZoomSlider(0.1)
       else
         @changeZoomSlider(-0.1)
-
-
 
 
   addArtifact : (evt) =>
@@ -130,6 +128,7 @@ class ProcessView
       when toolBox[8] then new DrawClusterBehavior(graph, graphContainer, "ideate")
       when toolBox[9] then new DrawClusterBehavior(graph, graphContainer, "prototype")
       when toolBox[10] then new DrawClusterBehavior(graph, graphContainer, "test")
+      when toolBox[11] then new CommentBehavior(graph)
 
     graph.changeBehavior( behavior )
 

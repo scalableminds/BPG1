@@ -5,8 +5,6 @@ define
 
 class Edge
 
-  MARGIN = 2
-
   PI = Math.PI
   PI2 = 2 * Math.PI
   PI_HALF = PI / 2
@@ -14,6 +12,7 @@ class Edge
 
   constructor : (@source, @target) ->
 
+    @comment = null
 
   getArrowDirection : ->
 
@@ -25,9 +24,8 @@ class Edge
 
   getLineSegment : ->
 
-    #use center of the rectangles
-    target = @target#.getCenter()
-    source = @source#.getCenter()
+    target = @target
+    source = @source
 
     @HALF_SIZE = @target.getSize() / 2
 

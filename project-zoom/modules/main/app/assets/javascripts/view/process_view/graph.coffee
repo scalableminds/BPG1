@@ -99,7 +99,7 @@ class Graph
     @foreignObjects = @foreignObjects.data(@nodes, (data) -> data.id)
 
     #add new nodes
-    foreignObject = @foreignObjects.enter()
+    @foreignObjects.enter()
       .append("svg:foreignObject")
         .attr( class : "node" )
         .attr(
@@ -120,6 +120,8 @@ class Graph
             $(this).append(html)
             return ""
         )
+
+    @drawComment(@foreignObjects)
 
     #update existing ones
     @foreignObjects.attr(
@@ -142,7 +144,7 @@ class Graph
         class : "edge"
         d : (data) -> data.getLineSegment()
       )
-      .style("marker-end", -> "url(#end-arrow)")
+      .style("marker-end", "url(#end-arrow)")
 
     #update existing ones
     @paths.attr(
@@ -174,6 +176,29 @@ class Graph
     #remove deleted edges
     @clusterPaths.exit().remove()
 
+
+  drawComment : (element) ->
+
+    commentGroup = element.selectAll("g")
+      .data( (data) -> if data.comment then [data] else [] )
+      .enter()
+      .append("g")
+
+    commentGroup
+      .append("svg:use")
+      .attr(
+        x: (data) -> data.x - 32
+        y: (data) -> data.x + 32
+        "xlink:href": "#comment-callout"
+      )
+
+    commentGroup
+      .append("svg:text")
+      .attr(
+        x: (data) -> data.x - 32
+        y: (data) -> data.y + 32
+      )
+      .text( (data) -> data.comment)
 
   # position.x/y are absolute positions
   moveNode : (nodeId, position, checkForCluster = false) ->

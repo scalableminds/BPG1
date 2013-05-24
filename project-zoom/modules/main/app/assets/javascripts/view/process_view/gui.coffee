@@ -6,7 +6,7 @@ class GUI
 
   constructor : ->
 
-    margin = 10
+    margin = 20
     @height = $(window).height() - $(".graph").offset().top - margin
 
     @initToolbar()

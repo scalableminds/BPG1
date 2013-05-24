@@ -12,7 +12,6 @@ svg {
 
   border: 2px solid black;
   border-radius: 4px;
-  margin-bottom: 5px;
 
   width: 100%;
 }
@@ -51,8 +50,11 @@ svg {
 .zoom-slider {
 
   position: absolute;
-  right: -70px; // hacky
+  right: 0px;
   top: 10px;
+
+  width: 45px;
+  overflow: hidden;
 
   button {
     display: block;
@@ -88,7 +90,27 @@ svg {
   //overwrite bootstrap to fix design
   a {
     margin-left: -1px !important;
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
+    margin-right: -1px !important;
+    border-radius: 0 !important;
+  }
+}
+
+#comment-modal {
+
+  .modal-body {
+
+    min-height: 200px;
+    position: relative;
+  }
+
+  textarea {
+
+    position: absolute;
+
+    width:  94%;
+    height: 91%;
+    box-sizing: border-box;
+
+    resize: none;
   }
 }

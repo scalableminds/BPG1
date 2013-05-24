@@ -9,6 +9,7 @@ class Cluster
     @nodes = []
 
     @id = 0
+    @comment = null
 
 
   getLineSegment : ->
@@ -66,10 +67,6 @@ class Cluster
   pointInPolygon : (point) ->
 
     {x, y} = point
-
-    #calculate from the center of a node
-    #x += point.getSize() / 2
-    #y += point.getSize() / 2
 
     j = _.last(@waypoints)
     result = false
