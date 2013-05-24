@@ -152,24 +152,19 @@ case class JsonAdd(path: String, value: JsValue) extends JsonPatch {
 
     val updateObject = __.json.pick[JsObject] andThen ((__ \ last).json.put(value))
 
-    val updateArray = of[JsArray] map {
+    val updateArray = Reads.apply{
       case JsArray(l) =>
-        val updated = {
           if (last == "-")
-            l :+ value
+            JsSuccess(JsArray(l :+ value))
           else {
             last.toIntOpt match {
-              case Some(idx) if idx == 0 && l.size == 0 =>
-                Seq(value)
               case Some(idx) if idx <= l.size =>
                 val (pre, post) = l.splitAt(idx)
-                (pre :+ value) ++ post
+                JsSuccess(JsArray((pre :+ value) ++ post))
               case _ =>
-                l
+                JsError()
             }
           }
-        }
-        JsArray(updated)
     }
 
     (__ \~ parentPath)(_.json.update(updateArray)) orElse (__ \~ parentPath)(_.json.update(updateObject))
