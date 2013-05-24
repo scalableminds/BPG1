@@ -26,7 +26,7 @@ class Graph
     @drawClusters()
 
 
-  addNode : (x, y, artifact) ->
+  addNode : (x, y, nodeId, artifact) ->
 
     node = new DataItem({ x, y, id : @nextId() })
     node.artifact = artifact
