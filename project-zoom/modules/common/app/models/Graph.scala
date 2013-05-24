@@ -11,6 +11,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.Logger
 import projectZoom.util.MongoHelpers
+import reactivemongo.bson.BSONObjectID
+import java.util.UUID
+import play.modules.reactivemongo.json.BSONFormats._
 
 case class Position(x: Int, y: Int)
 
@@ -23,12 +26,12 @@ case class Edge(from: Int, to: Int, comment: Option[String])
 case class Cluster(id: Int, positions: List[Position])
 
 case class Graph(
-  id: String,
-  group: Int,
+  group: String,
   version: Int,
   nodes: List[Node],
   edges: List[Edge],
-  clusters: List[Cluster])
+  clusters: List[Cluster],
+  _id: BSONObjectID = BSONObjectID.generate)
 
 trait PayloadTransformers {
 
@@ -87,4 +90,13 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers{
 
 object GraphDAO extends SecuredMongoJsonDAO with GraphTransformers {
   val collectionName = "graphs"
+
+  def generateEmptyGraph = {
+    Graph(
+      group = UUID.randomUUID().toString,
+      version = 0,
+      nodes = Nil,
+      edges = Nil,
+      clusters = Nil)
+  }
 }
