@@ -20,15 +20,15 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
   var updateTicker: Cancellable = null
   
   def aggregate() = {
-    (tokenActor ? TokenRequest).mapTo[Option[BoxAccessTokens]].map{tokenOpt => 
+    (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map{tokenOpt => 
       tokenOpt.map{token => 
-        ???
+        Logger.debug(token.toString)
+        context.parent ! UpdateBoxAccessTokens(token)
+        box.getFolderInfo(token.access_token)
       }
     }
   }
   
-  def saveAccessTokens(accessTokens: BoxAccessTokens) = ???
-
   def start = {
     Logger.debug("Starting update ticker")
     updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL, self, Aggregate)

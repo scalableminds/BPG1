@@ -9,9 +9,9 @@ import play.api.libs.ws._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class BoxAccessTokens(access_token: String, expires: Long, token_type: String, refresh_token: String)
+case class BoxAccessTokens(access_token: String, access_token_expires: Long, token_type: String, refresh_token: String, refresh_token_expires: Long)
 
-object BoxAccessTokens extends Function4[String, Long, String, String, BoxAccessTokens]{
+object BoxAccessTokens extends Function5[String, Long, String, String, Long, BoxAccessTokens]{
   
   val refresh_token_validity = 3600 * 24 * 14 //14 days
   
@@ -21,23 +21,25 @@ object BoxAccessTokens extends Function4[String, Long, String, String, BoxAccess
         ( __ \ 'access_token_expires).json.copyFrom((__ \ 'expires_in).json.pick[JsNumber].map{
           case JsNumber(t) => JsNumber(System.currentTimeMillis / 1000 + t)
         }
-    )) andThen (__ \ 'refresh_token_expires).json.put(
-        JsNumber(System.currentTimeMillis() + refresh_token_validity)
-    ) andThen (__ \ 'expires_in).json.prune
+    )) andThen (__).json.update(
+        (__ \ 'refresh_token_expires).json.put(
+        JsNumber(System.currentTimeMillis() / 1000 + refresh_token_validity)
+    )) andThen (__ \ 'expires_in).json.prune
       
 }
+case class UpdateBoxAccessTokens(tokens: BoxAccessTokens)
 
-case object TokenRequest
+case object AccessTokensRequest
 
 class BoxTokenActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Actor{
   import BoxAccessTokens._
   
   private var tokens: BoxAccessTokens = accessTokens
   
-  def isTokenValid : Boolean = System.currentTimeMillis() / 1000 + 200 < accessTokens.expires 
+  def isTokenValid : Boolean = System.currentTimeMillis() / 1000 + 200 < accessTokens.access_token_expires 
   
   def receive = {
-    case TokenRequest => refreshTokens
+    case AccessTokensRequest => sender ! refreshTokens
   }
   
   def refreshTokens: Option[BoxAccessTokens] = {

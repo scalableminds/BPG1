@@ -22,7 +22,6 @@ object FilemakerConnector extends Connector with PlayActorSystem {
         .create(FileMakerDBInfo("127.0.0.1", "dschoolDB.fmp12", "admin", "admin"))
         .map { api =>
           val actor = context.actorOf(Props(new FilemakerActor(api)))
-          actor ! StartAggregating
         }
         .recover {
           case e: Exception =>
