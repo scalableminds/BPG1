@@ -35,6 +35,18 @@ describe "DataItem.Collection", ->
       @dataCollection.length.should.be.equal(0)
 
 
+    it "should not not remove elements not in the collection", ->
+
+      dataItem1 = new DataItem(test : "test1")
+      dataItem2 = new DataItem(test : "test2")
+
+      @dataCollection.add(dataItem1)
+      @dataCollection.length.should.be.equal(1)
+
+      @dataCollection.remove(dataItem2)
+      @dataCollection.length.should.be.equal(1)
+
+
   describe "changes", ->
 
     it "should trigger add events", (done) ->
@@ -133,12 +145,19 @@ describe "DataItem.Collection", ->
       @dataCollection.remove(dataItem)
 
 
-  describe "at", ->
+  describe "at/get", ->
 
     it "should retrieve elements", ->
 
       @dataCollection.add("test1", "test2")
       @dataCollection.at(1).should.equal("test2")
+
+
+    it "should retrieve elements synchronously", ->
+
+      @dataCollection.add("test1")
+
+      @dataCollection.get("0").should.equal("test1")
 
 
   describe "parts management", ->

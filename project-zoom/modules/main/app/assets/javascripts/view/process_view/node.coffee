@@ -2,25 +2,23 @@
 define
 ###
 
+NODE_SIZE = 64
+HALF_SIZE = 32
 
-class Node
+Node = (node) ->
 
-  NODE_SIZE = 64
-  HALF_SIZE = 32
-
-  constructor : (@x, @y, @id, @artifact = null) ->
-
-    cluster = null
-    comment = null
+  cluster = null
+  comment = null
 
   getCenter : ->
 
     centerPosition =
-      x : @x + HALF_SIZE
-      y : @y + HALF_SIZE
+      x : node.get("x") + HALF_SIZE
+      y : node.get("y") + HALF_SIZE
 
 
   getSize : ->
 
-    NODE_SIZE
+    width : NODE_SIZE
+    height : NODE_SIZE
 

@@ -34,6 +34,11 @@ svg {
 #artifact-finder {
 
   background-color: #fafafa;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .toolbar {
@@ -82,7 +87,7 @@ svg {
 
 .container-fluid {
 
-  padding: 10px;
+  padding: 0px;
 }
 
 .cluster-tool {
@@ -113,4 +118,14 @@ svg {
 
     resize: none;
   }
+}
+
+a.toggles {
+    position:fixed;
+    left:0;
+    bottom:0;
+    display:block;
+    background-color:black;
+    color:white;
+    padding:10px 20px;
 }

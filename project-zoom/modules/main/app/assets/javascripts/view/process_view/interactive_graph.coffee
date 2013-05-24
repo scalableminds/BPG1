@@ -8,7 +8,7 @@ lib/event_mixin : EventMixin
 
 class InteractiveGraph extends Graph
 
-  constructor : (@container, @svg) ->
+  constructor : (@container, @svg, @graphModel) ->
 
     EventMixin.extend(this)
     @initArrowMarkers()
@@ -17,7 +17,7 @@ class InteractiveGraph extends Graph
     @currentBehavior = new dragBehavior(@)
     @currentBehavior.activate()
 
-    super(@container)
+    super(@container, @graphModel)
 
 
   initArrowMarkers : ->

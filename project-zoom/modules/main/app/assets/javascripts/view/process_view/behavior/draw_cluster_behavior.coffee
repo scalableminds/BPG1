@@ -3,6 +3,7 @@ core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
 ../cluster : Cluster
+lib/data_item : DataItem
 ###
 
 class DrawClusterBehavior extends Behavior
@@ -13,7 +14,7 @@ class DrawClusterBehavior extends Behavior
     if $(".preview").length == 0
       @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @preview
-        .attr("class", "hidden preview cluster")
+        .attr("class", "hide preview cluster")
     else
       @preview = d3.select(".preview")
 
@@ -39,9 +40,9 @@ class DrawClusterBehavior extends Behavior
 
   dragEnd : (event) =>
 
-    @cluster.finalize()
+    Cluster(@cluster).finalize()
     @graph.addCluster(@cluster)
-    @preview.classed("hidden, true")
+    @preview.classed("hide", true)
 
     # switch to drag tool again (reset)
     window.setTimeout( (->$(".btn-group a").first().trigger("click")), 100)
@@ -49,7 +50,11 @@ class DrawClusterBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @cluster = new Cluster()
+    @cluster = new DataItem(
+      id : @graph.nextId()
+      waypoints : []
+      nodes : []
+    )
     @preview.data(@cluster)
 
     @offset = $("svg").offset()
@@ -64,13 +69,9 @@ class DrawClusterBehavior extends Behavior
     x /= @scaleValue
     y /= @scaleValue
 
-    tmp =
-      x : x
-      y : y
-
-    @cluster.waypoints.push(tmp)
+    @cluster.get("waypoints").add({ x, y })
 
     @preview
-      .classed("hidden", false)
-      .attr("d", @cluster.getLineSegment())
+      .classed("hide", false)
+      .attr("d", Cluster(@cluster).getLineSegment())
 
