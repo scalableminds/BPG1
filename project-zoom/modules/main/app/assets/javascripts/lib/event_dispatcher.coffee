@@ -53,7 +53,7 @@ class EventDispatcher
     EventDispatcher.ensureUid(sender)
     EventDispatcher.ensureUid(target)
 
-    callback = entry.callback
+    callback = _.bind(entry.callback, entry.target)
     entry.off = _.once => 
       
       callback = ->

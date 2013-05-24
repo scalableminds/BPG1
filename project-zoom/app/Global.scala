@@ -38,8 +38,8 @@ object Global extends GlobalSettings with GlobalDBAccess {
     GraphDAO.findOne.map {
       case None =>
         val nodes = List(
-          Node(1, Position(10, 10), "project", NodePayload("d.thinking Kids")),
-          Node(2, Position(50, 50), "project", NodePayload("Searching for Time - A")))
+          Node(1, Position(10, 10), "project", NodePayload("Service Experience - B")),
+          Node(2, Position(50, 50), "project", NodePayload("Library Experience - B")))
         val edges = List(models.Edge(1, 2, Some("Penis")))
         val clusters = List()
 

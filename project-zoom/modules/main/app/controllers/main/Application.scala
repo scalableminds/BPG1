@@ -19,7 +19,7 @@ object Application extends ControllerBase with SecureSocial {
     Ok(views.html.main.projectsOverview())
   }
 
-  def test = Action {
+  def test = SecuredAction { implicit request =>
     Ok(views.html.main.test())
   }
 
