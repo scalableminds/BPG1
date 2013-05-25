@@ -22,9 +22,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
   def aggregate() = {
     (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map{tokenOpt => 
       tokenOpt.map{token => 
-        Logger.debug(token.toString)
         context.parent ! UpdateBoxAccessTokens(token)
-        box.getFolderInfo(token.access_token)
       }
     }
   }

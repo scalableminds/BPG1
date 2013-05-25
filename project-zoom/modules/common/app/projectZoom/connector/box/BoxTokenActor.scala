@@ -36,7 +36,7 @@ class BoxTokenActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) exten
   
   private var tokens: BoxAccessTokens = accessTokens
   
-  def isTokenValid : Boolean = System.currentTimeMillis() / 1000 + 200 < accessTokens.access_token_expires 
+  def isTokenValid : Boolean = (System.currentTimeMillis() / 1000 + 200) < tokens.access_token_expires 
   
   def receive = {
     case AccessTokensRequest => sender ! refreshTokens
@@ -45,8 +45,9 @@ class BoxTokenActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) exten
   def refreshTokens: Option[BoxAccessTokens] = {
     if(isTokenValid) Some(tokens)
     else {
+      Logger.debug("fetching new box access token")
       val tokenRequest = WS.url("https://www.box.com/api/oauth2/token").post(
-          Map("refresh_token" -> Seq(accessTokens.refresh_token),
+          Map("refresh_token" -> Seq(tokens.refresh_token),
               "client_id" -> Seq(appKeys.client_id),
               "client_secret" -> Seq(appKeys.client_secret),
               "grant_type" -> Seq("refresh_token"))
