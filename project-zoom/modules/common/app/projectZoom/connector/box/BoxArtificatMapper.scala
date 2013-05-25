@@ -1,6 +1,5 @@
 package projectZoom.connector.box
 
-import projectZoom.connector.ArtifactMapper
 import play.api.libs.json._
 import models.ArtifactInfo
 import scala.concurrent._
