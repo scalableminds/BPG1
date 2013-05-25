@@ -9,8 +9,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import box.BoxAccessTokens
 import play.api.Logger
 
+
 object DBProxy {
-  //def getProjects = ProjectDAO.findAll
+  implicit val ctx = models.GlobalAccessContext
+  
+  def getProjects = ProjectDAO.findAll
   
   def getBoxTokens(): Future[Option[BoxAccessTokens]] = PermanentValueService.get("box.tokens").map{jsonOpt => 
     jsonOpt match  {
