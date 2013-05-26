@@ -22,12 +22,12 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
 
   var updateTicker: Cancellable = null
   
-  def handleITEM_UPLOADED(event: BoxEvent)(implicit accessTokens: BoxAccessTokens) {
+  def handleITEM_UPLOAD(event: BoxEvent)(implicit accessTokens: BoxAccessTokens) {
     event.source.map{ source =>
       source match {
-        case file @ BoxFile(id, _, name, pathCollection) => 
+        case BoxFile(id, _, name, pathCollection) => 
           box.downloadFile(id).onSuccess{
-            case byteArray => publishFoundArtifact(byteArray, ArtifactInfo(file.name, "", "box", Json.parse("{}")))
+            case byteArray => publishFoundArtifact(byteArray, ArtifactInfo(name, "", "box", Json.parse("{}")))
           }
       }
     }
@@ -48,7 +48,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
     .onSuccess{
       case eventList => eventList.foreach{ event =>
         event.event_type match {
-          case "ITEM_UPLOADED" => handleITEM_UPLOADED(event)
+          case "ITEM_UPLOAD" => handleITEM_UPLOAD(event)
           case otherType => Logger.debug(s"event of Type '$otherType' found")
         }
       }
