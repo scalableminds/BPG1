@@ -6,10 +6,13 @@ import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.Logger
 import scala.util.{Try, Success, Failure}
+import play.api.libs.iteratee.Iteratee
 
 case class BoxAppKeyPair(client_id: String, client_secret: String)
 
 class BoxAPI(appKeys: BoxAppKeyPair) {
+  
+  val pickEntries = (__ \ 'entries).json.pick[JsArray]
   
   val apiURL = "https//api.box/com/2.0"
   
@@ -41,10 +44,27 @@ class BoxAPI(appKeys: BoxAppKeyPair) {
   }
   
   def downloadFile(accessToken: String, fileId: String) = {
-    val request = WS.url(s"$apiURL/files/$fileId/content")
-      .withHeaders(authHeader(accessToken)).get
-   
-   // ITERATEEEEE OH MY GOD
+    WS.url(s"$apiURL/files/$fileId/content")
+      .withHeaders(authHeader(accessToken))
+      .get(status => Iteratee.consume[Array[Byte]]())
+      .flatMap(i => i.run)
+  }
+
+  def enumerateEvents(accessToken: String) = {
+    def loop(stream_position: Long, accumulatedEvents: JsArray): Future[JsArray] = {
+      events(accessToken, stream_position).flatMap{json => 
+        if((json \ "chunk_size").as[Int] == 0)
+          Future(accumulatedEvents)
+        else
+          loop((json \ "next_stream_position").as[Long], accumulatedEvents :+ (json \ "entries"))
+      }
+    }
+    loop(0,JsArray())
+  }
+  
+  def getEventMap(accessToken: String) = {
+    enumerateEvents(accessToken).map{jsArr =>
+      jsArr.value.groupBy(event => (event \ "event_type").as[String])}
   }
   
 }
