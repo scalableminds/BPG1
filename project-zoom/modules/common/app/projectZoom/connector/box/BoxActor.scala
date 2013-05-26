@@ -8,8 +8,9 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Logger
 import akka.pattern._
 import akka.util.Timeout
-
-
+import play.api.libs.json._
+import api._
+import models.ArtifactInfo
 
 class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends ArtifactAggregatorActor {
   val TICKER_INTERVAL = 1 minute
@@ -18,16 +19,37 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
   
   lazy val tokenActor = context.actorOf(Props(new BoxTokenActor(appKeys, accessTokens)))
   lazy val box = new BoxAPI(appKeys)
-  lazy val boxAM = new BoxArtifactMapper(box)
-  
+
   var updateTicker: Cancellable = null
   
-  def getArtifacts(implicit accessTokens: BoxAccessTokens) {
-    boxAM.getArtifacts.onSuccess{
-      case l => l.foreach{ p =>
-        val (fileStream, artifactInfo) = p
-        fileStream.onSuccess{ 
-          case s => publishFoundArtifact(s, p._2)       
+  def handleITEM_UPLOADED(event: BoxEvent)(implicit accessTokens: BoxAccessTokens) {
+    event.source.map{ source =>
+      source match {
+        case file @ BoxFile(id, _, name, pathCollection) => 
+          box.downloadFile(id).onSuccess{
+            case byteArray => publishFoundArtifact(byteArray, ArtifactInfo(file.name, "", "box", Json.parse("{}")))
+          }
+      }
+    }
+  }
+  
+  def handleEventStream(implicit accessTokens: BoxAccessTokens) {
+    box.enumerateEvents.map { eventArr =>
+      eventArr.value.map { json =>
+        json.validate(api.BoxEvent.BoxEventReads) match {
+          case JsSuccess(event, _) => Some(event)
+          case JsError(err) =>
+            Logger.error(s"Error validating BoxEvents:\n${err.mkString}")
+            Logger.debug(s"json:\n${Json.stringify(json)}")
+            None
+        }
+      }.flatten
+    }
+    .onSuccess{
+      case eventList => eventList.foreach{ event =>
+        event.event_type match {
+          case "ITEM_UPLOADED" => handleITEM_UPLOADED(event)
+          case otherType => Logger.debug(s"event of Type '$otherType' found")
         }
       }
     }
@@ -37,6 +59,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
     (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map{tokenOpt => 
       tokenOpt.map{ implicit token => 
         context.parent ! UpdateBoxAccessTokens(token)
+        handleEventStream
       }
     }
   }
