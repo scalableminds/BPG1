@@ -5,66 +5,68 @@ import play.api.libs.ws._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.Logger
-import scala.util.{Try, Success, Failure}
+import scala.util.{ Try, Success, Failure }
 import play.api.libs.iteratee.Iteratee
 
 case class BoxAppKeyPair(client_id: String, client_secret: String)
 
 class BoxAPI(appKeys: BoxAppKeyPair) {
-  
+
   val pickEntries = (__ \ 'entries).json.pick[JsArray]
-  
+
   val apiURL = "https//api.box/com/2.0"
-  
-  def authHeader(accessToken: String) = ("Authorization" -> s"Bearer $accessToken")
-  
-  private def accessAPI(accessToken: String, url: String): Future[JsValue] = {
+
+  def authHeader(implicit accessTokens: BoxAccessTokens) = ("Authorization" -> s"Bearer ${accessTokens.access_token}")
+
+  private def jsonAPI(url: String)(implicit accessTokens: BoxAccessTokens): Future[JsValue] = {
     WS.url(url)
-      .withHeaders(authHeader(accessToken))
+      .withHeaders(authHeader)
       .get
       .map(response => Json.parse(response.body))
   }
-  
-  def folderInfo(accessToken: String, folderId: String): Future[JsValue] = {
-    accessAPI(accessToken, s"$apiURL/folders/$folderId")
+
+  def fetchFolderInfo(folderId: String)(implicit accessTokens: BoxAccessTokens): Future[JsValue] = {
+    jsonAPI(s"$apiURL/folders/$folderId")
   }
-  
-  def folderContent(accessToken: String, folderId: String, offset: Int = 0, fields: List[String] = Nil, limit: Int = 1000): Future[JsValue] = {
-    accessAPI(accessToken,s"$apiURL/folders/$folderId/items?offset=$offset&fields=${fields.mkString(",")}&limit=$limit")
+
+  def fetchFolderContent(folderId: String,
+    offset: Int = 0,
+    fields: List[String] = Nil,
+    limit: Int = 1000)(implicit accessTokens: BoxAccessTokens): Future[JsValue] = {
+    jsonAPI(s"$apiURL/folders/$folderId/items?offset=$offset&fields=${fields.mkString(",")}&limit=$limit")
   }
-  
-  def completeFolderContent(accessToken: String, folderId: String, fields: List[String]): Future[JsValue] = ???
-  
-  def fileInfo(accessToken: String, fileId: String) = {
-    accessAPI(accessToken, (s"$apiURL/files/$fileId"))
+
+  def fetchFileInfo(fileId: String)(implicit accessTokens: BoxAccessTokens) = {
+    jsonAPI(s"$apiURL/files/$fileId")
   }
-  
-  def events(accessToken: String, stream_position: Long = 0) = {
-    accessAPI(accessToken, (s"$apiURL/events?stream_position=$stream_position"))
+
+  def fetchEvents(stream_position: Long = 0)(implicit accessTokens: BoxAccessTokens) = {
+    jsonAPI(s"$apiURL/events?stream_position=$stream_position")
   }
-  
-  def downloadFile(accessToken: String, fileId: String) = {
+
+  def downloadFile(fileId: String)(implicit accessTokens: BoxAccessTokens) = {
     WS.url(s"$apiURL/files/$fileId/content")
-      .withHeaders(authHeader(accessToken))
+      .withHeaders(authHeader)
       .get(status => Iteratee.consume[Array[Byte]]())
       .flatMap(i => i.run)
   }
 
-  def enumerateEvents(accessToken: String) = {
+  def enumerateEvents(implicit accessTokens: BoxAccessTokens) = {
     def loop(stream_position: Long, accumulatedEvents: JsArray): Future[JsArray] = {
-      events(accessToken, stream_position).flatMap{json => 
-        if((json \ "chunk_size").as[Int] == 0)
+      fetchEvents(stream_position).flatMap { json =>
+        if ((json \ "chunk_size").as[Int] == 0)
           Future(accumulatedEvents)
         else
           loop((json \ "next_stream_position").as[Long], accumulatedEvents :+ (json \ "entries"))
       }
     }
-    loop(0,JsArray())
+    loop(0, JsArray())
   }
-  
-  def getEventMap(accessToken: String) = {
-    enumerateEvents(accessToken).map{jsArr =>
-      jsArr.value.groupBy(event => (event \ "event_type").as[String])}
+
+  def getEventMap(implicit accessTokens: BoxAccessTokens) = {
+    enumerateEvents.map { jsArr =>
+      jsArr.value.groupBy(event => (event \ "event_type").as[String])
+    }
   }
-  
+
 }

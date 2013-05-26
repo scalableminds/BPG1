@@ -21,7 +21,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
   
   def aggregate() = {
     (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map{tokenOpt => 
-      tokenOpt.map{token => 
+      tokenOpt.map{ implicit token => 
         context.parent ! UpdateBoxAccessTokens(token)
       }
     }
