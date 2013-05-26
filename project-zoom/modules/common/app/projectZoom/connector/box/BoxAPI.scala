@@ -57,7 +57,6 @@ class BoxAPI(appKeys: BoxAppKeyPair) {
     def loop(stream_position: Long, accumulatedEvents: JsArray): Future[JsArray] = {
       Logger.debug(s"fetching events at stream pos $stream_position")
       fetchEvents(stream_position).flatMap { json =>
-        Logger.debug(json.toString)
         val chunk_size = (json \ "chunk_size").as[Int]
         Logger.debug(s"fetched $chunk_size events")
         if (chunk_size == 0)
