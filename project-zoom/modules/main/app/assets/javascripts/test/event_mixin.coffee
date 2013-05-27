@@ -128,7 +128,6 @@ describe "EventMixin", ->
       @eventMixin.hasCallbacks("test").should.be.true
 
 
-
   describe "#isolatedExtend", ->
 
     it "should work with scrambled function names", ->
