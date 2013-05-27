@@ -103,14 +103,14 @@ trait MongoDAO[T] extends DAO[T] {
   }
 
   def findMaxBy(attribute: String)(implicit ctx: DBAccessContext) = {
-    findOrderedBy(attribute, false, 1).map(_.headOption)
+    findOrderedBy(attribute, -1, 1).map(_.headOption)
   }
 
   def findMinBy(attribute: String)(implicit ctx: DBAccessContext) = {
-    findOrderedBy(attribute, true, 1).map(_.headOption)
+    findOrderedBy(attribute, 1, 1).map(_.headOption)
   }
 
-  def findOrderedBy(attribute: String, desc: Boolean, limit: Int = 1)(implicit ctx: DBAccessContext) = {
+  def findOrderedBy(attribute: String, desc: Int, limit: Int = 1)(implicit ctx: DBAccessContext) = {
     collectionFind().sort(Json.obj(attribute -> desc)).cursor[T].collect[List](limit)
   }
 
@@ -132,7 +132,7 @@ trait MongoDAO[T] extends DAO[T] {
   def takeSome(q: GenericQueryBuilder[JsObject, Reads, Writes], offset: Int, limit: Int) = {
     val options = QueryOpts(skipN = offset, batchSizeN = limit)
     val document = Json.obj(
-      "_id" -> 1)
+      "_id" -> -1)
     q
       .options(options)
       .sort(document)
