@@ -76,20 +76,14 @@ trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEye
         LastError(false, None, None, Some("Couldn't parse ObjectId"), None, 0, false)))
 
   def collectionInsert(js: JsObject)(implicit ctx: DBAccessContext): Future[LastError] = {
-    Logger.warn("reached")
     if (ctx.globalAccess || isAllowedToInsert) {
-      Logger.warn("ONGOING: " + (js ++ createACL(js)))
-      val r = collection.insert(js ++ createACL(js)).map { r =>
-        Logger.error("INSERT R : " + r)
-        r
-      }
-      r.onFailure {
+      val future = collection.insert(js ++ createACL(js))
+      future.onFailure {
         case e: Throwable =>
-          println(e)
+          Logger.error(e.toString)
       }
-      r
+      future
     } else {
-      Logger.warn("DENIED")
       Future.successful(
         LastError(false, None, None, Some("Access denied"), None, 0, false))
     }
