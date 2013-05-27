@@ -8,8 +8,6 @@ Project = (project) ->
   node : null
   image : null
 
-
-
     # {@name, img:@image, @node, @tags} = project
 
 

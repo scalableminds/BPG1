@@ -52,6 +52,11 @@ class ProjectsOverviewView
 
     @projects = []
 
+    start_x = start_y = x = y = 20
+    margin = 10
+    nodeWidth = 60
+    svgWidth = parseInt @svg.attr("WIDTH")
+
     app.model.projectGraph.get("nodes").forEach( (projectNode) =>
 
       node =
@@ -61,14 +66,20 @@ class ProjectsOverviewView
         year: projectNode.get("year")
         length: projectNode.get("length")
         participants: projectNode.get("participants")
-        x: 100
-        y: 200
+        x: x
+        y: y
 
       @projects.push node
+
+      if x < svgWidth - nodeWidth
+        x += nodeWidth + margin
+      else
+        x = start_x
+        y += nodeWidth + margin
+
     )
 
     @graph = new ProjectGraph(@graphContainer, @svg, @projectGraphModel, @projects)
-
 
     # @graph.drawProjectGraph @projects
 
