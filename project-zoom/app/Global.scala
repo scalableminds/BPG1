@@ -19,6 +19,7 @@ import models.GraphDAO
 import models.GraphDAO._
 import models.GlobalDBAccess
 import play.api.libs.concurrent.Execution.Implicits._
+import java.util.UUID
 
 object Global extends GlobalSettings with GlobalDBAccess {
 
@@ -43,7 +44,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
         val edges = List(models.Edge(1, 2, Some("Penis")))
         val clusters = List()
 
-        val g = models.Graph("Test", 1, 1, nodes, edges, clusters)
+        val g = models.Graph(UUID.randomUUID().toString, 1, nodes, edges, clusters)
         GraphDAO.insert(g)
       case _ =>
     }

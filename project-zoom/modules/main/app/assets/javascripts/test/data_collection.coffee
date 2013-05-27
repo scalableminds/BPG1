@@ -207,7 +207,7 @@ describe "DataItem.Collection", ->
 
     it "should insert data", (done) ->
 
-      sinon.stub(Request, "send").returns( 
+      sinon.stub(Request, "send").returns(
         (new $.Deferred()).resolve( offset : 0, limit : 2, content : [ { test : "1" }, { test : "2" } ] ).promise()
       )
 
@@ -234,7 +234,7 @@ describe "DataItem.Collection", ->
 
     it "should load continous data", (done) ->
 
-      sinon.stub(Request, "send").returns( 
+      sinon.stub(Request, "send").returns(
         (new $.Deferred()).resolve( offset : 0, limit : 2, content : [ { test : "1" }, { test : "2" } ] ).promise()
       )
       @dataCollection.fetchNext().then(

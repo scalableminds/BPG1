@@ -13,6 +13,8 @@ import play.api.libs.concurrent.Execution.Implicits._
 import projectZoom.util.MongoHelpers
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import models.DBAccessContext
+import play.api.libs.json.JsSuccess
+import play.api.libs.json.JsError
 
 trait JsonCRUDController extends CRUDController[JsObject] {
   implicit def formatter = Format.apply[JsObject](Reads.JsObjectReads, Writes.JsValueWrites)
@@ -32,10 +34,14 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
   def dao: DAO[T]
   implicit def formatter: Format[T]
 
-  def displayReader: Reads[JsObject] = Reads.JsObjectReads
+  def displayReader(implicit ctx: DBAccessContext): Reads[JsObject] = Reads.JsObjectReads
 
-  def createSingleResult(obj: T) = {
-    Json.toJson(obj).transform(beautifyObjectId andThen displayReader).get
+  def createSingleResult(obj: T)(implicit ctx: DBAccessContext) = {
+    Json.toJson(obj).transform(beautifyObjectId andThen displayReader) match {
+      case JsSuccess(value, _) => value
+      case e: JsError =>
+        throw new Exception(s"Invalid DB content. Collection: ${dao.collectionName} Error: $e")
+    }
   }
   
   def listItems(offset: Int, limit: Int)(resultTransformation: T => JsObject)(implicit ctx: DBAccessContext) = {
@@ -52,7 +58,6 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
   }
 
   def read(id: String) = SecuredAction(ajaxCall = true) { implicit request =>
-    //TODO: restrict access
     Async {
       dao.findOneById(id).map {
         case Some(obj) =>

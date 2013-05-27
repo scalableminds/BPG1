@@ -26,7 +26,7 @@ class Graph
     @drawClusters()
 
 
-  addNode : (x, y, artifact) ->
+  addNode : (x, y, nodeId, artifact) ->
 
     node = new DataItem({ x, y, id : @nextId() })
     node.artifact = artifact
@@ -96,7 +96,7 @@ class Graph
     @foreignObjects = @foreignObjects.data(@nodes.items, (data) -> data.get("id"))
 
     #add new nodes
-    foreignObject = @foreignObjects.enter()
+    @foreignObjects.enter()
       .append("svg:foreignObject")
       .attr( class : "node" )
       .attr(
@@ -126,6 +126,8 @@ class Graph
           return ""
       )
 
+    @drawComment(@foreignObjects)
+
     #update existing ones
     @foreignObjects.attr(
       x : (data) -> data.get("x") - Node(data).getSize().width / 2
@@ -146,7 +148,7 @@ class Graph
         class : "edge"
         d : (data) => Edge(data, @nodes).getLineSegment()
       )
-      .style("marker-end", -> "url(#end-arrow)")
+      .style("marker-end", "url(#end-arrow)")
 
     #update existing ones
     @paths.attr(
@@ -179,12 +181,41 @@ class Graph
     @clusterPaths.exit().remove()
 
 
+  drawComment : (element) ->
+
+    commentGroup = element.selectAll("g")
+      .data( (data) -> if data.get("comment") then [data] else [] )
+      .enter()
+      .append("g")
+
+    commentGroup
+      .append("svg:use")
+      .attr(
+        x: 0
+        y: -100
+        "xlink:href": "#comment-callout"
+      )
+
+    commentGroup
+      .append("svg:text")
+      .attr(
+        x: 20
+        y: -50
+        width: 80
+        height: 40
+      )
+      .text( (data) -> data.get("comment"))
+
+    commentGroup
+      .attr(
+        transform: (data) -> "translate(#{ data.get("x") }, #{ data.get("y") })"
+      )
   # position.x/y are absolute positions
   moveNode : (nodeId, position, checkForCluster = false) ->
 
     node = @nodes.find( (node) -> node.get("id") == nodeId )
 
-    node.set( 
+    node.set(
       x : position.x
       y : position.y
     )
@@ -193,7 +224,7 @@ class Graph
       @clusters
         .filter( (cluster) -> not Cluster(cluster).ensureNode(node) )
         .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
-       
+
 
     @drawNodes()
     @drawEdges()
@@ -212,7 +243,7 @@ class Graph
 
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
-      
+
       position =
         x : node.get("x") + distance.x
         y : node.get("y") + distance.y

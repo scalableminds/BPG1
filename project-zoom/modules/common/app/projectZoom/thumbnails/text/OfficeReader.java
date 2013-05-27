@@ -10,7 +10,16 @@ import org.artofsolving.jodconverter.office.OfficeManager;
 public class OfficeReader extends TextReader {
 	String[] MIME_TYPES = {
 			"application/msword",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document"};
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"application/vnd.ms-excel",
+			"application/vnd.oasis.opendocument.text",
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			"application/vnd.oasis.opendocument.spreadsheet",
+			"application/vnd.ms-powerpoint",
+			"application/vnd.oasis.opendocument.presentation",
+			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+			"application/rtf",
+			"text/plain"};
 	
 	@Override
 	public Boolean isSupported(String mimetype)
