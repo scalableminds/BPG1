@@ -30,7 +30,7 @@ object ProjectDAO extends SecuredMongoJsonDAO {
   def addGraphTo(projectId: String, graph: Graph)(implicit ctx: DBAccessContext) = {
     withValidId(projectId) { id =>
       collectionUpdate(Json.obj("_id" -> id),
-        Json.obj("$push" -> Json.obj("_graphs" -> graph._id)))
+        Json.obj("$push" -> Json.obj("_graphs" -> graph.group)))
     }
   }
 
