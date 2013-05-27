@@ -35,10 +35,11 @@ object GraphController extends ControllerBase with JsonCRUDController with Event
         case Some(graph) if baseVersion == (graph \ "version").as[Int] =>
           (graph patchWith patch)
             .flatMap(GraphDAO.incrementVersion.reads)
+            .flatMap(GraphDAO.generateId.reads)
             .flatMap(graphFormat.reads)
             .map { updatedGraph =>
-              Logger.trace("Updated:" + updatedGraph)
-              GraphDAO.update(updatedGraph._id, updatedGraph).map { r =>
+              Logger.warn("Updated:" + updatedGraph)
+              GraphDAO.insert(updatedGraph).map { r =>
                 publish(GraphUpdated(updatedGraph, patch))
               }
               JsonOk(GraphDAO.extractVersionInfo(updatedGraph), "graph.update.successful")

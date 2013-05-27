@@ -59,7 +59,7 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers {
     (__).json.update((__ \ 'version).json.copyFrom((__ \ 'version).json.pick[JsNumber].map {
       case JsNumber(n) => JsNumber(n + 1)
     }))
-
+    
   def replacePayloadIdWithContent(content: JsValue) =
     (__).json.update((__ \ 'payload).json.put(content))
 
