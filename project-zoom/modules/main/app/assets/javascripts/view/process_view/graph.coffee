@@ -191,26 +191,32 @@ class Graph
   drawComment : (element) ->
 
     commentGroup = element.selectAll("g")
-      .data( (data) -> if data.comment then [data] else [] )
+      .data( (data) -> if data.get("comment") then [data] else [] )
       .enter()
       .append("g")
 
     commentGroup
       .append("svg:use")
       .attr(
-        x: (data) -> data.x - 32
-        y: (data) -> data.x + 32
+        x: 0
+        y: -100
         "xlink:href": "#comment-callout"
       )
 
     commentGroup
       .append("svg:text")
       .attr(
-        x: (data) -> data.x - 32
-        y: (data) -> data.y + 32
+        x: 20
+        y: -50
+        width: 80
+        height: 40
       )
-      .text( (data) -> data.comment)
+      .text( (data) -> data.get("comment"))
 
+    commentGroup
+      .attr(
+        transform: (data) -> "translate(#{ data.get("x") }, #{ data.get("y") })"
+      )
   # position.x/y are absolute positions
   moveNode : (nodeId, position, checkForCluster = false) ->
 
@@ -243,7 +249,7 @@ class Graph
 
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
-      
+
       position =
         x : node.get("position/x") + distance.x
         y : node.get("position/y") + distance.y
