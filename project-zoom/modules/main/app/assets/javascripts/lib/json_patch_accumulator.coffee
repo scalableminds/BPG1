@@ -67,16 +67,18 @@ class JsonPatchAccumulator
 
         patchPath2 = patch2.path.split("/").slice(1)
 
+        if patch2.op == "remove" and _.startsWith(patchPath, patchPath2)
+          patch2.overridden = true
+          return
+
+
         if patch.path == patch2.path and (patch2.op == "add" or patch2.op == "replace") and (patch.op == "add" or patch.op == "replace")
           patch = _.extend({}, patch, value : patch2.value)
           Object.defineProperty(patch, "__timestamp", value : patch2.__timestamp)
           patch2.overridden = true
 
-        if patch2.op == "remove" and _.startsWith(patchPath, patchPath2)
-          patch2.overridden = true
-          return
 
-        if (patch.op == "add" or patch.op == "replace") and _.startsWith(patchPath2, patchPath)
+        else if (patch.op == "add" or patch.op == "replace") and _.startsWith(patchPath2, patchPath)
           
           remainingPath = patchPath2.slice(patchPath.length)
           obj = patch.value
