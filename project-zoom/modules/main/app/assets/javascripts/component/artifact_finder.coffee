@@ -102,10 +102,10 @@ class ArtifactFinder
 
       artifactC = new Artifact(artifact, getSliderValue)    
       @artifactComponents.push artifactC
-      domElement.append(artifactC.domElement)     
+      domElement.append(artifactC.getSvgElement())     
 
       group = _.find(@groups, (g) => g.name is artifact.source)
-      group.div.append(artifactC.domElement)
+      group.div.append(artifactC.getSvgElement())
 
 
   setResized : (func) ->

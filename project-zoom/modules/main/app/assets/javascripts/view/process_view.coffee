@@ -40,7 +40,7 @@ class ProcessView
 
   initGraph : ->
 
-    @svg = d3.select("svg")
+    @svg = d3.select(".graph svg")
     @graphContainer = @svg.append("svg:g")
 
     @projectModel.get("graphs/0", this, (graphModel) ->

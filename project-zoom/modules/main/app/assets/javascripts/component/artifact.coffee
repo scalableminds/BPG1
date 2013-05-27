@@ -5,11 +5,11 @@ jquery : $
 
 class Artifact
 
-  domElement : null
+  _domElement : null
   imagePaths : null
 
 
-  constructor : (@artifact, @width) ->
+  constructor : (@artifact, @width, bare = false) ->
 
     @imagePaths = []
     for resource in artifact.resources
@@ -17,26 +17,23 @@ class Artifact
       if resource.type isnt "thumbnail"
         continue
 
-      #image = new Image().src = resource.path
       @imagePaths.push resource.path
 
-    image = $("<img>",
-        src: @imagePaths[0].src
-        draggable: false
-        title: artifact.name
-        class: "artifact-image"
-        "data-id": artifact.id)
+    image = document.createElementNS("http://www.w3.org/2000/svg", "image")
+    image.setAttributeNS('http://www.w3.org/1999/xlink','href', @imagePaths[0])
+    image.setAttribute('x','0')
+    image.setAttribute('y','0')
+ 
+    $(image).on("mouseenter", => @onMouseEnter())
+    $(image).on("mouseleave", => @resize())    
 
-    image.on("mouseenter", => @onMouseEnter())
-    image.on("mouseleave", => @resize())
 
-    @domElement = $("<div/>",
-      title: "#{artifact.name}"
-      class: "node-object artifact"
-    ).append(image)
-    
+    unless bare
+      svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      $(svg).append(image)
+      @svg = svg
 
-    @domElement.width(width())
+    @image = image
 
     @resize()
 
@@ -45,26 +42,22 @@ class Artifact
 
     width = @width()
 
-    return unless @domElement?
-    @domElement.width(width)
-    @domElement.height(width)
-    $img = @domElement.find("img")
+    @image.setAttribute('width',width)
+    @image.setAttribute('height',width)   
+    @svg?.setAttribute('width',width)
+    @svg?.setAttribute('height',width)  
 
-    width = @domElement[0].getBoundingClientRect().width
+    width = @image.getBoundingClientRect().width
 
-    $img.attr("src", @getNearest(width, "thumbnail").path)
+    @image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearest(width, "thumbnail").path)
 
 
   onMouseEnter : () =>
 
     width = @width()
 
-    return unless @domElement?
-    @domElement.width(width)
-    @domElement.height(width)
-    width = @domElement[0].getBoundingClientRect().width
-    $img = @domElement.find("img")
-    $img.attr("src", @getNearest(width, "secondary_thumbnail").path)
+    width = @image.getBoundingClientRect().width
+    @image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearest(width, "secondary_thumbnail").path)
 
 
   getNearest : (width, type) ->
@@ -81,6 +74,16 @@ class Artifact
     _.find(elements, (e) => ((Number) e.path.substring(e.path.length - 5, e.path.length - 4)) is closest)
 
 
+  getSvgElement : ->
+
+    @svg
+
+
+  getImage : ->
+    
+    @image
+
+    
   destroy : ->
 
   activate : ->
