@@ -50,6 +50,9 @@ import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 
 
+import projectZoom.thumbnails.Artifact;
+import projectZoom.thumbnails.GifFrame;
+import projectZoom.thumbnails.GifUtil;
 import projectZoom.thumbnails.text.MyWordle.Word;
 import cue.lang.Counter;
 import cue.lang.WordIterator;

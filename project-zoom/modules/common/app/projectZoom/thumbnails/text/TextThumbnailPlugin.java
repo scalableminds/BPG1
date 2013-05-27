@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.apache.tika.Tika;
 
+import projectZoom.thumbnails.Artifact;
 import projectZoom.thumbnails.text.MyWordle.Word;
 import projectZoom.thumbnails.text.PdfReader;
 import projectZoom.thumbnails.text.OfficeReader;

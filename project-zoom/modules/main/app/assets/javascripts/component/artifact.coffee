@@ -73,7 +73,7 @@ class Artifact
     elements = _.sortBy(elements, (e) -> e.path)
     resolutions = _.map(elements, (e) -> (Number) e.path.substring(e.path.length - 5, e.path.length - 4))
 
-    closest = 10
+    closest = null
     base = 2 << 4
     for r in resolutions
       closest = r if not closest? or Math.abs((base << r) - width) < Math.abs((base << closest) - width)
