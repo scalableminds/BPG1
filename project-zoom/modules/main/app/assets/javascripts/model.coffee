@@ -9,7 +9,8 @@ lib/utils : Utils
 ###
 
 SAVE_THROTTLE = 10000
-SAVE_RETRY = 10000
+SAVE_RETRY_TIMEOUT = 10000
+SAVE_RETRY_COUNT = 20
 
 ModelFunctions =
   prepareGraph : (project) ->
@@ -32,7 +33,6 @@ ModelFunctions =
       (graph) ->
 
         isSaving = false
-        patchBuffer = []
 
         graph.save = ->
 
@@ -58,17 +58,22 @@ ModelFunctions =
                   graph.set("version", version, silent : true); return
                 ($xhr) ->
                   if $xhr.status == 400 
-                    alert("Sorry. We couldn't save.")
+                    alert("Sorry. We couldn't save. (400)")
                     $.Deferred().resolve()
                   else
                     null
               )
 
-            undefined
-            SAVE_RETRY
+            SAVE_RETRY_COUNT
+            SAVE_RETRY_TIMEOUT
 
-          ).always ->
-            isSaving = false
+          )
+            .fail( ->
+              alert("Sorry. We couldn't save. (Retry timeout)")
+            )
+            .always( ->
+              isSaving = false
+            )
 
 
         graph.on(graph, "patch:*", _.throttle(
