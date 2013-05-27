@@ -51,9 +51,14 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers {
 
   val replacePayloadContentWithId =
     (__ \ 'payload).json.update((__ \ 'id).json.pick)
-    
-  val versionInfoReads = 
+
+  val versionInfoReads =
     (__ \ 'version).json.pickBranch
+
+  val incrementVersion =
+    (__).json.update((__ \ 'version).json.copyFrom((__ \ 'version).json.pick[JsNumber].map {
+      case JsNumber(n) => JsNumber(n + 1)
+    }))
 
   def replacePayloadIdWithContent(content: JsValue) =
     (__).json.update((__ \ 'payload).json.put(content))
@@ -96,8 +101,8 @@ object GraphDAO extends SecuredMongoJsonDAO with GraphTransformers {
 
   def extractVersionInfo(graph: Graph) = {
     (Json.toJson(graph) transform versionInfoReads).get
-  }  
-    
+  }
+
   def generateEmptyGraph = {
     Graph(
       group = UUID.randomUUID().toString,

@@ -34,11 +34,11 @@ object GraphController extends ControllerBase with JsonCRUDController with Event
       GraphDAO.findLatestForGroup(groupId).map {
         case Some(graph) if baseVersion == (graph \ "version").as[Int] =>
           (graph patchWith patch)
+            .flatMap(GraphDAO.incrementVersion.reads)
             .flatMap(graphFormat.reads)
             .map { updatedGraph =>
-              Logger.warn("Updated:" + updatedGraph)
+              Logger.trace("Updated:" + updatedGraph)
               GraphDAO.update(updatedGraph._id, updatedGraph).map { r =>
-                Logger.warn("Insert result: " + r)
                 publish(GraphUpdated(updatedGraph, patch))
               }
               JsonOk(GraphDAO.extractVersionInfo(updatedGraph), "graph.update.successful")
