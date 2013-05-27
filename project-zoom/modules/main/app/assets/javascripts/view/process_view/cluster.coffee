@@ -4,6 +4,8 @@ underscore : _
 
 Cluster = (cluster) ->
 
+  comment = null
+
   getLineSegment : ->
 
     waypoints = cluster.get("waypoints")
