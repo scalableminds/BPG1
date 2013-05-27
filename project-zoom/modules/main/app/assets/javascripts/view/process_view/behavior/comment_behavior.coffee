@@ -28,7 +28,7 @@ class CommentBehavior extends Behavior
     text = node.text ? ""
     @showModal text, (text) =>
 
-      node.comment = text
+      node.set(comment: text)
       @graph.drawNodes()
 
 
@@ -39,7 +39,7 @@ class CommentBehavior extends Behavior
     text = cluster.comment ? ""
     @showModal "cluster", (text) =>
 
-      cluster.comment = text
+      cluster.set(comment: text)
       @graph.drawClusters()
 
 
@@ -50,7 +50,7 @@ class CommentBehavior extends Behavior
     text = edge.comment ? ""
     @showModal "cluster", (text) =>
 
-      edge.comment = text
+      edge.set(comment: text)
       @graph.drawEdges()
 
 

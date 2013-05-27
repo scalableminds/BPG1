@@ -4,18 +4,29 @@ jquery : $
 
 class GUI
 
-  constructor : ->
+  constructor : (@artifactFinder) ->
 
     margin = 20
     @height = $(window).height() - $(".graph").offset().top - margin
 
-    @initToolbar()
-    @initSVG()
+    @appendArtifactFinder()
+    @appendSVG()
+
+
+  activate : ->
+
     @initSideBar()
-    @initToggle()
+    @initToggleHandler()
+    @initToolbarHandler()
 
 
-  initSVG : ->
+  deactivate : ->
+
+    $(".btn-group .btn").off("click")
+    $("a.toggles").off("click")
+
+
+  appendSVG : ->
 
     width = $(".graph").width()
 
@@ -26,10 +37,10 @@ class GUI
       .attr("pointer-events", "all")
 
 
-  initToolbar : ->
+  initToolbarHandler : ->
 
-    $('.btn-group .btn').on "click", (event) ->
-      $('.btn-group .btn').removeClass('active')
+    $(".btn-group .btn").on "click", (event) ->
+      $(".btn-group .btn").removeClass('active')
 
       $this = $(@)
       unless $this.hasClass('active')
@@ -43,7 +54,7 @@ class GUI
     $(".side-bar").css("height", @height)
 
 
-  initToggle : ->
+  initToggleHandler : ->
 
     $("a.toggles").click ->
       $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
@@ -51,3 +62,10 @@ class GUI
         width: "toggle"
       , 100
       $("#main").toggleClass "span12 span8"
+
+
+  appendArtifactFinder : ->
+
+    $("#artifact-finder").append( @artifactFinder.domElement )
+    #make first tab activate
+    $("a[data-toggle=tab]").first().tab("show")
