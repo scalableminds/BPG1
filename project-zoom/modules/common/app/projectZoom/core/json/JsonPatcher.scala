@@ -165,6 +165,8 @@ case class JsonAdd(path: String, value: JsValue) extends JsonPatch {
                 JsError()
             }
           }
+      case _ =>
+        JsError()
     }
 
     (__ \~ parentPath)(_.json.update(updateArray)) orElse (__ \~ parentPath)(_.json.update(updateObject))
