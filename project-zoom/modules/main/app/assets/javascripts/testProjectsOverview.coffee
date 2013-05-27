@@ -4,8 +4,6 @@ jquery : $
 view/projects_overview_view : ProjectsOverviewView
 ###
 
-app.addInitializer (options, callback) ->
+app.on "start", ->
 
   view = new ProjectsOverviewView()
-
-  callback()

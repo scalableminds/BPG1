@@ -3,14 +3,14 @@ jquery : $
 ###
 
 
-class Project
+Project = (project) ->
 
   node : null
   image : null
 
-  constructor : (project) ->
 
-    {@name, img:@image, @node, @tags} = project
+
+    # {@name, img:@image, @node, @tags} = project
 
 
   setNode : (node) ->

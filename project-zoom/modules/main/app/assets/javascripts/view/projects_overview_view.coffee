@@ -3,7 +3,8 @@ lib/event_mixin : EventMixin
 d3 : d3
 ./projectGraph : ProjectGraph
 ../component/tagbar : Tagbar
-
+app : app
+jquery : $
 ###
 
 class ProjectsOverviewView
@@ -17,16 +18,12 @@ class ProjectsOverviewView
   constructor : ->
 
     EventMixin.extend(this)
+
+    @initEventHandlers()
+
     @initTagbar()
     @initD3()
     @initGraph()
-    @initEventHandlers()
-    @initLayouter()
-
-
-  initLayouter : ->
-
-    @layouter = new Layouter()
 
 
   initTagbar : ->
@@ -52,12 +49,31 @@ class ProjectsOverviewView
   initGraph : ->
 
     @graphContainer = @svg.append("svg:g")
-    @graph = new ProjectGraph(@graphContainer, @svg, @layouter)
+    @graph = new ProjectGraph(@graphContainer, @svg)
+
+    @projectNodes = []
+
+    app.model.projectGraph.get("nodes").forEach( (projectNode) =>
+
+      node =
+        id: projectNode.get("id")
+        name: projectNode.get("name")
+        season: projectNode.get("season")
+        year: projectNode.get("year")
+        length: projectNode.get("length")
+        participants: projectNode.get("participants")
+        x: 100
+        y: 200
+
+      @projectNodes.push node
+    )
+
+    @graph.drawProjectGraph @projectNodes
 
 
   initEventHandlers : ->
 
-    $(".checkbox-group input").on "click", (event) => @graph.updateClusters(event.currentTarget)
+    $(".checkbox-group input").on "click", (event) => @graph.updateVennDiagram(event.currentTarget)
 
 
 

@@ -4,18 +4,29 @@ jquery : $
 
 class Layouter
 
+  clusterPositions =
+    0 : "left"
+    1 : "right"
+    2 : "bottom"
+    3 : "lr"
+    4 : "lb"
+    5 : "br"
+    6 : "middle"
+    7 : "no_cluster"
+
   PROJECT_SIZE = 64
   PADDING = 5
 
-	constructor : ->
-    console.log "hi i'm the layouter"
+	constructor : () ->
+
+    console.log "Hi i'm the Layouter"
 
 
   resizeCircle : (circle, weight) ->
 
 
-
   arrangeInSquare : (objects, square) ->
+
     start_x = square[0][0]
     start_y = square[0][1]
 
@@ -40,7 +51,22 @@ class Layouter
 
   getSquareInArea : (area) ->
 
-  arrangeNodesInClusters : (nodeClusters) ->
+
+  arrangeNodesInVenn : (nodeClusters) ->
+
+    for c in nodeClusters
+      cluster = nodeClusters[c]
+      console.log cluster
+
+    # projectClusters =
+    #   "left" : []
+    #   "right" : []
+    #   "bottom" : []
+    #   "lr" : []
+    #   "lb" : []
+    #   "br" : []
+    #   "middle" : []
+    #   "no_cluster" : []
 
 
 

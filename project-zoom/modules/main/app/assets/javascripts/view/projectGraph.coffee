@@ -6,6 +6,7 @@ lib/event_mixin : EventMixin
 ./process_view/behavior/connect_behavior : connectBehavior
 ./process_view/behavior/drag_behavior : dragBehavior
 ../component/project : Project
+../component/layouter : Layouter
 ###
 
 class ProjectGraph extends Graph
@@ -42,7 +43,7 @@ class ProjectGraph extends Graph
   SAMPLE_PROJECTS = [SAMPLE_PROJECT_1, SAMPLE_PROJECT_2, SAMPLE_PROJECT_3]
 
 
-  constructor : (@container, @svg, @layouter) ->
+  constructor : (@container, @svg) ->
 
     super(@container)
 
@@ -51,71 +52,26 @@ class ProjectGraph extends Graph
     @projects = []
 
     EventMixin.extend(this)
-    @initArrowMarkers()
-    @initProjects()
+    # @initArrowMarkers()
+    # @initProjects()
 
     @circles = @svg.append("svg:g").selectAll("circle")
+    @projectNodes = @container.append("svg:g").selectAll("projectNode")
 
     # @currentBehavior = new connectBehavior(@)
     # @currentBehavior.activate()
 
-
-  initProjects : ->
-
-    for p in SAMPLE_PROJECTS
-      project = new Project(p)
-
-      @projects.push project
-
-    pos_x = 20
-    pos_y = 20
-
-    for p in @projects
-      node = @addNode(pos_x, pos_y)
-
-      p.setNode node
-
-      pos_x += 70
-      pos_y += 70
+    # @initLayouter()
 
 
-  initArrowMarkers : ->
-
-    # define arrow markers for graph edges
-    @svg.append("svg:defs")
-      .append("svg:marker")
-        .attr("id", "end-arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 6)
-        .attr("markerWidth", 3)
-        .attr("markerHeight", 3)
-        .attr("orient", "auto")
-      .append("svg:path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "#000")
-
-    @svg.append("svg:defs")
-      .append("svg:marker")
-        .attr("id", "start-arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 4)
-        .attr("markerWidth", 3)
-        .attr("markerHeight", 3)
-        .attr("orient", "auto")
-      .append("svg:path")
-        .attr("d", "M10,-5L0,0L10,5")
-        .attr("fill", "#000")
-
-
-  addNode : (x, y, nodeId, artifact) =>
+  addNode : (x, y, nodeId) =>
 
     id = nodeId ? @nodeId++
 
     node = new Node(
       x,
       y,
-      id,
-      artifact
+      id
     )
 
     @nodes.push node
@@ -124,17 +80,65 @@ class ProjectGraph extends Graph
     node      # return node
 
 
-  changeBehavior : (behavior) ->
+  drawProjectNodes : ->
 
-    @currentBehavior.deactivate()
-    @currentBehavior = behavior
-    @currentBehavior.activate()
+    @projectNodes = @projectNodes.data(@projects, (data) -> data.id)
+    g = @projectNodes.enter().append("svg:g")
+    headline = g.append("svg:text")
+      .attr(
+        x: (d) -> d.x + 50
+        y: (d) -> d.y + 50
+        class: "projectHeadline"
+      )
+      .text( (d) -> d.name )
+    g.append("svg:circle")
+      .attr(
+        r: 30
+        cx: (d) -> d.x
+        cy: (d) -> d.y
+        width: (d) -> d.width
+        height: (d) -> d.height
+        class: "projectImage"
+      )
+    # g.append("svg:text") #tags!!!!
+
+    @projectNodes.exit().remove()
 
 
-######################### Drawing: #########################
+  drawProjectGraph : (@projects) ->
+
+    # console.log @projects
+
+    # for p, index in projectsJSON
+
+    #   project =
+    #     x: 100
+    #     y: 100
+    #     name: projectsJSON.get("name")
+    #     id: projectsJSON.get("id")
+    #     season: projectsJSON.get("season")
+    #     year: projectsJSON.get("year")
+    #     length: projectsJSON.get("length")
+    #     # participants: projectsJSON.get("participants")
+
+    #   @projects.push project
+
+    @drawProjectNodes()
+    # console.log @projectNodes
 
 
-  drawClusters : ->
+
+
+
+
+
+
+
+
+################# Venn: ##################
+
+
+  drawVennCircles : ->
 
     @circles = @circles.data(@clusters, (data) -> data.id)
     g = @circles.enter().append("svg:g")
@@ -161,11 +165,9 @@ class ProjectGraph extends Graph
     @circles.exit().remove()
 
 
-######################### Arranging: #########################
+  updateVennDiagram : (checkbox) =>
 
-  updateClusters : (checkbox) =>
-
-    location =
+    positions =
       0: [300, 200, 250, 50]
       1: [550, 200, 550, 50]
       2: [425, 400, 425, 575]
@@ -185,21 +187,18 @@ class ProjectGraph extends Graph
     if @selectedTags.length <= 3
       for t, index in @selectedTags
         cluster =
-          position: location[index]
+          position: positions[index]
           color: color[index]
           name: t
           id: t
 
         @clusters.push cluster
 
-    @drawClusters()
+    @drawVennCircles()
+    @arrangeProjectsInVenn()
 
-    @arrangeProjectsInClusters()
 
-
-  arrangeProjectsInClusters : () ->
-
-    # left = right = bottom = lr = lb = br = middle = no_cluster = []
+  arrangeProjectsInVenn : () ->
 
     projectClusters =
       "left" : []
@@ -216,27 +215,14 @@ class ProjectGraph extends Graph
       for t in p.tags
         selectedProjectTags.push t.name if t.name in @selectedTags
 
-      assignedCluster = @getAssignedCluster selectedProjectTags
+      assignedCluster = @getAssignedVennCluster selectedProjectTags
 
       projectClusters[assignedCluster].push p.node
 
-    @layouter.arrangeNodesInClusters(projectClusters)
-
-    # @resizeCircles all
-    # @arrangeProjects all
-
-    # @layouter.arrangeInSquare()
-    # @layouter.resizeCircle()
-      # @updateNode(p, selectedProjectTags)
+    @layouter.arrangeNodesInVenn(projectClusters)
 
 
-  resizeAllCircles : () ->
-
-  arrangeAllProjects : () ->
-
-######################### Calculating: #########################
-
-  getAssignedCluster : (assignedTags) ->
+  getAssignedVennCluster : (assignedTags) ->
 
     positions = []
 
@@ -259,6 +245,66 @@ class ProjectGraph extends Graph
     else if "bottom" in positions
       return "bottom"
     else return "no_cluster"
+
+
+  # changeBehavior : (behavior) ->
+
+  #   @currentBehavior.deactivate()
+  #   @currentBehavior = behavior
+  #   @currentBehavior.activate()
+
+
+
+  initLayouter : ->
+
+    @layouter = new Layouter()
+
+
+  initProjects : ->
+
+    for p in SAMPLE_PROJECTS
+      project = new Project(p)
+
+      @projects.push project
+
+    pos_x = 20
+    pos_y = 20
+
+    for p in @projects
+      node = @addNode(pos_x, pos_y)
+
+      p.setNode node
+
+      pos_x += 70
+      pos_y += 70
+
+
+  # initArrowMarkers : ->
+
+  #   # define arrow markers for graph edges
+  #   @svg.append("svg:defs")
+  #     .append("svg:marker")
+  #       .attr("id", "end-arrow")
+  #       .attr("viewBox", "0 -5 10 10")
+  #       .attr("refX", 6)
+  #       .attr("markerWidth", 3)
+  #       .attr("markerHeight", 3)
+  #       .attr("orient", "auto")
+  #     .append("svg:path")
+  #       .attr("d", "M0,-5L10,0L0,5")
+  #       .attr("fill", "#000")
+
+  #   @svg.append("svg:defs")
+  #     .append("svg:marker")
+  #       .attr("id", "start-arrow")
+  #       .attr("viewBox", "0 -5 10 10")
+  #       .attr("refX", 4)
+  #       .attr("markerWidth", 3)
+  #       .attr("markerHeight", 3)
+  #       .attr("orient", "auto")
+  #     .append("svg:path")
+  #       .attr("d", "M10,-5L0,0L10,5")
+  #       .attr("fill", "#000")
 
 
 
