@@ -19,7 +19,18 @@ app.addInitializer (options, callback) ->
       model.project = model.projects.find((p) -> p.get("id") == "519b693d030655c8752c2983")
 
       new $.Deferred (deferred) ->
-        model.project.get("graphs/0", model.project, deferred.resolve)
+        if model.project.lazyAttributes.graphs.length == 0
+          DataItem.fetch("/projects/#{model.project.get("id")}/graphs").then( 
+            (graph) ->
+              model.project.get("graphs", model.project, (graphCollection) ->
+                graphCollection.add(graph)
+                deferred.resolve()
+              )
+          )
+          
+        else
+          model.project.get("graphs/0", model.project, deferred.resolve)
+
         return
 
   ).then(

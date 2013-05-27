@@ -356,9 +356,8 @@ describe "DataItem", ->
         @dataItem.set("test/1", "test3")
 
         @dataItem.patchAcc.compact().should.deep.equal([
-          { op : "add", path : "/test/-", value : "test1" }
-          { op : "add", path : "/test/-", value : "test2" }
-          { op : "replace", path : "/test/1", value : "test3" }
+          { op : "add", path : "/test/0", value : "test1" }
+          { op : "add", path : "/test/1", value : "test3" }
         ])
 
 

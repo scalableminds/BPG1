@@ -66,7 +66,7 @@ Cluster = (cluster) ->
 
     waypoints = cluster.get("waypoints")
 
-    { x, y } = node.pick("x", "y")
+    { x, y } = node.get("position").pick("x", "y")
 
     { x : lX, y : lY } = waypoints.last().pick("x", "y")
 

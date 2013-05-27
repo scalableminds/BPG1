@@ -91,13 +91,13 @@ describe "DataItem.Collection", ->
         (callback) =>
           @dataCollection.on(this, "patch:add", (index, value, collection) =>
             value.should.equal(dataItem)
-            index.should.equal("-")
+            index.should.equal(1)
             collection.should.equal(@dataCollection)
             callback()
           )
 
         (callback) =>
-          @dataCollection.on(this, "change:-", (value, collection) =>
+          @dataCollection.on(this, "change:1", (value, collection) =>
             value.should.equal(dataItem)
             collection.should.equal(@dataCollection)
             callback()
@@ -105,7 +105,7 @@ describe "DataItem.Collection", ->
 
         (callback) =>
           @dataCollection.on(this, "change", (changeSet, collection) =>
-            changeSet["-"].should.equal(dataItem)
+            changeSet[1].should.equal(dataItem)
             collection.should.equal(@dataCollection)
             callback()
           )
@@ -189,9 +189,8 @@ describe "DataItem.Collection", ->
 
       jsonPatch.should.deep.equal(
         [
-          { op : "add", path : "/-", value : "test" }
-          { op : "add", path : "/-", value : "test1" }
-          { op : "replace", path : "/1", value : "test2" }
+          { op : "add", path : "/0", value : "test" }
+          { op : "add", path : "/1", value : "test2" }
         ]
       )
 

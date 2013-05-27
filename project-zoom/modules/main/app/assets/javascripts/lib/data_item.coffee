@@ -424,7 +424,6 @@ class DataItem.Collection
     if oldValue
       @trigger("patch:replace", index, item, this)
     else
-      index = "-" if isAppending
       @trigger("patch:add", index, item, this)
 
     

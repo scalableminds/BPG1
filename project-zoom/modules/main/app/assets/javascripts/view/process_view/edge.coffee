@@ -16,7 +16,7 @@ Edge = (edge, nodeList) ->
 
   getArrowDirection : ->
 
-    if @source.get("x") > @target.get("x")
+    if @source.get("position/x") > @target.get("position/x")
       return "url(#start-arrow)"
     else
       return "url(#end-arrow)"
@@ -30,18 +30,18 @@ Edge = (edge, nodeList) ->
     @HALF_SIZE = Node(@target).getSize().width / 2
 
     targetSourceAngle = @calcAngle(target, source)
-    snapPoint = @getSnapPoint(targetSourceAngle, target.pick("x", "y"))
+    snapPoint = @getSnapPoint(targetSourceAngle, target.get("position").pick("x", "y"))
 
     # sourceTargetAngle = @calcAngle(source, target)
     # source = @getSnapPoint(sourceTargetAngle, source)
 
-    return "M#{source.get("x")},#{source.get("y")} L#{snapPoint.x},#{snapPoint.y}"
+    return "M#{source.get("position/x")},#{source.get("position/y")} L#{snapPoint.x},#{snapPoint.y}"
 
 
   calcAngle : (target, source) ->
 
-    tX = target.get("x"); tY = target.get("y")
-    sX = source.get("x"); sY = source.get("y")
+    tX = target.get("position/x"); tY = target.get("position/y")
+    sX = source.get("position/x"); sY = source.get("position/y")
 
     distX = Math.abs(tX - sX)
     distY = Math.abs(tY - sY)
@@ -51,7 +51,7 @@ Edge = (edge, nodeList) ->
     if tX <= sX and tY >= sY
       angle = Math.asin(distX / hypothenuse)
 
-    else if tX <= source.get("x") and tY < sY
+    else if tX <= sY and tY < sY
       angle = PI - Math.asin(distX / hypothenuse)
 
     else if tX > sX and tY <= sY

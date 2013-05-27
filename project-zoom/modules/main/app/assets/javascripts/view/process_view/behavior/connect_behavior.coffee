@@ -62,8 +62,8 @@ class ConnectBehavior extends Behavior
     mouse = @mousePosition(event)
 
     nodeData = d3.select(svgContainer).datum()
-    lineStartX = nodeData.get("x")
-    lineStartY = nodeData.get("y")
+    lineStartX = nodeData.get("position/x")
+    lineStartY = nodeData.get("position/y")
 
     @dragLine
       .classed("hide", false)
