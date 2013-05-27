@@ -125,10 +125,10 @@ class ArtifactFinder
 
   deactivate : ->
 
-  getArtifact : (id) =>
+  getArtifact : (id, bare = false) =>
     for artifact in @SAMPLE_ARTIFACTS
       if artifact.id = id
-        return new Artifact( artifact, -> 64 )
+        return new Artifact( artifact, (-> 64), bare)
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
