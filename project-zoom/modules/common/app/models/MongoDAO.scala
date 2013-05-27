@@ -35,14 +35,14 @@ trait DAO[T] extends BaseDAO[T] {
   def removeById(id: String)(implicit ctx: DBAccessContext): Future[LastError]
 
   def removeAll(implicit ctx: DBAccessContext): Future[LastError]
-  
+
   def collectionName: String
 }
 
 trait BaseDAO[T] {
   def collectionInsert(t: JsObject)(implicit ctx: DBAccessContext): Future[LastError]
 
-  def collectionFind(query: JsObject)(implicit ctx: DBAccessContext): GenericQueryBuilder[JsObject, play.api.libs.json.Reads, play.api.libs.json.Writes]
+  def collectionFind(query: JsObject = Json.obj())(implicit ctx: DBAccessContext): GenericQueryBuilder[JsObject, play.api.libs.json.Reads, play.api.libs.json.Writes]
 
   def collectionUpdate(query: JsObject, update: JsObject, upsert: Boolean = false, multi: Boolean = false)(implicit ctx: DBAccessContext): Future[LastError]
 
@@ -69,6 +69,10 @@ trait MongoJsonDAO extends MongoDAO[JsObject] {
     super.insert(writer.writes(t))
   }
 
+  def update[T](id: BSONObjectID, t: T)(implicit ctx: DBAccessContext, writer: OWrites[T]): Future[LastError] = {
+    super.update(id, writer.writes(t))
+  }
+
   implicit object formatter extends OFormat[JsObject] {
     def writes(js: JsObject) = js
     def reads(js: JsValue) = js match {
@@ -93,11 +97,23 @@ trait MongoDAO[T] extends DAO[T] {
   def findHeadOption(attribute: String, value: String)(implicit ctx: DBAccessContext) = {
     find(attribute, value).one[T]
   }
-  
+
   def findOne(implicit ctx: DBAccessContext) = {
     collectionFind(Json.obj()).one[T]
   }
-  
+
+  def findMaxBy(attribute: String)(implicit ctx: DBAccessContext) = {
+    findOrderedBy(attribute, true, 1).map(_.headOption)
+  }
+
+  def findMinBy(attribute: String)(implicit ctx: DBAccessContext) = {
+    findOrderedBy(attribute, false, 1).map(_.headOption)
+  }
+
+  def findOrderedBy(attribute: String, desc: Boolean, limit: Int = 1)(implicit ctx: DBAccessContext) = {
+    collectionFind().sort(Json.obj(attribute -> desc)).cursor[T].collect[List](limit)
+  }
+
   def find(attribute: String, value: String)(implicit ctx: DBAccessContext): GenericQueryBuilder[JsObject, play.api.libs.json.Reads, play.api.libs.json.Writes] = {
     collectionFind(Json.obj(attribute -> value))
   }
@@ -116,8 +132,7 @@ trait MongoDAO[T] extends DAO[T] {
   def takeSome(q: GenericQueryBuilder[JsObject, Reads, Writes], offset: Int, limit: Int) = {
     val options = QueryOpts(skipN = offset, batchSizeN = limit)
     val document = Json.obj(
-      "$oderby" -> Json.obj(
-        "_id" -> 1))
+      "_id" -> 1)
     q
       .options(options)
       .sort(document)
@@ -165,8 +180,12 @@ trait MongoDAO[T] extends DAO[T] {
   def removeAll(implicit ctx: DBAccessContext) = {
     collectionRemove(Json.obj())
   }
-  
-  def insert(t:T)(implicit ctx: DBAccessContext): Future[LastError] = {
+
+  def update(id: BSONObjectID, t: T)(implicit ctx: DBAccessContext): Future[LastError] = {
+    collectionUpdate(Json.obj("_id" -> id), formatter.writes(t))
+  }
+
+  def insert(t: T)(implicit ctx: DBAccessContext): Future[LastError] = {
     collectionInsert(formatter.writes(t))
   }
 }

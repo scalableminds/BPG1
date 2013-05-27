@@ -13,33 +13,41 @@ import play.api.libs.json.Json
 import play.api.libs.json.JsObject
 import controllers.common.ControllerBase
 import play.api.libs.json.Reads
+import play.api.Logger
 
 case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 
 object GraphController extends ControllerBase with JsonCRUDController with EventPublisher with GraphTransformers {
   val dao = GraphDAO
 
+  override def singleObjectFinder(id: String)(implicit ctx: DBAccessContext) = {
+    GraphDAO.findLatestForGroup(id)
+  }
+
   override def displayReader(implicit ctx: DBAccessContext): Reads[JsObject] = {
     GraphDAO.includePayloadDetails(ctx)
   }
 
-  def patch(graphId: String) = SecuredAction(true, None, parse.json) { implicit request =>
+  def patch(groupId: String, baseVersion: Int) = SecuredAction(true, None, parse.json) { implicit request =>
     Async {
       val patch = request.body
-      GraphDAO.findOneById(graphId).map {
-        case Some(graph) =>
+      GraphDAO.findLatestForGroup(groupId).map {
+        case Some(graph) if baseVersion == (graph \ "version").as[Int] =>
           (graph patchWith patch)
             .flatMap(graphFormat.reads)
             .map { updatedGraph =>
-              GraphDAO.insert(updatedGraph).map { _ =>
+              Logger.warn("Updated:" + updatedGraph)
+              GraphDAO.update(updatedGraph._id, updatedGraph).map { r =>
+                Logger.warn("Insert result: " + r)
                 publish(GraphUpdated(updatedGraph, patch))
               }
-              JsonOk
-            }
-            .recoverTotal {
+              JsonOk(GraphDAO.extractVersionInfo(updatedGraph), "graph.update.successful")
+            }.recoverTotal {
               case e: JsError =>
                 BadRequest(JsError.toFlatJson(e))
             }
+        case Some(graph) =>
+          Redirect(controllers.main.routes.GraphController.read(groupId))
         case _ =>
           NotFound
       }

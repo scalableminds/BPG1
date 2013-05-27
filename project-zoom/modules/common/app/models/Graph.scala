@@ -42,7 +42,7 @@ trait PayloadTransformers {
   implicit val nodePayloadFormat: Format[NodePayload] = Json.format[NodePayload]
 }
 
-trait GraphTransformers extends PayloadTransformers with MongoHelpers{
+trait GraphTransformers extends PayloadTransformers with MongoHelpers {
   implicit val positionFormat: Format[Position] = Json.format[Position]
   implicit val nodeFormat: Format[Node] = Json.format[Node]
   implicit val edgeFormat: Format[Edge] = Json.format[Edge]
@@ -51,6 +51,9 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers{
 
   val replacePayloadContentWithId =
     (__ \ 'payload).json.update((__ \ 'id).json.pick)
+    
+  val versionInfoReads = 
+    (__ \ 'version).json.pickBranch
 
   def replacePayloadIdWithContent(content: JsValue) =
     (__).json.update((__ \ 'payload).json.put(content))
@@ -91,6 +94,10 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers{
 object GraphDAO extends SecuredMongoJsonDAO with GraphTransformers {
   val collectionName = "graphs"
 
+  def extractVersionInfo(graph: Graph) = {
+    (Json.toJson(graph) transform versionInfoReads).get
+  }  
+    
   def generateEmptyGraph = {
     Graph(
       group = UUID.randomUUID().toString,
@@ -98,5 +105,9 @@ object GraphDAO extends SecuredMongoJsonDAO with GraphTransformers {
       nodes = Nil,
       edges = Nil,
       clusters = Nil)
+  }
+
+  def findLatestForGroup(group: String)(implicit ctx: DBAccessContext) = {
+    findMaxBy("version")
   }
 }

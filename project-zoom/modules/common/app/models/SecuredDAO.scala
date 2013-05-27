@@ -6,6 +6,7 @@ import play.api.libs.json.JsObject
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
+import play.api.Logger
 
 trait SecuredMongoJsonDAO extends MongoJsonDAO with SecuredJsonDAO
 
@@ -75,15 +76,26 @@ trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEye
         LastError(false, None, None, Some("Couldn't parse ObjectId"), None, 0, false)))
 
   def collectionInsert(js: JsObject)(implicit ctx: DBAccessContext): Future[LastError] = {
+    Logger.warn("reached")
     if (ctx.globalAccess || isAllowedToInsert) {
-      collection.insert(js ++ createACL(js))
+      Logger.warn("ONGOING: " + (js ++ createACL(js)))
+      val r = collection.insert(js ++ createACL(js)).map { r =>
+        Logger.error("INSERT R : " + r)
+        r
+      }
+      r.onFailure {
+        case e: Throwable =>
+          println(e)
+      }
+      r
     } else {
+      Logger.warn("DENIED")
       Future.successful(
         LastError(false, None, None, Some("Access denied"), None, 0, false))
     }
   }
 
-  def collectionFind(query: JsObject)(implicit ctx: DBAccessContext) = {
+  def collectionFind(query: JsObject = Json.obj())(implicit ctx: DBAccessContext) = {
     if (ctx.globalAccess)
       collection.find(query)
     else
