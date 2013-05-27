@@ -6,13 +6,29 @@ class GUI
 
   constructor : ->
 
-    margin = 10
-    @height = $(window).height() - $(".graph").offset().top - margin
+    @appendArtifactFinder()
+    @appendSVG()
 
-    @initToolbar()
-    @initSVG()
+    @resizeHandler = =>
+      @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+    
+
+
+  activate : ->
+
     @initSideBar()
+    @initToggleHandler()
+    @initToolbarHandler()
+    
+    $(window).on("resize", @resizeHandler)
+    @resizeHandler()
 
+
+  deactivate : ->
+
+    $(".btn-group .btn").off("click")
+    $("a.toggles").off("click")
+    $(window).off("resize", @resizeHandler)
 
   initSVG : ->
 
