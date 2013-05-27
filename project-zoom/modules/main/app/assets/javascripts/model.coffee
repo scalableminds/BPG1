@@ -90,7 +90,7 @@ app.addInitializer (options, callback) ->
     ->
 
       model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
-      model.project = model.projects.find((p) -> p.get("id") == "519b693d030655c8752c2973")
+      model.project = model.projects.find((p) -> p.get("id") == "519b6ce19ad95e36e749a6b2")
 
       ModelFunctions.prepareGraph(model.project)
 

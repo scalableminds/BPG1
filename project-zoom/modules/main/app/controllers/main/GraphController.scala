@@ -1,19 +1,18 @@
 package controllers.main
+
 import projectZoom.util.ExtendedTypes.ExtendedJsObject
 import play.api.libs.concurrent.Execution.Implicits._
-import play.api.libs.json.JsError
 import models.GraphDAO
 import models.Graph
 import projectZoom.core.event._
-import play.api.libs.json.JsValue
 import models.GraphTransformers
 import models.Implicits._
 import models.DBAccessContext
-import play.api.libs.json.Json
-import play.api.libs.json.JsObject
+import play.api.libs.json._
+import play.api.libs.json.Reads._
 import controllers.common.ControllerBase
-import play.api.libs.json.Reads
 import play.api.Logger
+import play.api.libs.functional.syntax._
 
 case class GraphUpdated(graph: Graph, patch: JsValue) extends Event
 
@@ -34,15 +33,15 @@ object GraphController extends ControllerBase with JsonCRUDController with Event
       GraphDAO.findLatestForGroup(groupId).map {
         case Some(graph) if baseVersion == (graph \ "version").as[Int] =>
           (graph patchWith patch)
-            .flatMap(GraphDAO.incrementVersion.reads)
-            .flatMap(GraphDAO.generateId.reads)
+            .flatMap((GraphDAO.incrementVersion and GraphDAO.generateId).reduce.reads)
+            .map { v => Logger.error(v.toString); v }
             .flatMap(graphFormat.reads)
             .map { updatedGraph =>
-              Logger.warn("Updated:" + updatedGraph)
+              Logger.trace("Updated graph: " + updatedGraph)
               GraphDAO.insert(updatedGraph).map { r =>
                 publish(GraphUpdated(updatedGraph, patch))
               }
-              JsonOk(GraphDAO.extractVersionInfo(updatedGraph), "graph.update.successful")
+              JsonOk(GraphDAO.extractVersionInfo(updatedGraph), "graph.patch.successful")
             }.recoverTotal {
               case e: JsError =>
                 BadRequest(JsError.toFlatJson(e))
