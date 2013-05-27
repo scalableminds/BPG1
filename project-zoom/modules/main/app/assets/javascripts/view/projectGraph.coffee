@@ -53,9 +53,9 @@ class ProjectGraph extends Graph
 
 
     g = @projectNodes.enter().append("svg:g")
-    g.attr(
-      transform: "translate(20,25)"
-      )
+    # g.attr(
+    #   transform: "translate(20,25)"
+    #   )
     g.append("svg:image")
       .attr(
         class: "projectImage"
@@ -67,11 +67,12 @@ class ProjectGraph extends Graph
       )
     headline = g.append("svg:text")
       .attr(
-        x: (d) -> parseInt(d.x) + 50
-        y: (d) -> parseInt(d.y) + 50
+        x: (d) -> parseInt(d.x) + 200
+        y: (d) -> parseInt(d.y) + 200
         class: "projectHeadline"
       )
       .text( (d) -> d.name )
+
     # g.append("svg:text") #tags!!!!
 
     @projectNodes.exit().remove()

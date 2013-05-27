@@ -61,11 +61,11 @@ class ProjectsOverviewView
 
       node =
         id: projectNode.get("id")
-        name: projectNode.get("name")
-        season: projectNode.get("season")
-        year: projectNode.get("year")
-        length: projectNode.get("length")
-        participants: projectNode.get("participants")
+        name: projectNode.attributes.payload.attributes.name
+        season: projectNode.attributes.payload.attributes.season
+        year: projectNode.attributes.payload.attributes.yaer
+        length: projectNode.attributes.payload.attributes.length
+        participants: projectNode.attributes.payload.attributes.participants
         x: x
         y: y
         image: "http://upload.wikimedia.org/wikipedia/commons/9/96/Naso_elegans_Oceanopolis.jpg"
