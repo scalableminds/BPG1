@@ -38,13 +38,13 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
     }
   }
 
-  def download(_project: String, artifactId: String, resourceType: String) = SecuredAction(ajaxCall = true) { implicit request =>
+  def download(_project: String, artifactId: String, resourceType: String, fileName: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
       (for {
         project <- ProjectDAO.findOneByName(_project)
         artifact <- ArtifactDAO.findOneById(artifactId)
       } yield {
-        artifact.flatMap(a => (a \ "resources" \ resourceType).asOpt[ResourceInfo]) match {
+        artifact.flatMap(a => (a \ "resources" \ resourceType).asOpt[List[ResourceInfo]]).flatMap( _.find(_.fileName == fileName)) match {
           case Some(resource) =>
             (artifactActor ? RequestResource(_project, resource))
               .mapTo[Option[InputStream]]
