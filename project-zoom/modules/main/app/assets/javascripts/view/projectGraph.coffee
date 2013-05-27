@@ -56,14 +56,14 @@ class ProjectGraph extends Graph
     g.attr(
       transform: "translate(20,25)"
       )
-    g.append("svg:circle")
+    g.append("svg:image")
       .attr(
-        r: 30
-        cx: (d) -> d.x
-        cy: (d) -> d.y
+        class: "projectImage"
+        x: (d) -> d.x
+        y: (d) -> d.y
         width: (d) -> d.width
         height: (d) -> d.height
-        class: "projectImage"
+        "xlink:href": (d) -> d.image
       )
     headline = g.append("svg:text")
       .attr(

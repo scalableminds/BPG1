@@ -53,8 +53,8 @@ class ProjectsOverviewView
     @projects = []
 
     start_x = start_y = x = y = 20
-    margin = 10
-    nodeWidth = 60
+    margin = 20
+    nodeWidth = 100
     svgWidth = parseInt @svg.attr("WIDTH")
 
     app.model.projectGraph.get("nodes").forEach( (projectNode) =>
@@ -68,6 +68,9 @@ class ProjectsOverviewView
         participants: projectNode.get("participants")
         x: x
         y: y
+        image: "http://upload.wikimedia.org/wikipedia/commons/9/96/Naso_elegans_Oceanopolis.jpg"
+        width: "100px"
+        height: "100px"
 
       @projects.push node
 
