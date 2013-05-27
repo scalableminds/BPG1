@@ -1,4 +1,4 @@
-package projectZoom.thumbnails.video;
+package projectZoom.thumbnails.image;
 
 
 import java.io.File;
@@ -6,25 +6,23 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import org.apache.tika.Tika;
 
 import models.ResourceInfo;
 import projectZoom.thumbnails.*;
-import projectZoom.thumbnails.video.VideoReader;
 
 
-public class VideoThumbnailPlugin {
+
+public class ImageThumbnailPlugin {
 	
-	private List<VideoReader> readers;
+	private List<ImageReader> readers;
 	static int[] THUMBNAIL_WIDTHS = {64, 128, 256, 512};
-	static int THUMBNAIL_Count = 3;
 	static String TEMP_FOLDER = "/home/user/";
 
 	
-	public VideoThumbnailPlugin() {
+	public ImageThumbnailPlugin() {
 		
-		readers = new ArrayList<VideoReader>();
-		readers.add(new XuggleReader());
+		readers = new ArrayList<ImageReader>();
+		readers.add(new DefaultReader());
 
 	}
 	
@@ -43,14 +41,14 @@ public class VideoThumbnailPlugin {
 		String mimetype = TikaUtil.getMimeType(file);
 		System.out.print(mimetype);
 		
-		Iterator<VideoReader> iterator = readers.iterator();
+		Iterator<ImageReader> iterator = readers.iterator();
 		while (iterator.hasNext()) {
-			VideoReader reader = iterator.next();
+			ImageReader reader = iterator.next();
 
 			if (!reader.isSupported(mimetype))
 				continue;
 
-			output.addAll(reader.getFrames(ressourceInfo.fileName(), 512, THUMBNAIL_Count));
+			output.addAll(reader.getImages(ressourceInfo.fileName(), THUMBNAIL_WIDTHS));
 		}
 		return output;
 	}
