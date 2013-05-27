@@ -43,20 +43,20 @@ class ProjectGraph extends Graph
   SAMPLE_PROJECTS = [SAMPLE_PROJECT_1, SAMPLE_PROJECT_2, SAMPLE_PROJECT_3]
 
 
-  constructor : (@container, @svg) ->
-
-    super(@container)
+  constructor : (@container, @svg, @graphModel, @projects) ->
 
     @selectedTags = []
     @clusters = []
-    @projects = []
 
     EventMixin.extend(this)
     # @initArrowMarkers()
     # @initProjects()
 
     @circles = @svg.append("svg:g").selectAll("circle")
+
     @projectNodes = @container.append("svg:g").selectAll("projectNode")
+
+    super(@container, @graphModel)
 
     # @currentBehavior = new connectBehavior(@)
     # @currentBehavior.activate()
@@ -80,17 +80,11 @@ class ProjectGraph extends Graph
     node      # return node
 
 
-  drawProjectNodes : ->
+  drawNodes : ->
 
     @projectNodes = @projectNodes.data(@projects, (data) -> data.id)
+
     g = @projectNodes.enter().append("svg:g")
-    headline = g.append("svg:text")
-      .attr(
-        x: (d) -> d.x + 50
-        y: (d) -> d.y + 50
-        class: "projectHeadline"
-      )
-      .text( (d) -> d.name )
     g.append("svg:circle")
       .attr(
         r: 30
@@ -100,12 +94,19 @@ class ProjectGraph extends Graph
         height: (d) -> d.height
         class: "projectImage"
       )
+    headline = g.append("svg:text")
+      .attr(
+        x: (d) -> parseInt(d.x) + 50
+        y: (d) -> parseInt(d.y) + 50
+        class: "projectHeadline"
+      )
+      .text( (d) -> d.name )
     # g.append("svg:text") #tags!!!!
 
     @projectNodes.exit().remove()
 
 
-  drawProjectGraph : (@projects) ->
+  drawProjectGraph : () ->
 
     # console.log @projects
 
@@ -123,8 +124,13 @@ class ProjectGraph extends Graph
 
     #   @projects.push project
 
-    @drawProjectNodes()
+    @drawNodes()
     # console.log @projectNodes
+
+
+  drawEdges : () ->
+
+  drawClusters : () ->
 
 
 

@@ -15,7 +15,7 @@ class ProjectsOverviewView
   MIDDLE_Y = 325
 
 
-  constructor : ->
+  constructor : (@projectGraphModel) ->
 
     EventMixin.extend(this)
 
@@ -49,9 +49,8 @@ class ProjectsOverviewView
   initGraph : ->
 
     @graphContainer = @svg.append("svg:g")
-    @graph = new ProjectGraph(@graphContainer, @svg)
 
-    @projectNodes = []
+    @projects = []
 
     app.model.projectGraph.get("nodes").forEach( (projectNode) =>
 
@@ -65,10 +64,13 @@ class ProjectsOverviewView
         x: 100
         y: 200
 
-      @projectNodes.push node
+      @projects.push node
     )
 
-    @graph.drawProjectGraph @projectNodes
+    @graph = new ProjectGraph(@graphContainer, @svg, @projectGraphModel, @projects)
+
+
+    # @graph.drawProjectGraph @projects
 
 
   initEventHandlers : ->
