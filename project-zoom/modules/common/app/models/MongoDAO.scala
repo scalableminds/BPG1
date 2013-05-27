@@ -103,11 +103,11 @@ trait MongoDAO[T] extends DAO[T] {
   }
 
   def findMaxBy(attribute: String)(implicit ctx: DBAccessContext) = {
-    findOrderedBy(attribute, true, 1).map(_.headOption)
+    findOrderedBy(attribute, false, 1).map(_.headOption)
   }
 
   def findMinBy(attribute: String)(implicit ctx: DBAccessContext) = {
-    findOrderedBy(attribute, false, 1).map(_.headOption)
+    findOrderedBy(attribute, true, 1).map(_.headOption)
   }
 
   def findOrderedBy(attribute: String, desc: Boolean, limit: Int = 1)(implicit ctx: DBAccessContext) = {
