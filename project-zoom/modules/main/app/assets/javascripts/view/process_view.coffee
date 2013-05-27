@@ -5,6 +5,7 @@ hammer: Hammer
 jquery.mousewheel : Mousewheel
 ./process_view/interactive_graph : InteractiveGraph
 ./process_view/gui : GUI
+./process_view/behavior/behavior : Behavior
 ./process_view/behavior/connect_behavior : ConnectBehavior
 ./process_view/behavior/drag_behavior : DragBehavior
 ./process_view/behavior/delete_behavior : DeleteBehavior
@@ -21,43 +22,50 @@ class ProcessView
 
   constructor : (@projectModel) ->
 
-    @gui = new GUI()
+    @artifactFinder = new ArtifactFinder()
+    @gui = new GUI(@artifactFinder)
+    @projectModel.get "graphs/0", this, (graphModel) ->
+
+      @graph = new InteractiveGraph(graphModel)
+
 
     EventMixin.extend(this)
-    @initArtifactFinder()
-    @initGraph()
-    @initEventHandlers()
+
+    @activate()
 
 
-  initArtifactFinder : ->
+  deactivate : ->
 
-    @artifactFinder = new ArtifactFinder()
-    $("#artifact-finder").append( @artifactFinder.domElement )
+    $("body").off("dragstart")
+    @hammerContext
+      .off("dragend")
+      .off("touch")
+      .off("release")
 
-    #make first tab activate
-    $("a[data-toggle=tab]").first().tab("show")
-
-
-  initGraph : ->
-
-    @svg = d3.select("svg")
-    @graphContainer = @svg.append("svg:g")
-
-    @projectModel.get("graphs/0", this, (graphModel) ->
-
-      @graph = new InteractiveGraph(@graphContainer, @svg, graphModel)
-
-    )
+    $(".btn-group a").off("click")
+    $(".zoom-slider")
+      .off("change")
+      .off("click")
 
 
-  initEventHandlers : ->
+    @graph.changeBehavior(new Behavior())
+    @gui.deactivate()
+
+    #what about the html?
+    #$("svg").hide()
+    #$("#artifact-finder").hide()
+
+
+  activate : ->
+
+    @gui.activate()
 
     # add new node
     #Hammer( $("svg")[0] ).on "tap", @addNode
 
     # drag artifact into graph
     $("body").on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
-    Hammer(document.body).on "dragend", "#artifact-finder .artifact-image", @addArtifact
+    @hammerContext = Hammer(document.body).on "dragend", "#artifact-finder .artifact-image", @addArtifact
 
     # change tool from toolbox
     processView = this
@@ -73,7 +81,7 @@ class ProcessView
 
       mouseDown = false
 
-      Hammer(document.body)
+      @hammerContext
         .on("touch", -> mouseDown = true; return )
         .on("release", -> mouseDown = false; return )
 
@@ -107,7 +115,6 @@ class ProcessView
       artifact.resize() #call once so, that the right-sized image is loaded
 
 
-
   addNode : (evt, nodeId, artifact = null) =>
 
     offset = $("svg").offset()
@@ -124,7 +131,8 @@ class ProcessView
 
   changeBehavior : (selectedTool) =>
 
-    { graph, graphContainer } = @
+    graph = @graph
+    graphContainer = @graph.graphContainer
 
     toolBox = $(".btn-group a")
     behavior = switch selectedTool
@@ -149,7 +157,7 @@ class ProcessView
 
     scaleValue = $(".zoom-slider input").val()
 
-    @graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
+    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
 
 
