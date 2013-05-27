@@ -177,6 +177,22 @@ describe "DataItem.Collection", ->
       @dataCollection.remove(dataItem)
 
 
+
+    it "should not trigger events with silent option", (done) ->
+
+      @dataCollection.on(this, "patch:*", @spy)
+
+      @dataCollection.set(0, "test1", silent : true)
+      @dataCollection.set(0, "test1")
+
+      setTimeout(
+        =>
+          @spy.should.have.been.called.once
+          done()
+        10
+      )
+
+
   describe "json patch", ->
 
     it "should record member add", ->

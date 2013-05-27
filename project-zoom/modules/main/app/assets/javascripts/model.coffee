@@ -55,7 +55,7 @@ ModelFunctions =
                 dataType : "json"
               ).then( 
                 ({ version }) -> 
-                  graph.set("version", version); return
+                  graph.set("version", version, silent : true); return
                 ($xhr) ->
                   if $xhr.status == 400 
                     alert("Sorry. We couldn't save.")

@@ -153,26 +153,28 @@ class DataItem
 
 
 
-  set : (key, value) ->
+  set : (key, value, options) ->
 
     if _.isObject(key)
 
-      @set(k, v) for k, v of key
+      @set(k, v, options) for k, v of key
       return
 
     else
 
       if key.indexOf("/") == -1
-        @_set(key, value)
+        @_set(key, value, options)
 
       else
         remainingKey = key.substring(key.indexOf("/") + 1)
         key = key.substring(0, key.indexOf("/"))
-        this.attributes[key].set(remainingKey, value)
+        this.attributes[key].set(remainingKey, value, options)
 
 
 
-  _set : (key, value) ->
+  _set : (key, value, options = {}) ->
+
+    _.defaults(options, silent : false)
 
     if (oldValue = @attributes[key])?
       if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
@@ -196,15 +198,18 @@ class DataItem
       if value instanceof DataItem or value instanceof DataItem.Collection
         value.on(this, "patch:*", @trackPatches(key))
       
-      if oldValue
-        @trigger("patch:replace", key, value, this)
-      else
-        @trigger("patch:add", key, value, this)
+      unless options.silent
+        if oldValue
+          @trigger("patch:replace", key, value, this)
+        else
+          @trigger("patch:add", key, value, this)
 
     value
 
 
-  unset : (key) ->
+  unset : (key, options = {}) ->
+
+    _.defaults(options, silent : false)
 
     if (oldValue = @attributes[key])?
       if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
@@ -212,18 +217,19 @@ class DataItem
 
       delete @attributes[key]
 
-      @trigger("patch:remove", key, oldValue, this)
+      unless options.silent
+        @trigger("patch:remove", key, oldValue, this)
 
     return
 
 
-  update : (key, updater) ->
+  update : (key, updater, options) ->
 
     if _.isObject(key)
-      @update(k, v) for k, v of key
+      @update(k, v, options) for k, v of key
 
     else
-      @set(key, updater(@get(key)))
+      @set(key, updater(@get(key)), options)
 
     this
 
@@ -388,26 +394,28 @@ class DataItem.Collection
     return
 
 
-  set : (key, value) ->
+  set : (key, value, options) ->
 
     if _.isObject(key)
 
-      @set(k, v) for k, v of key
+      @set(k, v, options) for k, v of key
       return
 
     else
 
       key = "#{key}"
       if key.indexOf("/") == -1
-        @_set(+key, value)
+        @_set(+key, value, options)
 
       else
         remainingKey = key.substring(key.indexOf("/") + 1)
         key = +key.substring(0, key.indexOf("/"))
-        this.items[key].set(remainingKey, value)
+        this.items[key].set(remainingKey, value, options)
 
 
-  _set : (index = @length, item) ->
+  _set : (index = @length, item, options = {}) ->
+
+    _.defaults(options, silent : false)
 
     if (oldValue = @items[index])?
       if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
@@ -421,10 +429,12 @@ class DataItem.Collection
       item.on(this, "patch:*", @trackPatches)
 
     @items[index] = item
-    if oldValue
-      @trigger("patch:replace", index, item, this)
-    else
-      @trigger("patch:add", index, item, this)
+  
+    unless options.silent
+      if oldValue
+        @trigger("patch:replace", index, item, this)
+      else
+        @trigger("patch:add", index, item, this)
 
     
   remove : (items...) ->
@@ -439,13 +449,13 @@ class DataItem.Collection
     return
 
 
-  update : (key, updater) ->
+  update : (key, updater, options) ->
 
     if _.isObject(key)
-      @update(k, v) for k, v of key
+      @update(k, v, options) for k, v of key
 
     else
-      @set(key, updater(@get(key)))
+      @set(key, updater(@get(key)), options)
 
     this
 
