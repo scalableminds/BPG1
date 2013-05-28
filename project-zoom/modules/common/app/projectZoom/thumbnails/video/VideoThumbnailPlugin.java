@@ -28,7 +28,7 @@ public class VideoThumbnailPlugin {
 
 	}
 	
-	public List<Artifact> onResourceFound(ResourceInfo ressourceInfo) {
+	public List<Artifact> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
 		System.out.print("onResourceFound called ");
 
@@ -37,10 +37,7 @@ public class VideoThumbnailPlugin {
 		if (!ressourceInfo.typ().equals("default"))
 			return output;
 		
-		String filename = ressourceInfo.fileName();
-		File file = new File(filename); 
-		
-		String mimetype = TikaUtil.getMimeType(file);
+		String mimetype = TikaUtil.getMimeType(resource);
 		System.out.print(mimetype);
 		
 		Iterator<VideoReader> iterator = readers.iterator();
@@ -50,7 +47,7 @@ public class VideoThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 
-			output.addAll(reader.getFrames(ressourceInfo.fileName(), 512, THUMBNAIL_Count));
+			output.addAll(reader.getFrames(ressourceInfo.name(), 512, THUMBNAIL_Count));
 		}
 		return output;
 	}

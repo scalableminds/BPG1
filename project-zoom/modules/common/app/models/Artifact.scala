@@ -19,14 +19,15 @@ import play.modules.reactivemongo.json.BSONFormats._
  */
 trait ArtifactLike {
   def name: String
+  def path: String
   def projectName: String
   def source: String
   def metadata: JsValue
 }
-case class ArtifactInfo(name: String, projectName: String, source: String, metadata: JsValue)
+case class ArtifactInfo(name: String, projectName: String, path: String, source: String, metadata: JsValue)
   extends ArtifactLike
 
-case class Artifact(name: String, source: String, projectName: String, metadata: JsValue, resources: List[Resource], _id: BSONObjectID)
+case class Artifact(name: String, projectName: String, path: String, source: String, metadata: JsValue, resources: List[Resource], _id: BSONObjectID)
   extends ArtifactLike
 
 trait ArtifactInfoFactory {
@@ -53,7 +54,7 @@ object ArtifactDAO extends SecuredMongoJsonDAO[Artifact] with ArtifactInfoFactor
     Json.obj("name" -> name, "source" -> source, "projectName" -> projectName)
     
   def findByResourceQ(resourceInfo: ResourceInfo): JsObject =
-    Json.obj("resources" -> resourceInfo)
+    Json.obj("resources.typ" -> resourceInfo.typ, "resources.name" -> resourceInfo.name)
     
   def findOne(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext) =
     collectionFind(findByArtifactQ(artifactInfo)).one[JsObject]
@@ -77,7 +78,7 @@ object ArtifactDAO extends SecuredMongoJsonDAO[Artifact] with ArtifactInfoFactor
 
   def findResource(artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) =
     collectionFind(findByArtifactQ(artifactInfo) ++ findByResourceQ(resourceInfo)).one[Artifact].map(
-      _.flatMap(_.resources.find( r => r.fileName == resourceInfo.fileName && r.typ == resourceInfo.typ)))
+      _.flatMap(_.resources.find( _.isSameAs(resourceInfo))))
     
   def insertResource(artifactInfo: ArtifactInfo)(hash: String, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) = {
     val resource = resourceCreateFrom(resourceInfo, hash)

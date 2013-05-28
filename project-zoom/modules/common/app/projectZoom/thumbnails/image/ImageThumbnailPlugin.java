@@ -26,7 +26,7 @@ public class ImageThumbnailPlugin {
 
 	}
 	
-	public List<Artifact> onResourceFound(ResourceInfo ressourceInfo) {
+	public List<Artifact> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
 		System.out.print("onResourceFound called ");
 
@@ -35,10 +35,7 @@ public class ImageThumbnailPlugin {
 		if (!ressourceInfo.typ().equals("default"))
 			return output;
 		
-		String filename = ressourceInfo.fileName();
-		File file = new File(filename); 
-		
-		String mimetype = TikaUtil.getMimeType(file);
+		String mimetype = TikaUtil.getMimeType(resource);
 		System.out.print(mimetype);
 		
 		Iterator<ImageReader> iterator = readers.iterator();
@@ -48,7 +45,7 @@ public class ImageThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 
-			output.addAll(reader.getImages(ressourceInfo.fileName(), THUMBNAIL_WIDTHS));
+			output.addAll(reader.getImages(ressourceInfo.name(), THUMBNAIL_WIDTHS));
 		}
 		return output;
 	}

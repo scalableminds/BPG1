@@ -29,7 +29,7 @@ public class TextThumbnailPlugin {
 
 	}
 	
-	public List<Artifact> onResourceFound(ResourceInfo ressourceInfo) {
+	public List<Artifact> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
 		System.out.print("onResourceFound called ");
 
@@ -38,10 +38,7 @@ public class TextThumbnailPlugin {
 		if (!ressourceInfo.typ().equals("default"))
 			return output;
 		
-		String filename = ressourceInfo.fileName();
-		File file = new File(filename); 
-		
-		String mimetype = TikaUtil.getMimeType(file);
+		String mimetype = TikaUtil.getMimeType(resource);
 		System.out.print(mimetype);
 		
 		Iterator<TextReader> iterator = readers.iterator();
@@ -51,9 +48,9 @@ public class TextThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 
-			output.addAll(reader.getTagClouds(file, CLOUD_WIDTHS));
-			output.addAll(reader.getThumbnails(file, THUMBNAIL_WIDTHS));
-			output.addAll(reader.getGifs(file, THUMBNAIL_WIDTHS, GIF_PAGECOUNT));
+			output.addAll(reader.getTagClouds(resource, CLOUD_WIDTHS));
+			output.addAll(reader.getThumbnails(resource, THUMBNAIL_WIDTHS));
+			output.addAll(reader.getGifs(resource, THUMBNAIL_WIDTHS, GIF_PAGECOUNT));
 	
 		}
 

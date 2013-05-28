@@ -6,14 +6,17 @@ import reactivemongo.bson.BSONObjectID
 import play.api.libs.json.Format
 
 trait ResourceLike {
-  def fileName: String
+  def name: String
   def typ: String
+  
+  def isSameAs(o: ResourceLike) = 
+    name == o.name && typ == o.typ
 }
 
-case class ResourceInfo(fileName: String, typ: String)
+case class ResourceInfo(name: String, typ: String)
   extends ResourceLike
 
-case class Resource(fileName: String, hash: String, typ: String)
+case class Resource(name: String, hash: String, typ: String)
   extends ResourceLike
   
 trait DefaultResourceTypes {
@@ -28,7 +31,7 @@ trait ResourceHelpers {
 
   def resourceCreateFrom(ri: ResourceInfo, hash: String) =
     Resource(
-      ri.fileName,
+      ri.name,
       hash,
       ri.typ)
 }

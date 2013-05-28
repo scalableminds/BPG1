@@ -22,6 +22,7 @@ import scala.concurrent.Future
 import models.Implicits._
 import controllers.common.ControllerBase
 import play.api.i18n.Messages
+import models.ResourceLike
 
 object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem with PlayConfig {
 
@@ -45,17 +46,18 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
     }
   }
 
-  def download(artifactId: String, resourceType: String, fileName: String) = SecuredAction(ajaxCall = true) { implicit request =>
+  def download(artifactId: String, name: String, typ: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
+      val requestedResource = ResourceInfo(name, typ)
       for {
         artifactOpt <- ArtifactDAO.findOneById(artifactId).map(_.flatMap(ArtifactDAO.asObjectOpt))
         artifact <- artifactOpt ?~ Messages("artifact.notFound")
       } yield {
         artifact
           .resources
-          .find(r => r.fileName == fileName && r.typ == resourceType) match {
+          .find(_.isSameAs(requestedResource)) match {
             case Some(resource) =>
-              (artifactActor ? RequestResource(artifact.projectName, resource))
+              (artifactActor ? RequestResource(artifact, resource))
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
