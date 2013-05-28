@@ -34,7 +34,6 @@ object GraphController extends ControllerBase with JsonCRUDController with Event
         case Some(graph) if baseVersion == (graph \ "version").as[Int] =>
           (graph patchWith patch)
             .flatMap((GraphDAO.incrementVersion and GraphDAO.generateId).reduce.reads)
-            .map { v => Logger.error(v.toString); v }
             .flatMap(graphFormat.reads)
             .map { updatedGraph =>
               Logger.trace("Updated graph: " + updatedGraph)
