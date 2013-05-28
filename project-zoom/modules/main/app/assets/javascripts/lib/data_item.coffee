@@ -4,6 +4,7 @@ async : async
 ./event_mixin : EventMixin
 ./request : Request
 ./change_accumulator : ChangeAccumulator
+./json_patch_accumulator : JsonPatchAccumulator
 ###
 
 ###
@@ -17,20 +18,42 @@ class DataItem
   constructor : (json = {}, options = {}) ->
 
     EventMixin.extend(this)
-    @trackChanges = _.memoize(@trackChanges)
-    @changeAcc = new ChangeAccumulator()
 
-    @on(@changeAcc, "change", @changeAcc.addChange)
+    @trackPatches = _.memoize(@trackPatches)
 
     @attributes = {}
     @lazyAttributes = options.lazy ? {}
 
     @set(json)
 
+    @patchAcc = new JsonPatchAccumulator()
+    @on(@patchAcc, "patch:*", @patchAcc.addChange)
 
-  trackChanges : (key) -> (changeSet) =>
+    @changeAcc = new ChangeAccumulator()
+    @on(@changeAcc, "change", @changeAcc.addChange)
+    @on(this, "patch:*", @trackChanges)
 
-    @trigger("change", _.object([key], [changeSet]), this)
+
+
+  trackPatches : (key) -> (op, path, value) =>
+
+    @trigger("patch:#{op}", "#{key}/#{path}", value, this)
+    return
+
+
+  trackChanges : (op, key, value) =>
+
+    value = undefined if op == "remove"
+
+    keyParts = key.split("/")
+    value = _.object([ _.last(keyParts) ], [ value ])
+    for keyPart in keyParts.reverse().slice(1)
+      value = _.object([ keyPart ], [ value ])
+
+    @trigger("change", value, this)
+    @trigger("change:#{keyParts[0]}", value[keyParts[0]], this)
+
+
 
 
   get : (key, self, callback) ->
@@ -130,42 +153,42 @@ class DataItem
 
 
 
-  set : (key, value) ->
+  set : (key, value, options) ->
 
     if _.isObject(key)
 
-      @set(k, v) for k, v of key
+      @set(k, v, options) for k, v of key
       return
 
     else
 
       if key.indexOf("/") == -1
-
-        @_set(key, value)
+        @_set(key, value, options)
 
       else
-
         remainingKey = key.substring(key.indexOf("/") + 1)
         key = key.substring(0, key.indexOf("/"))
-        this.attributes[key].set(remainingKey, value)
+        this.attributes[key].set(remainingKey, value, options)
 
 
 
-  _set : (key, value) ->
+  _set : (key, value, options = {}) ->
 
-    if oldValue = @attributes[key]
+    _.defaults(options, silent : false)
+
+    if (oldValue = @attributes[key])?
       if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
-        oldValue.off(this, "change", @trackChanges(key))
+        oldValue.off(this, "patch:*", @trackPatches(key))
 
     if key[0] == "_"
 
       if _.isArray(value)
         @lazyAttributes[key.substring(1)] = value.map( (a) ->
-          "/#{_.pluralize(key.substring(1))}/#{a}"
+          "/#{_.pluralize(key.substring(1))}/#{a.$oid ? a}"
         )
 
       else
-        @lazyAttributes[key.substring(1)] = "/#{_.pluralize(key.substring(1))}/#{value}"
+        @lazyAttributes[key.substring(1)] = "/#{_.pluralize(key.substring(1))}/#{value.$oid ? value}"
 
     else
 
@@ -173,26 +196,42 @@ class DataItem
       @attributes[key] = value
 
       if value instanceof DataItem or value instanceof DataItem.Collection
-        value.on(this, "change", @trackChanges(key))
-
-      @trigger("change:#{key}", value, this)
-      @trigger("change", _.object([key], [value]), this)
+        value.on(this, "patch:*", @trackPatches(key))
+      
+      unless options.silent
+        if oldValue
+          @trigger("patch:replace", key, value, this)
+        else
+          @trigger("patch:add", key, value, this)
 
     value
 
 
-  unset : (key) ->
+  unset : (key, options = {}) ->
 
-    if oldValue = @attributes[key]
+    _.defaults(options, silent : false)
+
+    if (oldValue = @attributes[key])?
       if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
-        oldValue.off(this, "change", @trackChanges(key))
+        oldValue.off(this, "patch:*", @trackPatches(key))
 
       delete @attributes[key]
 
-      @trigger("change:#{key}", undefined, this)
-      @trigger("change", _.object([key], [undefined]), this)
+      unless options.silent
+        @trigger("patch:remove", key, oldValue, this)
 
     return
+
+
+  update : (key, updater, options) ->
+
+    if _.isObject(key)
+      @update(k, v, options) for k, v of key
+
+    else
+      @set(key, updater(@get(key)), options)
+
+    this
 
 
   toObject : ->
@@ -220,7 +259,20 @@ class DataItem
       value
 
 
+  @fetch : (url) ->
+
+    Request.send(
+      url : url
+      method : "POST"
+      dataType : "json"
+    ).then(
+      (json) ->
+        new DataItem(json)
+    )
+
+
   @lazyCache : {}
+  
 
 
   ['keys', 'values', 'pairs', 'invert', 'pick', 'omit'].forEach (method) ->
@@ -232,7 +284,7 @@ class DataItem
 
 class DataItem.Collection
 
-  DEFAULT_LIMIT : 50
+  DEFAULT_LIMIT : 200
 
   constructor : (items = []) ->
 
@@ -242,20 +294,37 @@ class DataItem.Collection
       @url = items
       items = []
 
-
     @items = []
-    @parts = []
-
-    for item in items
-      @items.push(DataItem.prepareValue(item))
 
     Object.defineProperty( this, "length", get : => @items.length )
 
+    @add(items...)
 
-  trackChanges : (changeSet, item) =>
+    @patchAcc = new JsonPatchAccumulator()
+    @on(@patchAcc, "patch:*", @patchAcc.addChange)
+    @on(this, "patch:*", @trackChanges)
+
+
+
+  trackPatches : (op, path, value, item) =>
 
     index = _.findIndex(@items, item)
-    @trigger("change", _.object([index], [changeSet]), this)
+    @trigger("patch:#{op}", "#{index}/#{path}", value, this)
+    return
+
+
+  trackChanges : (op, key, value) =>
+
+    value = undefined if op == "remove"
+
+    keyParts = "#{key}".split("/")
+    value = _.object([ _.last(keyParts) ], [ value ])
+    for keyPart in keyParts.reverse().slice(1)
+      value = _.object([ keyPart ], [ value ])
+
+    @trigger("change", value, this)
+    @trigger("change:#{keyParts[0]}", value[keyParts[0]], this)
+
 
 
   fetch : (offset, limit) ->
@@ -271,8 +340,6 @@ class DataItem.Collection
         for item, i in result.content when i < result.limit
           @set(result.offset + i, item)
 
-        @addParts(result.offset, result.limit)
-
         return
 
     )
@@ -280,48 +347,12 @@ class DataItem.Collection
 
   fetchNext : ->
 
-    if lastPart = _.last(@parts)
-      @fetch(lastPart.end, @DEFAULT_LIMIT)
-
-    else
-      @fetch(0, @DEFAULT_LIMIT)
-
-
-  addParts : (offset, count) ->
-
-    { parts } = this
-    lastPart = null
-    for part, i in parts
-      
-      if offset <= part.start <= offset + count or offset <= part.end <= offset + count
-
-        part.start = Math.min(part.start, offset)
-        part.end = Math.max(part.end, offset + count)
-
-        if i + 1 < parts.length and parts[i + 1].start <= part.end
-          part.end = Math.max(parts[i + 1].end, part.end)
-          parts.splice(i + 1, 1)
-
-        return
-
-      if part.start > offset + count
-
-        parts.splice(i, 0, start : offset, end : offset + count)
-        return
-
-      lastPart = part
-
-    parts.push( start : offset, end : offset + count )
-    return
-
-
-  removeParts : (offset, count) ->
-
-
+    @fetch(@length, @DEFAULT_LIMIT)
 
 
   get : (key, self, callback) ->
 
+    key = "#{key}"
     if arguments.length == 1
 
       if key.indexOf("/") == -1
@@ -356,23 +387,54 @@ class DataItem.Collection
 
   add : (items...) ->
 
-    offset = @length - 1
-    @set(@length, item) for item in items
-    @addParts(offset, items.length)
+    if items.length > 0
+      offset = @length - 1
+      @set(@length, item) for item in items
 
     return
 
 
-  set : (index = @length, item) ->
+  set : (key, value, options) ->
+
+    if _.isObject(key)
+
+      @set(k, v, options) for k, v of key
+      return
+
+    else
+
+      key = "#{key}"
+      if key.indexOf("/") == -1
+        @_set(+key, value, options)
+
+      else
+        remainingKey = key.substring(key.indexOf("/") + 1)
+        key = +key.substring(0, key.indexOf("/"))
+        this.items[key].set(remainingKey, value, options)
+
+
+  _set : (index = @length, item, options = {}) ->
+
+    _.defaults(options, silent : false)
+
+    if (oldValue = @items[index])?
+      if oldValue instanceof DataItem or oldValue instanceof DataItem.Collection
+        oldValue.off(this, "patch:*", @trackPatches)
+
+    isAppending = index >= @length
+    index = Math.min(index, @length) if isAppending # prevent array holes
 
     item = DataItem.prepareValue(item)
     if item instanceof DataItem or item instanceof DataItem.Collection
-      item.on(this, "change", @trackChanges)
+      item.on(this, "patch:*", @trackPatches)
 
     @items[index] = item
-    @trigger("add", item, index, this)
-    @trigger("change:#{index}", item, this)
-    @trigger("change", _.object([index], [item]), this)
+  
+    unless options.silent
+      if oldValue
+        @trigger("patch:replace", index, item, this)
+      else
+        @trigger("patch:add", index, item, this)
 
     
   remove : (items...) ->
@@ -381,13 +443,21 @@ class DataItem.Collection
       index = _.indexOf(@items, item)
       if index >= 0
         if item instanceof DataItem or item instanceof DataItem.Collection
-          item.off(this, "change", @trackChanges)
+          item.off(this, "patch:*", @trackPatches)
         @items.splice(index, 1)
-        @removeParts(index, 1)
-        @trigger("remove", item, index, this) 
-        @trigger("change:#{index}", undefined, this)
-        @trigger("change", _.object([index], [undefined]), this)
+        @trigger("patch:remove", index, item, this)
     return
+
+
+  update : (key, updater, options) ->
+
+    if _.isObject(key)
+      @update(k, v, options) for k, v of key
+
+    else
+      @set(key, updater(@get(key)), options)
+
+    this
 
 
   toObject : ->

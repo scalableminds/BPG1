@@ -34,13 +34,14 @@ class GUI
 
   appendSVG : ->
 
-    width = $(".graph").width()
-
     @svg = d3.select(".graph")
       .append("svg")
-      .attr("width", width)
-      .attr("height", @height)
+      .attr("width", $(".graph").width())
       .attr("pointer-events", "all")
+
+    $(window).resize(
+      => @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+    ).resize()
 
 
   initToolbarHandler : ->
