@@ -21,3 +21,11 @@ _.mixin
 
 
   unionAll : (args...) -> _.flatten(args)
+
+
+  startsWith : (haystack, needle) ->
+
+  	if _.isString(haystack)
+      haystack.substring(0, needle.length) == needle
+    else
+      _.isEqual(_.first(haystack, needle.length), needle)

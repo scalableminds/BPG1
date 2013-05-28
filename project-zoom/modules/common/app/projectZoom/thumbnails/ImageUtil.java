@@ -1,7 +1,8 @@
-package projectZoom.thumbnails.text;
+package projectZoom.thumbnails;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.*;
 import java.util.List;
@@ -13,7 +14,7 @@ import javax.imageio.stream.*;
 import org.w3c.dom.Node;
 
 
-public class GifUtil {
+public class ImageUtil {
 	   public static BufferedImage convertRGBAToGIF(BufferedImage src, int transColor)
 	   {
 	      BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_BYTE_INDEXED);
@@ -51,7 +52,7 @@ public class GifUtil {
 	      {
 	         ImageWriteParam iwp = iw.getDefaultWriteParam();
 	         IIOMetadata metadata = iw.getDefaultImageMetadata(new ImageTypeSpecifier(frame.img), iwp);
-	         GifUtil.configureGIFFrame(metadata, String.valueOf(frame.delay / 10L), p++, frame.disposalMethod, loopCount);
+	         ImageUtil.configureGIFFrame(metadata, String.valueOf(frame.delay / 10L), p++, frame.disposalMethod, loopCount);
 	         IIOImage ii = new IIOImage(frame.img, null, metadata);
 	         iw.writeToSequence(ii, null);
 	      }
@@ -105,4 +106,20 @@ public class GifUtil {
 	         throw new Error(e);
 	      }
 	   }
+	   
+		public static BufferedImage resizeBufferedImage(BufferedImage image, int width) {
+
+			int w = image.getWidth();
+			int h = image.getHeight();
+			int size = Math.max(w, h);
+			float scale = (float)width/size;
+			BufferedImage newImage = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
+			AffineTransform at = new AffineTransform();
+			at.scale(scale, scale);
+			AffineTransformOp scaleOp = 
+			   new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+			newImage = scaleOp.filter(image, newImage);
+			
+			return newImage;
+		}
 }

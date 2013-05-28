@@ -12,7 +12,8 @@ GET    /processView                                                       contro
 GET    /projects                                                          controllers.main.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
 GET    /projects/:id                                                      controllers.main.ProjectController.read(id: String)
 POST   /projects/:id/graphs                                               controllers.main.ProjectController.createGraph(id: String)
-GET    /projects/:projectId/artifacts/:artifactId/:artifactType/download  controllers.main.ArtifactController.download(projectId: String, artifactId: String, artifactType: String)
+GET    /projects/:id/artifacts                                            controllers.main.ArtifactController.listForProject(id: String, offset: Int ?= 0, limit: Int ?= 50)
+GET    /projects/:projectId/artifacts/:artifactId/:artifactType/:fileName controllers.main.ArtifactController.download(projectId: String, artifactId: String, artifactType: String, fileName: String)
 
 GET    /tags                                                              controllers.main.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
 
@@ -20,8 +21,8 @@ GET    /users                                                             contro
 GET    /users/:name                                                       controllers.main.ProfileController.read(name)
 
 GET    /graphs                                                            controllers.main.GraphController.list(offset: Int ?= 0, limit: Int ?= 50)
-PATCH  /graphs/:id                                                        controllers.main.GraphController.patch(id: String)
-GET    /graphs/:id                                                        controllers.main.GraphController.read(id: String)
+PATCH  /graphs/:groupId/:version                                          controllers.main.GraphController.patch(groupId: String, version: Int)
+GET    /graphs/:groupId                                                   controllers.main.GraphController.read(groupId: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET    /assets/*file                                                      controllers.main.Assets.at(path="/public", file)

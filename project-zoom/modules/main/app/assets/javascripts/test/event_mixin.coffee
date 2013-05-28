@@ -97,6 +97,17 @@ describe "EventMixin", ->
       @spy.should.have.been.calledThrice
 
 
+    it "should listen on wildcard events", (done) ->
+
+      @eventMixin.on(@self, "test:*", (specialType, arg) ->
+        specialType.should.equal("test1")
+        arg.should.equal("testArg")
+        done()
+      )
+
+      @eventMixin.trigger("test:test1", "testArg")
+
+
   describe "#times", ->
 
     it "should only be called 3-times", ->
@@ -115,7 +126,6 @@ describe "EventMixin", ->
 
       @eventMixin.on(@self, "test", @spy)
       @eventMixin.hasCallbacks("test").should.be.true
-
 
 
   describe "#isolatedExtend", ->

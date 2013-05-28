@@ -28,6 +28,18 @@ class ProcessView
 
       @graph = new InteractiveGraph(graphModel)
 
+    @initToggle()
+
+
+  initToggle : ->
+
+    $("a.toggles").click ->
+      $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
+      $("#artifact-finder").toggle()
+      $("#main").toggleClass "span12 span8"
+
+
+
 
     EventMixin.extend(this)
 
@@ -47,9 +59,9 @@ class ProcessView
       .off("change")
       .off("click")
 
-
     @graph.changeBehavior(new Behavior())
     @gui.deactivate()
+    @artifactFinder.deactivate()
 
     #what about the html?
     #$("svg").hide()
@@ -59,6 +71,7 @@ class ProcessView
   activate : ->
 
     @gui.activate()
+    @artifactFinder.activate()
 
     # add new node
     #Hammer( $("svg")[0] ).on "tap", @addNode
@@ -85,7 +98,7 @@ class ProcessView
         .on("touch", -> mouseDown = true; return )
         .on("release", -> mouseDown = false; return )
 
-      $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+      $(".graph").on "mousewheel", (evt, delta, deltaX, deltaY) =>
 
         evt.preventDefault()
         return if mouseDown
@@ -111,7 +124,7 @@ class ProcessView
 
       @on "view:zooming", artifact.resize
 
-      @addNode(evt, id, artifact)
+      @addNode(evt, artifact)
       artifact.resize() #call once so, that the right-sized image is loaded
 
 

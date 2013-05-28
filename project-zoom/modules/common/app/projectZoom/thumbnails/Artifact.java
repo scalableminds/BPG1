@@ -1,4 +1,4 @@
-package projectZoom.thumbnails.text;
+package projectZoom.thumbnails;
 
 import java.io.File;
 import java.util.UUID;

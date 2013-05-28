@@ -5,10 +5,17 @@ import play.api.libs.json.JsObject
 import reactivemongo.bson.BSONObjectID
 import play.api.libs.json.Format
 
+trait ResourceLike {
+  def fileName: String
+  def typ: String
+}
+
 case class ResourceInfo(fileName: String, typ: String)
+  extends ResourceLike
 
-case class Resource(path: String, fileName: String, hash: String)
-
+case class Resource(fileName: String, hash: String, typ: String)
+  extends ResourceLike
+  
 trait DefaultResourceTypes {
   val DEFAULT_TYP = "default"
 }
@@ -19,9 +26,9 @@ trait ResourceHelpers {
 
   implicit val resourceInfoFormat: Format[ResourceInfo] = Json.format[ResourceInfo]
 
-  def resourceCreateFrom(ri: ResourceInfo, path: String, hash: String) =
+  def resourceCreateFrom(ri: ResourceInfo, hash: String) =
     Resource(
-      path,
       ri.fileName,
-      hash)
+      hash,
+      ri.typ)
 }

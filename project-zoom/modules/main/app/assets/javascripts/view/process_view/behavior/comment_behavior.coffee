@@ -6,7 +6,7 @@ class CommentBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("svg")[0])
+    @hammerContext = Hammer( $(".graph svg")[0])
       .on("tap", ".node-image", @commentNode )
       .on("tap", ".cluster", @commentCluster )
       .on("tap", ".edge", @commentEdge )

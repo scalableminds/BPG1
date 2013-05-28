@@ -36,7 +36,7 @@ Cluster = (cluster) ->
 
         #else, associate it
         node.cluster = cluster
-        cluster.get("nodes").add(node.get("id"))
+        cluster.get("content").add(node.get("id"))
 
       return true
 
@@ -51,12 +51,12 @@ Cluster = (cluster) ->
 
   getNodes : (nodeList) ->
 
-    nodeList.filter( (node) -> cluster.get("nodes").contains(node.get("id")) )
+    nodeList.filter( (node) -> cluster.get("content").contains(node.get("id")) )
 
 
   removeNode : (node) ->
 
-    cluster.get("nodes").remove(node.get("id"))
+    cluster.get("content").remove(node.get("id"))
     node.cluster = null if node.cluster == cluster
 
 
@@ -66,7 +66,7 @@ Cluster = (cluster) ->
 
     waypoints = cluster.get("waypoints")
 
-    { x, y } = node.pick("x", "y")
+    { x, y } = node.get("position").pick("x", "y")
 
     { x : lX, y : lY } = waypoints.last().pick("x", "y")
 

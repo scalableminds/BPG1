@@ -6,11 +6,12 @@ class GUI
 
   constructor : (@artifactFinder) ->
 
-    margin = 20
-    @height = $(window).height() - $(".graph").offset().top - margin
-
     @appendArtifactFinder()
     @appendSVG()
+
+    @resizeHandler = =>
+      @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+    
 
 
   activate : ->
@@ -18,23 +19,29 @@ class GUI
     @initSideBar()
     @initToggleHandler()
     @initToolbarHandler()
+    
+    $(window).on("resize", @resizeHandler)
+    @resizeHandler()
+
 
 
   deactivate : ->
 
     $(".btn-group .btn").off("click")
     $("a.toggles").off("click")
+    $(window).off("resize", @resizeHandler)
 
 
   appendSVG : ->
 
-    width = $(".graph").width()
-
     @svg = d3.select(".graph")
       .append("svg")
-      .attr("width", width)
-      .attr("height", @height)
+      .attr("width", $(".graph").width())
       .attr("pointer-events", "all")
+
+    $(window).resize(
+      => @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+    ).resize()
 
 
   initToolbarHandler : ->
@@ -58,9 +65,7 @@ class GUI
 
     $("a.toggles").click ->
       $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
-      $("#artifact-finder").animate
-        width: "toggle"
-      , 100
+      $("#artifact-finder").toggle()
       $("#main").toggleClass "span12 span8"
 
 

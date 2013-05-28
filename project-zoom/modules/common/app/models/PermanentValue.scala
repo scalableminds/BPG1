@@ -9,7 +9,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 case class PermanentValue(key: String, value: JsValue)
 
-object PermanentValueDAO extends UnsecuredMongoJsonDAO{
+object PermanentValueDAO extends UnsecuredMongoJsonDAO[PermanentValue] {
   val collectionName = "permanentValues"
 
   implicit val permanentValueFormat = Json.format[PermanentValue]
