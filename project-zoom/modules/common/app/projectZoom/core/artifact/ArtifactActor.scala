@@ -25,7 +25,8 @@ import play.api.libs.concurrent.Execution.Implicits._
 import models.DefaultResourceTypes
 import models.GlobalDBAccess
 import models.ResourceLike
-
+import scala.concurrent.Future
+import reactivemongo.core.commands.LastError
 
 trait ArtifactUpdate extends Event
 
@@ -43,7 +44,7 @@ case class ResourceFound(inputStream: InputStream, artifact: ArtifactInfo, resou
 
 /*
  * Publishes
- */ 
+ */
 case class ArtifactUpdated(artifact: ArtifactInfo) extends Event
 case class ArtifactInserted(artifact: ArtifactInfo) extends Event
 
@@ -57,7 +58,7 @@ trait FSWriter {
     f.mkdirs()
     f.getAbsolutePath()
   }
-  
+
   def pathFor(project: String, typ: String, fileName: String) =
     s"$basePath/$project/$typ/$fileName"
 
@@ -90,19 +91,21 @@ trait FSWriter {
   }
 }
 
-class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess{
+class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess {
 
   def handleResourceUpdate(is: InputStream, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) = {
     writeToFS(is, artifactInfo.projectName, resourceInfo).map {
       case file =>
         val hash = DigestUtils.md5Hex(FileUtils.readFileToByteArray(file))
-        ArtifactDAO.insertRessource(artifactInfo)(hash, resourceInfo).map { lastError =>
-          if (lastError.updated > 0) {
-            if (lastError.updatedExisting)
-              publish(ResourceUpdated(artifactInfo, resourceInfo))
-            else
-              publish(ResourceInserted(artifactInfo, resourceInfo))
-          }
+        ArtifactDAO.findResource(artifactInfo, resourceInfo).map {
+          case None =>
+            ArtifactDAO.insertResource(artifactInfo)(hash, resourceInfo).map(_ =>
+              publish(ResourceInserted(artifactInfo, resourceInfo)))
+          case Some(r) if r.hash != hash =>
+            ArtifactDAO.updateHashOfResource(artifactInfo)(hash, resourceInfo).map(_ =>
+              publish(ResourceUpdated(artifactInfo, resourceInfo)))
+          case _ =>
+            Logger.trace(s"Resource still the same. Resource: $resourceInfo")
         }
     }
   }

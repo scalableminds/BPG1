@@ -54,9 +54,8 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
         artifact <- artifactOpt ?~ Messages("artifact.notFound")
       } yield {
         artifact
-          .resources.get(resourceType)
-          .getOrElse(Nil)
-          .find(_.fileName == fileName) match {
+          .resources
+          .find(r => r.fileName == fileName && r.typ == resourceType) match {
             case Some(resource) =>
               (artifactActor ? RequestResource(project.name, resource))
               .mapTo[Option[InputStream]]
