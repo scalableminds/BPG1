@@ -112,6 +112,12 @@ class EventMixin
       for callback in @__callbacks[type]
         callback.apply(this, args)
 
+    if _.contains(type, ":")
+      [baseType, specialType...] = type.split(":")
+      specialType = specialType.join(":")
+      if specialType != "*"
+        @trigger("#{baseType}:*", specialType, args...)
+
     this
 
 

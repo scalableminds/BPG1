@@ -47,6 +47,38 @@ describe "DataItem.Collection", ->
       @dataCollection.length.should.be.equal(1)
 
 
+    it "should work with paths", ->
+
+      dataItem1 = new DataItem(test : "test1")
+      @dataCollection.add(dataItem1)
+
+      @dataCollection.get("0/test").should.equal("test1")
+
+      @dataCollection.set("0/test", "test2")
+      @dataCollection.get("0/test").should.equal("test2")
+
+    it "should update", ->
+
+      @dataCollection.add("test2")
+
+      @dataCollection.update(0, (value) ->
+        value.should.equal("test2")
+        "test3"
+      )
+
+      @dataCollection.at(0).should.equal("test3")
+
+
+    it "shouldn't allow holes in collection", ->
+
+      @dataCollection.set(0, "test0")
+      @dataCollection.set(2, "test1")
+
+      @dataCollection.should.have.length(2)
+      @dataCollection.at(0).should.be.equal("test0")
+      @dataCollection.at(1).should.be.equal("test1")
+
+
   describe "changes", ->
 
     it "should trigger add events", (done) ->
@@ -57,7 +89,7 @@ describe "DataItem.Collection", ->
       async.parallel([
 
         (callback) =>
-          @dataCollection.on(this, "add", (value, index, collection) =>
+          @dataCollection.on(this, "patch:add", (index, value, collection) =>
             value.should.equal(dataItem)
             index.should.equal(1)
             collection.should.equal(@dataCollection)
@@ -92,7 +124,7 @@ describe "DataItem.Collection", ->
       async.parallel([
 
         (callback) =>
-          @dataCollection.on(this, "remove", (value, index, collection) =>
+          @dataCollection.on(this, "patch:remove", (index, value, collection) =>
             value.should.equal(dataItem)
             index.should.equal(1)
             collection.should.equal(@dataCollection)
@@ -136,13 +168,48 @@ describe "DataItem.Collection", ->
       dataItem = new DataItem(test : "test")
       @dataCollection.add(dataItem)
 
-      @dataCollection.one(this, "remove", (value) =>
+      @dataCollection.one(this, "patch:remove", (index, value) =>
         value.should.equal(dataItem)
-        dataItem.__callbacks.change.should.have.length(changeCallbackCount - 1)
+        dataItem.__callbacks["patch:*"].should.have.length(changeCallbackCount - 1)
         done()
       )
-      changeCallbackCount = dataItem.__callbacks.change.length
+      changeCallbackCount = dataItem.__callbacks["patch:*"].length
       @dataCollection.remove(dataItem)
+
+
+
+    it "should not trigger events with silent option", (done) ->
+
+      @dataCollection.on(this, "patch:*", @spy)
+
+      @dataCollection.set(0, "test1", silent : true)
+      @dataCollection.set(0, "test1")
+
+      setTimeout(
+        =>
+          @spy.should.have.been.called.once
+          done()
+        10
+      )
+
+
+  describe "json patch", ->
+
+    it "should record member add", ->
+
+      @dataCollection.add("test")
+      @dataCollection.add("test1")
+      @dataCollection.set(1, "test2")
+
+      jsonPatch = @dataCollection.patchAcc.flush()
+
+      jsonPatch.should.deep.equal(
+        [
+          { op : "add", path : "/0", value : "test" }
+          { op : "add", path : "/1", value : "test2" }
+        ]
+      )
+
 
 
   describe "at/get", ->
@@ -160,49 +227,6 @@ describe "DataItem.Collection", ->
       @dataCollection.get("0").should.equal("test1")
 
 
-  describe "parts management", ->
-
-    it "should merge with before part", ->
-
-      @dataCollection.addParts(0, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 10 )
-
-      @dataCollection.addParts(10, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 20 )
-
-
-    it "should merge with after part", ->
-
-      @dataCollection.addParts(10, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 10, end : 20 )
-
-      @dataCollection.addParts(0, 10)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 20 )
-
-
-    it "should merge in between", ->
-
-      @dataCollection.addParts(0, 5)
-      @dataCollection.addParts(10, 5)
-
-      @dataCollection.parts.should.have.length(2)
-      @dataCollection.parts[0].should.eql( start : 0, end : 5 )
-      @dataCollection.parts[1].should.eql( start : 10, end : 15 )
-
-      @dataCollection.addParts(5, 5)
-
-      @dataCollection.parts.should.have.length(1)
-      @dataCollection.parts[0].should.eql( start : 0, end : 15 )
-
-
   describe "fetching", ->
 
     it "should insert data", (done) ->
@@ -215,17 +239,19 @@ describe "DataItem.Collection", ->
         =>
           Request.send.restore()
 
+          @dataCollection.at(0).get("test").should.equal("1")
+          @dataCollection.at(1).get("test").should.equal("2")
           @dataCollection.should.have.length(2)
 
           sinon.stub(Request, "send").returns(
-            (new $.Deferred()).resolve( offset : 3, limit : 1, content : [ { test : "3" }, { test : "4" } ] ).promise()
+            (new $.Deferred()).resolve( offset : 2, limit : 1, content : [ { test : "3" }, { test : "4" } ] ).promise()
           )
           @dataCollection.fetch(3, 10).then(
             =>
               Request.send.restore()
 
-              @dataCollection.should.have.length(4)
-              @dataCollection.parts.should.have.length(2)
+              @dataCollection.at(2).get("test").should.equal("3")
+              @dataCollection.should.have.length(3)
 
               done()
           )
@@ -240,6 +266,8 @@ describe "DataItem.Collection", ->
       @dataCollection.fetchNext().then(
         =>
           Request.send.restore()
+          @dataCollection.at(0).get("test").should.equal("1")
+          @dataCollection.at(1).get("test").should.equal("2")
           @dataCollection.should.have.length(2)
 
           sinon.stub(Request, "send").returns(
@@ -248,8 +276,9 @@ describe "DataItem.Collection", ->
           @dataCollection.fetchNext().then(
             =>
               Request.send.restore()
+              @dataCollection.at(2).get("test").should.equal("3")
+              @dataCollection.at(3).get("test").should.equal("4")
               @dataCollection.should.have.length(4)
-              @dataCollection.parts.should.have.length(1)
               done()
           )
 
@@ -263,12 +292,6 @@ describe "DataItem.Collection", ->
       @dataCollection.add(new DataItem(test : "test2"))
 
       @dataCollection.toObject().should.deep.equal([{test : "test2"}])
-
-
-
-
-
-
 
 
 

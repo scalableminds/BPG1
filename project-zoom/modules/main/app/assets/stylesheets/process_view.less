@@ -1,117 +1,110 @@
-body {
-
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-
-}
-
-.graph svg {
-
-  border: 2px solid black;
-  border-radius: 4px;
-
-  width: 100%;
-}
-
-.side-bar {
-
-  border: 2px solid black;
-  border-radius: 4px;
-
-  margin-left: 1% !important;
-  padding: 5px;
-
-  textarea {
-
-    width: 90%;
-    height: 100px;
-  }
-}
-
 #artifact-finder {
 
-  background-color: #fafafa;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  height: 100%;
+
+  position: relative;
+
+  .artifact-container {
+    height: 100%;
+  }
+
+  .artifact-slider {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    height: 20px;
+  }
+
+  .tab-content {
+    position: absolute;
+    overflow: auto;
+    top: 37px;
+    bottom: 20px;
+    border: 1px solid #ddd;
+    border-top: none;
+    left: 0;
+    right: 0;
+    padding: 20px 10px;
+  }
+
+  .artifact {
+    margin: 5px;
+  }
+
 }
 
-.artifact {
-  display:inline-block
+#main {
+
+  .toolbar {
+
+    margin-bottom: 20px;
+
+    .cluster-tool {
+
+      //overwrite bootstrap to fix design
+      a {
+        margin-left: -1px !important;
+        margin-right: -1px !important;
+        border-radius: 0 !important;
+      }
+    }
+
+  }
+
 }
 
-.artifact-container {
-  height: 100%;
-}
-
-.toolbar {
-
-  margin-bottom: 20px;
-}
 
 
 .graph {
 
   position: relative;
-}
 
-.finder-slider {
-  width: 100%;
-}
+  .zoom-slider {
 
-.zoom-slider {
+    position: absolute;
+    right: 0px;
+    top: 10px;
 
-  position: absolute;
-  right: 0px;
-  top: 10px;
+    width: 45px;
+    overflow: hidden;
 
-  width: 45px;
-  overflow: hidden;
+    button {
+      display: block;
+    }
 
-  button {
-    display: block;
+    input {
+
+      margin: 5px 0 5px 20px;
+      width: 100px;
+      margin-top: 105px;
+
+      //-webkit-appearance: slider-vertical;
+
+      -webkit-transform: rotate(-90deg);
+      -moz-transform: rotate(-90deg);
+      -ms-transform: rotate(-90deg);
+      transform: rotate(-90deg);
+
+      -webkit-transform-origin: center left;
+      -moz-transform-origin: center left;
+      -ms-transform-origin: center left;
+      transform-origin: center left;
+    }
   }
 
-  input {
-
-    margin: 5px 0 5px 20px;
-    width: 100px;
-    margin-top: 105px;
-
-    //-webkit-appearance: slider-vertical;
-
-    -webkit-transform: rotate(-90deg);
-    -moz-transform: rotate(-90deg);
-    -ms-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-
-    -webkit-transform-origin: center left;
-    -moz-transform-origin: center left;
-    -ms-transform-origin: center left;
-    transform-origin: center left;
-  }
 }
+
 
 .container-fluid {
 
   padding: 10px;
 }
 
-.cluster-tool {
-
-  //overwrite bootstrap to fix design
-  a {
-    margin-left: -1px !important;
-    margin-right: -1px !important;
-    border-radius: 0 !important;
-  }
-}
 
 #comment-modal {
 

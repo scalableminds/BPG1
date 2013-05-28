@@ -73,14 +73,17 @@ class ArtifactFinder
     @initSlider(domElement)
     @addArtifacts(@SAMPLE_ARTIFACTS)
 
+    @resizeHandler = =>
+      @domElement.height($(window).height() - @domElement.offset().top - 30)
+
 
   initSlider : (domElement) -> 
 
     slider = $("<input/>", {
-      class : "finder-slider"
+      class : "artifact-slider"
       type : "range"
-      min : "1"
-      max : "500"
+      min : "32"
+      max : "400"
       value: "40"
     })
     slider.on(
@@ -121,11 +124,23 @@ class ArtifactFinder
 
   destroy : ->
 
+    @deactivate()
+
+
   activate : ->
+
+    $(window).on("resize", @resizeHandler)
+    @resizeHandler()
+
 
   deactivate : ->
 
+    $(window).off("resize", @resizeHandler)
+
+
+
   getArtifact : (id, bare = false) =>
+
     for artifact in @SAMPLE_ARTIFACTS
       if artifact.id = id
         return new Artifact( artifact, (-> 64), bare)

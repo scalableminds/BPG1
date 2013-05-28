@@ -29,10 +29,10 @@ class Artifact
 
 
     unless bare
-      svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-      $(svg).append(image)
-      @svg = svg
-
+      @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      $(@svg).append(image)
+      @svg.setAttribute("class", "artifact")
+      
     @image = image
 
     @resize()

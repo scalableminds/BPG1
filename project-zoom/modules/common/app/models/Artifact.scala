@@ -17,7 +17,7 @@ import reactivemongo.core.commands.LastError
  */
 case class ArtifactInfo(name: String, _project: String, source: String, metadata: JsValue)
 
-case class Artifact(id: String, name: String, source: String, _project: String, metadata: JsValue, resources: Map[String, Resource])
+case class Artifact(id: String, name: String, source: String, _project: String, metadata: JsValue, resources: Map[String, List[Resource]])
 
 trait ArtifactInfoFactory {
   implicit val artifactInfoFormat = Json.format[ArtifactInfo]
