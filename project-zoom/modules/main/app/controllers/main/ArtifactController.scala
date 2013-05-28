@@ -39,7 +39,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
         project <- projectOpt ?~ Messages("project.notFound")
       } yield {
         dao.findSomeForProject(project.name, offset, limit).map { l =>
-          Ok(withPortionInfo(Json.toJson(l), offset, limit))
+          Ok(withPortionInfo(Json.toJson(l.map(createSingleResult)), offset, limit))
         }
       }
     }
