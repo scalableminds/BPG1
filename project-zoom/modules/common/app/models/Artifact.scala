@@ -10,6 +10,8 @@ import play.api.libs.json.Format
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
+import reactivemongo.bson.BSONObjectID
+import play.modules.reactivemongo.json.BSONFormats._
 
 /* 
  * ArtifactInfo needs to be a subset of artifact. It should contain all 
@@ -17,14 +19,15 @@ import reactivemongo.core.commands.LastError
  */
 trait ArtifactLike {
   def name: String
+  def path: String
   def projectName: String
   def source: String
   def metadata: JsValue
 }
-case class ArtifactInfo(name: String, projectName: String, source: String, metadata: JsValue)
+case class ArtifactInfo(name: String, projectName: String, path: String, source: String, metadata: JsValue)
   extends ArtifactLike
 
-case class Artifact(id: String, name: String, source: String, projectName: String, metadata: JsValue, resources: Map[String, List[Resource]])
+case class Artifact(name: String, projectName: String, path: String, source: String, metadata: JsValue, resources: List[Resource], _id: BSONObjectID)
   extends ArtifactLike
 
 trait ArtifactInfoFactory {
@@ -49,7 +52,10 @@ object ArtifactDAO extends SecuredMongoJsonDAO[Artifact] with ArtifactInfoFactor
 
   def findByArtifactQ(name: String, source: String, projectName: String) =
     Json.obj("name" -> name, "source" -> source, "projectName" -> projectName)
-
+    
+  def findByResourceQ(resourceInfo: ResourceInfo): JsObject =
+    Json.obj("resources.typ" -> resourceInfo.typ, "resources.name" -> resourceInfo.name)
+    
   def findOne(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext) =
     collectionFind(findByArtifactQ(artifactInfo)).one[JsObject]
 
@@ -70,11 +76,23 @@ object ArtifactDAO extends SecuredMongoJsonDAO[Artifact] with ArtifactInfoFactor
   def findForProject(projectName: String)(implicit ctx: DBAccessContext) =
     collectionFind(Json.obj("projectName" -> projectName))
 
-  def insertRessource(artifactInfo: ArtifactInfo)(hash: String, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) = {
+  def findResource(artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) =
+    collectionFind(findByArtifactQ(artifactInfo) ++ findByResourceQ(resourceInfo)).one[Artifact].map(
+      _.flatMap(_.resources.find( _.isSameAs(resourceInfo))))
+    
+  def insertResource(artifactInfo: ArtifactInfo)(hash: String, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) = {
     val resource = resourceCreateFrom(resourceInfo, hash)
 
     collectionUpdate(findByArtifactQ(artifactInfo), Json.obj(
+      "$addToSet" -> Json.obj(
+        s"resources" -> resource)))
+  }
+  
+  def updateHashOfResource(artifactInfo: ArtifactInfo)(hash: String, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) = {
+    val resource = resourceCreateFrom(resourceInfo, hash)
+
+    collectionUpdate(findByArtifactQ(artifactInfo) ++ findByResourceQ(resourceInfo), Json.obj(
       "$set" -> Json.obj(
-        s"resources.${resourceInfo.typ}" -> resource)))
+        "resources.$.hash" -> hash)))
   }
 }

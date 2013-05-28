@@ -28,6 +28,7 @@ import play.api.libs.json.Json
 import java.io.FileInputStream
 import java.io.File
 import models.ProjectDAO
+import projectZoom.thumbnails.IconActor
 
 object Global extends GlobalSettings with GlobalDBAccess {
 
@@ -38,6 +39,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
     val aa = ArtifactActor.start
     KnowledgeActor.start
     TextThumbnailActor.start
+    IconActor.start
     SupervisorActor.start
     if (app.mode == Mode.Dev) {
       putSampleValuesInDB
@@ -45,7 +47,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
       sys.scheduler.scheduleOnce(5 seconds) {
         //ProjectDAO.findOneByName(_project)
         List(
-            models.ArtifactInfo("test", "null - null", "dummy", Json.obj()) -> 
+            models.ArtifactInfo("test.png", "null - null", "prototype", "dummy", Json.obj()) -> 
               new FileInputStream(new File("public/images/favicon.png"))
         ).map{
           case (info, stream) =>

@@ -22,6 +22,7 @@ import scala.concurrent.Future
 import models.Implicits._
 import controllers.common.ControllerBase
 import play.api.i18n.Messages
+import models.ResourceLike
 
 object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem with PlayConfig {
 
@@ -45,24 +46,22 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
     }
   }
 
-  def download(projectId: String, artifactId: String, resourceType: String, fileName: String) = SecuredAction(ajaxCall = true) { implicit request =>
+  def download(artifactId: String, name: String, typ: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
+      val requestedResource = ResourceInfo(name, typ)
       for {
-        projectOpt <- ProjectDAO.findOneById(projectId).map(_.flatMap(ProjectDAO.asObjectOpt))
         artifactOpt <- ArtifactDAO.findOneById(artifactId).map(_.flatMap(ArtifactDAO.asObjectOpt))
-        project <- projectOpt ?~ Messages("project.notFound")
         artifact <- artifactOpt ?~ Messages("artifact.notFound")
       } yield {
         artifact
-          .resources.get(resourceType)
-          .getOrElse(Nil)
-          .find(_.fileName == fileName) match {
+          .resources
+          .find(_.isSameAs(requestedResource)) match {
             case Some(resource) =>
-              (artifactActor ? RequestResource(project.name, resource))
+              (artifactActor ? RequestResource(artifact, resource))
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
-                  Ok.feed(Enumerator.fromStream(stream))
+                  Ok.stream(Enumerator.fromStream(stream))
                 case _ =>
                   NotFound
               }
