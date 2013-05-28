@@ -59,7 +59,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
-                  Ok.feed(Enumerator.fromStream(stream))
+                  Ok.stream(Enumerator.fromStream(stream))
                 case _ =>
                   NotFound
               }
