@@ -269,6 +269,22 @@ describe "DataItem", ->
         ]
       )
 
+
+    it "should not trigger events with silent option", (done) ->
+
+      @dataItem.on(this, "patch:*", @spy)
+
+      @dataItem.set("test", "test1", silent : true)
+      @dataItem.set("test", "test1")
+
+      setTimeout(
+        =>
+          @spy.should.have.been.called.once
+          done()
+        10
+      )
+
+
     describe "compact", ->
 
       it "should remove added then removed patches", ->
