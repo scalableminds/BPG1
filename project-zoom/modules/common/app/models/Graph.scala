@@ -19,11 +19,11 @@ case class Position(x: Int, y: Int)
 
 case class NodePayload(id: String)
 
-case class Node(id: Int, position: Position, typ: String, payload: NodePayload)
+case class Node(id: Int, position: Position, typ: String, payload: NodePayload, comment: Option[String] = None)
 
-case class Edge(from: Int, to: Int, comment: Option[String])
+case class Edge(from: Int, to: Int, comment: Option[String] = None)
 
-case class Cluster(id: Int, waypoints: List[Position], nodes: List[Int])
+case class Cluster(id: Int, waypoints: List[Position], content: List[Int], comment: Option[String] = None)
 
 case class Graph(
   group: String,

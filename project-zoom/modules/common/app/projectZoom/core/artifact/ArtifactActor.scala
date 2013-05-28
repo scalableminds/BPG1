@@ -49,8 +49,6 @@ case class ArtifactInserted(artifact: ArtifactInfo) extends Event
 case class ResourceUpdated(artifact: ArtifactInfo, resource: ResourceInfo) extends Event
 case class ResourceInserted(artifact: ArtifactInfo, resource: ResourceInfo) extends Event
 
-
-
 trait FSWriter {
   val basePath = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
 
