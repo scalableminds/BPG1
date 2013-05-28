@@ -8,7 +8,7 @@ import scala.collection.JavaConversions._
 class TextThumbnailActor extends EventSubscriber with EventPublisher{
   
   def receive = {
-    case ResourceInserted(resourceInfo) =>
+    case ResourceInserted(artifact, resourceInfo) =>
     //  Logger.debug("Thumbnail Actor received: " + x.toString + " s: " + sender.path)
         val artifacts = textThumbnailPlugin.onResourceFound(resourceInfo);
         /*
