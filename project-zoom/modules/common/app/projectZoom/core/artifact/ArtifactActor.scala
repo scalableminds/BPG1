@@ -25,22 +25,31 @@ import play.api.libs.concurrent.Execution.Implicits._
 import models.DefaultResourceTypes
 import models.GlobalDBAccess
 
-case class UpdateInfo(origin: String, projectName: String)
 
 trait ArtifactUpdate extends Event
+
+case class RequestResource(_project: String, resource: ResourceInfo)
+case class UpdateInfo(origin: String, projectName: String)
+
+/*
+ * Subscribed to
+ */
 case class ArtifactFound(originalStream: InputStream, artifact: ArtifactInfo) extends ArtifactUpdate
 case class ArtifactDeleted(artifact: ArtifactInfo) extends ArtifactUpdate
 case class ArtifactAggregation(_project: String, l: List[ArtifactFound]) extends ArtifactUpdate
 
+case class ResourceFound(inputStream: InputStream, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+
+/*
+ * Publishes
+ */ 
 case class ArtifactUpdated(artifact: ArtifactInfo) extends Event
 case class ArtifactInserted(artifact: ArtifactInfo) extends Event
 
-case class ResourceFound(inputStream: InputStream, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+case class ResourceUpdated(artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+case class ResourceInserted(artifact: ArtifactInfo, resource: ResourceInfo) extends Event
 
-case class ResourceUpdated(resource: ResourceInfo) extends Event
-case class ResourceInserted(resource: ResourceInfo) extends Event
 
-case class RequestResource(_project: String, resource: ResourceInfo)
 
 trait FSWriter {
   val basePath = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
@@ -85,9 +94,9 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter wi
         ArtifactDAO.insertRessource(artifactInfo)(path, hash, resourceInfo).map { lastError =>
           if (lastError.updated > 0) {
             if (lastError.updatedExisting)
-              publish(ResourceUpdated(resourceInfo))
+              publish(ResourceUpdated(artifactInfo, resourceInfo))
             else
-              publish(ResourceInserted(resourceInfo))
+              publish(ResourceInserted(artifactInfo, resourceInfo))
           }
         }
     }
