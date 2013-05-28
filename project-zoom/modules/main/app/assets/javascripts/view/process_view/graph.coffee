@@ -179,7 +179,6 @@ class Graph
 
     commentGroup = element.selectAll("g").data(
       (data) ->
-        console.log data.get("comment")
         if data.get("comment") then [data] else []
       ,(data) ->
         data.get("id"))
