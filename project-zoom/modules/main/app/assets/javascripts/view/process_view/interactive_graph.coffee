@@ -2,8 +2,7 @@
 d3 : d3
 lib/event_mixin : EventMixin
 ./graph : Graph
-./behavior/connect_behavior : connectBehavior
-./behavior/drag_behavior : dragBehavior
+./behavior/drag_behavior : DragBehavior
 ###
 
 class InteractiveGraph extends Graph
@@ -18,7 +17,7 @@ class InteractiveGraph extends Graph
     @initArrowMarkers()
     @initCallouts()
 
-    @currentBehavior = new dragBehavior(@)
+    @currentBehavior = new DragBehavior(@)
     @currentBehavior.activate()
 
     super(@graphContainer, @graphModel)
