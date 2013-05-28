@@ -96,7 +96,7 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers {
       })
 }
 
-object GraphDAO extends SecuredMongoJsonDAO with GraphTransformers {
+object GraphDAO extends SecuredMongoJsonDAO[Graph] with GraphTransformers {
   val collectionName = "graphs"
 
   def extractVersionInfo(graph: Graph) = {
