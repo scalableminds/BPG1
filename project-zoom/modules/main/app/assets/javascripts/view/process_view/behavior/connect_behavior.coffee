@@ -20,7 +20,7 @@ class ConnectBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("svg")[0] )
+    @hammerContext = Hammer( $(".graph svg")[0] )
       .on("drag", ".node-image", @dragMove)
       .on("dragend", ".node-image", @dragEnd)
       .on("dragstart", ".node-image", @dragStart)

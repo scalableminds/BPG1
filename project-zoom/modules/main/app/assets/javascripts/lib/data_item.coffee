@@ -9,7 +9,6 @@ async : async
 
 ###
 TODO:
-  * json patch support
   * decycling events
 ###
 
