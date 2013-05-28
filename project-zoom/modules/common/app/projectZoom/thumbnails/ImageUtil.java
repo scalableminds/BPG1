@@ -14,7 +14,7 @@ import javax.imageio.stream.*;
 import org.w3c.dom.Node;
 
 
-public class GifUtil {
+public class ImageUtil {
 	   public static BufferedImage convertRGBAToGIF(BufferedImage src, int transColor)
 	   {
 	      BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_BYTE_INDEXED);
@@ -52,7 +52,7 @@ public class GifUtil {
 	      {
 	         ImageWriteParam iwp = iw.getDefaultWriteParam();
 	         IIOMetadata metadata = iw.getDefaultImageMetadata(new ImageTypeSpecifier(frame.img), iwp);
-	         GifUtil.configureGIFFrame(metadata, String.valueOf(frame.delay / 10L), p++, frame.disposalMethod, loopCount);
+	         ImageUtil.configureGIFFrame(metadata, String.valueOf(frame.delay / 10L), p++, frame.disposalMethod, loopCount);
 	         IIOImage ii = new IIOImage(frame.img, null, metadata);
 	         iw.writeToSequence(ii, null);
 	      }
