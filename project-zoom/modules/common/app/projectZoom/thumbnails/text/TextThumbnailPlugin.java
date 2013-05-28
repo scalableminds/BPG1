@@ -16,7 +16,7 @@ public class TextThumbnailPlugin {
 	private List<TextReader> readers;
 	static int[] CLOUD_WIDTHS = {64, 128};
 	static int[] THUMBNAIL_WIDTHS = {256, 512};
-	static int[] GIF_WIDTHS = {32, 64, 128, 256, 512};
+	static int[] GIF_WIDTHS = {64, 128, 256, 512};
 	static int GIF_PAGECOUNT = 3;
 	static String TEMP_FOLDER = "/home/user/";
 
