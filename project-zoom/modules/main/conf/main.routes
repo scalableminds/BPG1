@@ -12,6 +12,7 @@ GET    /processView                                                       contro
 GET    /projects                                                          controllers.main.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
 GET    /projects/:id                                                      controllers.main.ProjectController.read(id: String)
 POST   /projects/:id/graphs                                               controllers.main.ProjectController.createGraph(id: String)
+GET    /projects/:id/artifacts                                            controllers.main.ArtifactController.listForProject(id: String, offset: Int ?= 0, limit: Int ?= 50)
 GET    /projects/:projectId/artifacts/:artifactId/:artifactType/:fileName controllers.main.ArtifactController.download(projectId: String, artifactId: String, artifactType: String, fileName: String)
 
 GET    /tags                                                              controllers.main.TagController.list(offset: Int ?= 0, limit: Int ?= 50)

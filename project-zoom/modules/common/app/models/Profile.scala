@@ -14,7 +14,7 @@ import reactivemongo.core.commands.LastError
 
 case class Profile(firstName: String, lastName: String, email: String, linkedEmails: List[String] = Nil, user: Option[User] = None)
 
-object ProfileDAO extends SecuredMongoJsonDAO with UserHelpers {
+object ProfileDAO extends SecuredMongoJsonDAO[Profile] with UserHelpers {
   val collectionName = "profiles"
 
   implicit val profileFormat = Json.format[Profile]

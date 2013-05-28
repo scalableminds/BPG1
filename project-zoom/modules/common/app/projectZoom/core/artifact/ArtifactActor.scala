@@ -24,11 +24,12 @@ import org.apache.commons.io.FileUtils
 import play.api.libs.concurrent.Execution.Implicits._
 import models.DefaultResourceTypes
 import models.GlobalDBAccess
+import models.ResourceLike
 
 
 trait ArtifactUpdate extends Event
 
-case class RequestResource(_project: String, resource: ResourceInfo)
+case class RequestResource(_project: String, resource: ResourceLike)
 case class UpdateInfo(origin: String, projectName: String)
 
 /*
@@ -50,8 +51,13 @@ case class ResourceUpdated(artifact: ArtifactInfo, resource: ResourceInfo) exten
 case class ResourceInserted(artifact: ArtifactInfo, resource: ResourceInfo) extends Event
 
 trait FSWriter {
-  val basePath = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
-
+  val basePath = {
+    val p = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
+    val f = new File(p)
+    f.mkdirs()
+    f.getAbsolutePath()
+  }
+  
   def pathFor(project: String, typ: String, fileName: String) =
     s"$basePath/$project/$typ/$fileName"
 
@@ -59,25 +65,26 @@ trait FSWriter {
     val path = pathFor(project, typ, fileName)
     val file = new File(path)
     if (file.getAbsolutePath().startsWith(basePath))
-      Some(file -> path)
+      Some(file)
     else
       None
   }
 
   def writeToFS(is: InputStream, _project: String, resourceInfo: ResourceInfo) = {
     fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map {
-      case (file, path) =>
+      case file =>
+        file.getParentFile().mkdirs
         val os = new FileOutputStream(file)
         val writtenBytes = org.apache.commons.io.IOUtils.copyLarge(is, os)
         is.available()
         os.close()
-        file -> path
+        file
     }
   }
 
-  def readFromFS(_project: String, resourceInfo: ResourceInfo): Option[InputStream] = {
-    fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map {
-      case (file, _) =>
+  def readFromFS(_project: String, resource: ResourceLike): Option[InputStream] = {
+    fileFor(_project, resource.typ, resource.fileName).map {
+      case file =>
         new FileInputStream(file)
     }
   }
@@ -86,10 +93,10 @@ trait FSWriter {
 class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess{
 
   def handleResourceUpdate(is: InputStream, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) = {
-    writeToFS(is, artifactInfo._project, resourceInfo).map {
-      case (file, path) =>
+    writeToFS(is, artifactInfo.projectName, resourceInfo).map {
+      case file =>
         val hash = DigestUtils.md5Hex(FileUtils.readFileToByteArray(file))
-        ArtifactDAO.insertRessource(artifactInfo)(path, hash, resourceInfo).map { lastError =>
+        ArtifactDAO.insertRessource(artifactInfo)(hash, resourceInfo).map { lastError =>
           if (lastError.updated > 0) {
             if (lastError.updatedExisting)
               publish(ResourceUpdated(artifactInfo, resourceInfo))
