@@ -80,10 +80,10 @@ class ArtifactFinder
   initSlider : (domElement) -> 
 
     slider = $("<input/>", {
-      class : "finder-slider"
+      class : "artifact-slider"
       type : "range"
-      min : "1"
-      max : "500"
+      min : "32"
+      max : "400"
       value: "40"
     })
     slider.on(
