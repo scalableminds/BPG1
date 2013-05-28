@@ -59,11 +59,11 @@ trait FSWriter {
     f.getAbsolutePath()
   }
 
-  def pathFor(project: String, typ: String, fileName: String) =
-    s"$basePath/$project/$typ/$fileName"
+  def pathFor(projectName: String, typ: String, fileName: String) =
+    s"$basePath/$projectName/$typ/$fileName"
 
-  def fileFor(project: String, typ: String, fileName: String) = {
-    val path = pathFor(project, typ, fileName)
+  def fileFor(projectName: String, typ: String, fileName: String) = {
+    val path = pathFor(projectName, typ, fileName)
     val file = new File(path)
     if (file.getAbsolutePath().startsWith(basePath))
       Some(file)
@@ -71,8 +71,8 @@ trait FSWriter {
       None
   }
 
-  def writeToFS(is: InputStream, _project: String, resourceInfo: ResourceInfo) = {
-    fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map {
+  def writeToFS(is: InputStream, projectName: String, resourceInfo: ResourceInfo) = {
+    fileFor(projectName, resourceInfo.typ, resourceInfo.fileName).map {
       case file =>
         file.getParentFile().mkdirs
         val os = new FileOutputStream(file)
@@ -83,8 +83,8 @@ trait FSWriter {
     }
   }
 
-  def readFromFS(_project: String, resource: ResourceLike): Option[InputStream] = {
-    fileFor(_project, resource.typ, resource.fileName).map {
+  def readFromFS(projectName: String, resource: ResourceLike): Option[InputStream] = {
+    fileFor(projectName, resource.typ, resource.fileName).map {
       case file =>
         new FileInputStream(file)
     }
@@ -160,8 +160,8 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter wi
     case ResourceFound(inputStream, artifactInfo, resourceInfo) =>
       handleResourceUpdate(inputStream, artifactInfo, resourceInfo)
 
-    case RequestResource(_project, resourceInfo) =>
-      sender ! readFromFS(_project, resourceInfo)
+    case RequestResource(projectName, resourceInfo) =>
+      sender ! readFromFS(projectName, resourceInfo)
   }
 }
 

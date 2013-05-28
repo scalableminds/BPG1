@@ -55,7 +55,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
           .resources
           .find(r => r.fileName == fileName && r.typ == resourceType) match {
             case Some(resource) =>
-              (artifactActor ? RequestResource(artifact.name, resource))
+              (artifactActor ? RequestResource(artifact.projectName, resource))
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
