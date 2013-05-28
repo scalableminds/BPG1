@@ -21,7 +21,11 @@ public class OfficeReader extends TextReader {
 			"application/vnd.oasis.opendocument.presentation",
 			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
 			"application/rtf",
-			"text/plain"};
+			"text/plain",
+			"text/css",
+			"text/html",
+			"application/javascript"
+	};
 	
 	@Override
 	public Boolean isSupported(String mimetype)
