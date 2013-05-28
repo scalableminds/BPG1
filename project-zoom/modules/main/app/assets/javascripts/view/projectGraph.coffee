@@ -67,8 +67,8 @@ class ProjectGraph extends Graph
       )
     headline = g.append("svg:text")
       .attr(
-        x: (d) -> parseInt(d.x) + 200
-        y: (d) -> parseInt(d.y) + 200
+        x: (d) -> parseInt(d.x)
+        y: (d) -> parseInt(d.y) + 120
         class: "projectHeadline"
       )
       .text( (d) -> d.name )

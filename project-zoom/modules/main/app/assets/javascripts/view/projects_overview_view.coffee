@@ -60,17 +60,17 @@ class ProjectsOverviewView
     app.model.projectGraph.get("nodes").forEach( (projectNode) =>
 
       node =
-        id: projectNode.get("id")
-        name: projectNode.attributes.payload.attributes.name
-        season: projectNode.attributes.payload.attributes.season
-        year: projectNode.attributes.payload.attributes.yaer
-        length: projectNode.attributes.payload.attributes.length
+        id:           projectNode.get("id")
+        name:         projectNode.attributes.payload.attributes.name
+        season:       projectNode.attributes.payload.attributes.season
+        year:         projectNode.attributes.payload.attributes.yaer
+        length:       projectNode.attributes.payload.attributes.length
         participants: projectNode.attributes.payload.attributes.participants
-        x: x
-        y: y
-        image: "http://upload.wikimedia.org/wikipedia/commons/9/96/Naso_elegans_Oceanopolis.jpg"
-        width: "100px"
-        height: "100px"
+        x:            x
+        y:            y
+        image:        "http://upload.wikimedia.org/wikipedia/commons/9/96/Naso_elegans_Oceanopolis.jpg"
+        width:        "100px"
+        height:       "100px"
 
       @projects.push node
 
