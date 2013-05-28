@@ -1,17 +1,15 @@
 ### define
 d3 : d3
 lib/event_mixin : EventMixin
-./process_view/graph : Graph
-./process_view/node : Node
-./process_view/behavior/connect_behavior : connectBehavior
-./process_view/behavior/drag_behavior : dragBehavior
-../component/project : Project
-../component/layouter : Layouter
+./behavior/behavior : Behavior
+./behavior/connect_behavior : ConnectBehavior
+./behavior/drag_behavior : DragBehavior
+./behavior/delete_behavior : DeleteBehavior
 ###
 
-class ProjectGraph extends Graph
+class ProjectGraph
 
-  constructor : (@container, @svg, @graphModel, @projects) ->
+  constructor : (@graphContainer, @svg, @projects) ->
 
     @selectedTags = []
     @clusters = []
@@ -23,34 +21,15 @@ class ProjectGraph extends Graph
 
     @circles = @svg.append("svg:g").selectAll("circle")
 
-    @projectNodes = @container.append("svg:g").selectAll("projectNode")
+    @projectNodes = @graphContainer.append("svg:g").selectAll("projectNode")
 
-    super(@container, @graphModel)
-
-    @currentBehavior = new dragBehavior(@)
+    @currentBehavior = new DragBehavior(@)
     @currentBehavior.activate()
 
 
-  addNode : (x, y, nodeId) =>
-
-    id = nodeId ? @nodeId++
-
-    node = new Node(
-      x,
-      y,
-      id
-    )
-
-    @nodes.push node
-    @drawNodes()
-
-    node      # return node
-
-
-  drawNodes : ->
+  drawProjects : ->
 
     @projectNodes = @projectNodes.data(@projects, (data) -> data.id)
-
 
     g = @projectNodes.enter().append("svg:g")
     # g.attr(
@@ -78,14 +57,11 @@ class ProjectGraph extends Graph
     @projectNodes.exit().remove()
 
 
-  drawProjectGraph : () ->
+  changeBehavior : (behavior) ->
 
-    @drawNodes()
-
-
-  drawEdges : () ->
-
-  drawClusters : () ->
+    @currentBehavior.deactivate()
+    @currentBehavior = behavior
+    @currentBehavior.activate()
 
 
 

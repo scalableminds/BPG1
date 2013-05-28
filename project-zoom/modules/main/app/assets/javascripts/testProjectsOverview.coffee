@@ -6,4 +6,4 @@ view/projects_overview_view : ProjectsOverviewView
 
 app.on "start", ->
 
-  view = new ProjectsOverviewView(app.model.projectGraph)
+  view = new ProjectsOverviewView()

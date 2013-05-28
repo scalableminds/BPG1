@@ -18,8 +18,6 @@ class Tagbar
     @availableTags = taglist
 
     domElement = $("<div/>")
-
-    project = @SAMPLE_PROJECT
     @domElement = domElement
 
     @populateTagForm()
