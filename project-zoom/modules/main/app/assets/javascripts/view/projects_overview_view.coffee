@@ -5,6 +5,9 @@ app : app
 ./overview/projectGraph : ProjectGraph
 ./overview/gui : GUI
 ./overview/behavior/behavior : Behavior
+./overview/behavior/connect_behavior : ConnectBehavior
+./overview/behavior/drag_behavior : DragBehavior
+./overview/behavior/delete_behavior : DeleteBehavior
 ../component/tagbar : Tagbar
 jquery : $
 ###
@@ -13,13 +16,10 @@ class ProjectsOverviewView
 
   constructor : ->
 
-    # EventMixin.extend(this)
-
-    # @initEventHandlers()
+    @initEventHandlers()
 
     @initTagbar()
     @gui = new GUI(@tagbar)
-    # @initD3()
     @initGraph()
     @initToggle()
 
@@ -131,26 +131,6 @@ class ProjectsOverviewView
     @zoom()
 
 
-
-
-
-
-
-
-  # initD3 : ->
-
-  #   @svg = d3.select("#graph")
-  #     .append("svg")
-  #     .attr("WIDTH", WIDTH)
-  #     .attr("HEIGHT", HEIGHT)
-  #     .attr("pointer-events", "all")
-
-  #   @hitbox = @svg.append("svg:rect")
-  #     .attr("width", WIDTH)
-  #     .attr("height", HEIGHT)
-  #     .attr("fill", "white")
-
-
   initGraph : ->
 
     @domElement = d3.select(".graph svg")
@@ -159,9 +139,9 @@ class ProjectsOverviewView
     @projects = []
 
     start_x = start_y = x = y = 20
-    margin = 20
+    margin = 30
     nodeWidth = 100
-    svgWidth = @domElement[0][0].width.baseVal.value
+    svgWidth = @domElement[0][0].width.animVal.value
 
     app.model.projects.forEach( (project) =>
 
@@ -180,7 +160,7 @@ class ProjectsOverviewView
 
       @projects.push p
 
-      if x < svgWidth - nodeWidth
+      if x < (svgWidth - 2 * nodeWidth)
         x += nodeWidth + margin
       else
         x = start_x
