@@ -95,6 +95,14 @@ trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEye
     else
       collection.find(query ++ findQueryFilter)
   }
+  
+  def logError(f: => Future[LastError]) = {
+    f.map{ r =>
+      if(!r.ok)
+        Logger.warn("DB LastError: " + r)
+      r
+    }
+  }
 
   def collectionUpdate(query: JsObject, update: JsObject, upsert: Boolean = false, multi: Boolean = false)(implicit ctx: DBAccessContext) = {
     val isUpsertAllowed = upsert && (ctx.globalAccess || isAllowedToInsert)
@@ -118,9 +126,11 @@ trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEye
   }
 
   def collectionRemove(js: JsObject)(implicit ctx: DBAccessContext) = {
-    if (ctx.globalAccess)
-      collection.remove(js)
-    else
-      collection.remove(js ++ removeQueryFilter)
+    logError{
+      if (ctx.globalAccess)
+        collection.remove(js)
+      else
+        collection.remove(js ++ removeQueryFilter)
+      }
   }
 }
