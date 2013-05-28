@@ -96,7 +96,7 @@ class Graph
     @foreignObjects = @foreignObjects.data(@nodes.items, (data) -> data.get("id"))
 
     #add new nodes
-    @foreignObjects.enter()
+    elements = @foreignObjects.enter()
       .append("svg:foreignObject")
       .attr( class : "node" )
       .attr(
@@ -126,7 +126,7 @@ class Graph
           return ""
       )
 
-    @drawComment(@foreignObjects)
+    @drawComment(elements)
 
     #update existing ones
     @foreignObjects.attr(
@@ -184,7 +184,7 @@ class Graph
   drawComment : (element) ->
 
     commentGroup = element.selectAll("g")
-      .data( (data) -> if data.get("comment") then [data] else [] )
+      .data( (data) -> console.log data; if data.get("comment") then [data] else [] )
       .enter()
       .append("g")
 
@@ -192,7 +192,7 @@ class Graph
       .append("svg:use")
       .attr(
         x: 0
-        y: -100
+        y: -120
         "xlink:href": "#comment-callout"
       )
 
@@ -200,7 +200,7 @@ class Graph
       .append("svg:text")
       .attr(
         x: 20
-        y: -50
+        y: -70
         width: 80
         height: 40
       )

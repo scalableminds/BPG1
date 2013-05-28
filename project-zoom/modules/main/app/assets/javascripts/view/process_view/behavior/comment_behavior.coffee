@@ -34,7 +34,7 @@ class CommentBehavior extends Behavior
 
   commentCluster : (event) =>
 
-    cluster = $(event.gesture.target).datum()
+    cluster = d3.select(event.gesture.target).datum()
 
     text = cluster.comment ? ""
     @showModal "cluster", (text) =>
@@ -45,7 +45,7 @@ class CommentBehavior extends Behavior
 
   commentEdge : (event) =>
 
-    edge = $(event.gesture.target).datum()
+    edge = d3.select(event.gesture.target).datum()
 
     text = edge.comment ? ""
     @showModal "cluster", (text) =>
