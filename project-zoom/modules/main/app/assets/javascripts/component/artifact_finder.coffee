@@ -73,14 +73,17 @@ class ArtifactFinder
     @initSlider(domElement)
     @addArtifacts(@SAMPLE_ARTIFACTS)
 
+    @resizeHandler = =>
+      @domElement.height($(window).height() - @domElement.offset().top - 30)
+
 
   initSlider : (domElement) -> 
 
     slider = $("<input/>", {
-      class : "finder-slider"
+      class : "artifact-slider"
       type : "range"
-      min : "1"
-      max : "500"
+      min : "32"
+      max : "400"
       value: "40"
     })
     slider.on(
@@ -102,10 +105,10 @@ class ArtifactFinder
 
       artifactC = new Artifact(artifact, getSliderValue)    
       @artifactComponents.push artifactC
-      domElement.append(artifactC.domElement)     
+      domElement.append(artifactC.getSvgElement())     
 
       group = _.find(@groups, (g) => g.name is artifact.source)
-      group.div.append(artifactC.domElement)
+      group.div.append(artifactC.getSvgElement())
 
 
   setResized : (func) ->
@@ -121,14 +124,26 @@ class ArtifactFinder
 
   destroy : ->
 
+    @deactivate()
+
+
   activate : ->
+
+    $(window).on("resize", @resizeHandler)
+    @resizeHandler()
+
 
   deactivate : ->
 
-  getArtifact : (id) =>
+    $(window).off("resize", @resizeHandler)
+
+
+
+  getArtifact : (id, bare = false) =>
+
     for artifact in @SAMPLE_ARTIFACTS
       if artifact.id = id
-        return new Artifact( artifact, -> 64 )
+        return new Artifact( artifact, (-> 64), bare)
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">

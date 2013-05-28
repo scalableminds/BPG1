@@ -50,6 +50,9 @@ import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 
 
+import projectZoom.thumbnails.Artifact;
+import projectZoom.thumbnails.GifFrame;
+import projectZoom.thumbnails.ImageUtil;
 import projectZoom.thumbnails.text.MyWordle.Word;
 import cue.lang.Counter;
 import cue.lang.WordIterator;
@@ -360,7 +363,7 @@ public class TextReader {
 		for(BufferedImage image: images)
 		{
 			int transparantColor = 0xFF00FF; // purple
-			BufferedImage gif = GifUtil.convertRGBAToGIF(image, transparantColor);
+			BufferedImage gif = ImageUtil.convertRGBAToGIF(image, transparantColor);
 			
 			// every frame takes 1000ms
 			long delay = 1000;
@@ -376,7 +379,7 @@ public class TextReader {
 	
 		try {
 			OutputStream out = new FileOutputStream(output.getFile());			   
-			GifUtil.saveAnimatedGIF(out, gifFrames, loopCount);
+			ImageUtil.saveAnimatedGIF(out, gifFrames, loopCount);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

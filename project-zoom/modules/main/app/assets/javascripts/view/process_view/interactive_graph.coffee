@@ -2,28 +2,31 @@
 d3 : d3
 lib/event_mixin : EventMixin
 ./graph : Graph
-./behavior/connect_behavior : connectBehavior
-./behavior/drag_behavior : dragBehavior
+./behavior/drag_behavior : DragBehavior
 ###
 
 class InteractiveGraph extends Graph
 
-  constructor : (@container, @svg, @graphModel) ->
+  constructor : (@graphModel) ->
 
     EventMixin.extend(this)
+
+    @domElement = d3.select(".graph svg")
+    @graphContainer = @domElement.append("svg:g")
+
     @initArrowMarkers()
     @initCallouts()
 
-    @currentBehavior = new dragBehavior(@)
+    @currentBehavior = new DragBehavior(@)
     @currentBehavior.activate()
 
-    super(@container, @graphModel)
+    super(@graphContainer, @graphModel)
 
 
   initArrowMarkers : ->
 
     # define arrow markers for graph edges
-    @svg.append("svg:defs")
+    @domElement.append("svg:defs")
       .append("svg:marker")
         .attr("id", "end-arrow")
         .attr("viewBox", "0 -5 10 10")
@@ -35,7 +38,7 @@ class InteractiveGraph extends Graph
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "#000")
 
-    @svg.append("svg:defs")
+    @domElement.append("svg:defs")
       .append("svg:marker")
         .attr("id", "start-arrow")
         .attr("viewBox", "0 -5 10 10")
@@ -50,7 +53,7 @@ class InteractiveGraph extends Graph
 
   initCallouts : ->
 
-    @svg.append("svg:defs")
+    @domElement.append("svg:defs")
       .append("svg:g")
         .attr(
           id: "comment-callout"

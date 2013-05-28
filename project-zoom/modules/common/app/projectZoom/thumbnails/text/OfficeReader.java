@@ -7,6 +7,8 @@ import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 
+import projectZoom.thumbnails.Artifact;
+
 public class OfficeReader extends TextReader {
 	String[] MIME_TYPES = {
 			"application/msword",

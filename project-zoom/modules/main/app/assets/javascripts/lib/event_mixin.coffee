@@ -1,4 +1,4 @@
-### define 
+### define
 underscore : _
 ./event_dispatcher : EventDispatcher
 ###
@@ -60,7 +60,7 @@ class EventMixin
 
       @off(null, self, type)
 
-    
+
     else if _.isObject(type)
 
       @off(self, key, value) for key, value of type
@@ -80,7 +80,7 @@ class EventMixin
         _.removeElement(@__callbacks[type], callback)
 
         delete @__callbacks[type] if @__callbacks[type].length == 0
-      
+
       if self?
 
         @dispatcher.unregister(this, self, type, callback)
@@ -112,6 +112,12 @@ class EventMixin
       for callback in @__callbacks[type]
         callback.apply(this, args)
 
+    if _.contains(type, ":")
+      [baseType, specialType...] = type.split(":")
+      specialType = specialType.join(":")
+      if specialType != "*"
+        @trigger("#{baseType}:*", specialType, args...)
+
     this
 
 
@@ -126,7 +132,8 @@ class EventMixin
 
     _.extend(obj, mixin, EventMixin.prototype)
 
-    Object.defineProperty(obj, "__uid", value : mixin.__uid )
+    unless _.isString(obj.__uid)
+      Object.defineProperty(obj, "__uid", value : mixin.__uid )
 
     obj
 

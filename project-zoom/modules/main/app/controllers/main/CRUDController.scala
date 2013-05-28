@@ -36,6 +36,9 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
 
   def displayReader(implicit ctx: DBAccessContext): Reads[JsObject] = Reads.JsObjectReads
 
+  def singleObjectFinder(id: String)(implicit ctx: DBAccessContext) =
+    dao.findOneById(id)
+
   def createSingleResult(obj: T)(implicit ctx: DBAccessContext) = {
     Json.toJson(obj).transform(beautifyObjectId andThen displayReader) match {
       case JsSuccess(value, _) => value
@@ -43,12 +46,12 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
         throw new Exception(s"Invalid DB content. Collection: ${dao.collectionName} Error: $e")
     }
   }
-  
+
   def listItems(offset: Int, limit: Int)(resultTransformation: T => JsObject)(implicit ctx: DBAccessContext) = {
     dao.findSome(offset, limit).map { l =>
-        Ok(withPortionInfo(
-          Json.toJson(l.map(resultTransformation)), offset, limit))
-      }
+      Ok(withPortionInfo(
+        Json.toJson(l.map(resultTransformation)), offset, limit))
+    }
   }
 
   def list(offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
@@ -59,7 +62,7 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
 
   def read(id: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
-      dao.findOneById(id).map {
+      singleObjectFinder(id).map {
         case Some(obj) =>
           Ok(createSingleResult(obj))
         case _ =>
