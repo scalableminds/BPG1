@@ -25,11 +25,13 @@ import play.api.libs.concurrent.Execution.Implicits._
 import models.DefaultResourceTypes
 import models.GlobalDBAccess
 import models.ResourceLike
-
+import scala.concurrent.Future
+import reactivemongo.core.commands.LastError
+import models.ArtifactLike
 
 trait ArtifactUpdate extends Event
 
-case class RequestResource(_project: String, resource: ResourceLike)
+case class RequestResource( artifactLike: ArtifactLike, resource: ResourceLike)
 case class UpdateInfo(origin: String, projectName: String)
 
 /*
@@ -43,12 +45,12 @@ case class ResourceFound(inputStream: InputStream, artifact: ArtifactInfo, resou
 
 /*
  * Publishes
- */ 
+ */
 case class ArtifactUpdated(artifact: ArtifactInfo) extends Event
 case class ArtifactInserted(artifact: ArtifactInfo) extends Event
 
-case class ResourceUpdated(artifact: ArtifactInfo, resource: ResourceInfo) extends Event
-case class ResourceInserted(artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+case class ResourceUpdated(file: File, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+case class ResourceInserted(file: File, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
 
 trait FSWriter {
   val basePath = {
@@ -57,12 +59,12 @@ trait FSWriter {
     f.mkdirs()
     f.getAbsolutePath()
   }
-  
-  def pathFor(project: String, typ: String, fileName: String) =
-    s"$basePath/$project/$typ/$fileName"
 
-  def fileFor(project: String, typ: String, fileName: String) = {
-    val path = pathFor(project, typ, fileName)
+  def pathFor(projectName: String, artifactPath: String, resource: ResourceLike) =
+    s"$basePath/$projectName/${artifactPath}/${resource.typ}/${resource.name}"
+
+  def fileFor(projectName: String, artifactPath: String, resource: ResourceLike) = {
+    val path = pathFor(projectName, artifactPath, resource)
     val file = new File(path)
     if (file.getAbsolutePath().startsWith(basePath))
       Some(file)
@@ -70,8 +72,8 @@ trait FSWriter {
       None
   }
 
-  def writeToFS(is: InputStream, _project: String, resourceInfo: ResourceInfo) = {
-    fileFor(_project, resourceInfo.typ, resourceInfo.fileName).map {
+  def writeToFS(is: InputStream, projectName: String, artifactPath: String, resourceInfo: ResourceInfo) = {
+    fileFor(projectName, artifactPath, resourceInfo).map {
       case file =>
         file.getParentFile().mkdirs
         val os = new FileOutputStream(file)
@@ -82,27 +84,30 @@ trait FSWriter {
     }
   }
 
-  def readFromFS(_project: String, resource: ResourceLike): Option[InputStream] = {
-    fileFor(_project, resource.typ, resource.fileName).map {
+  def readFromFS(projectName: String, artifactPath: String, resource: ResourceLike): Option[InputStream] = {
+    fileFor(projectName, artifactPath, resource).map {
       case file =>
         new FileInputStream(file)
     }
   }
 }
 
-class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess{
+class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess {
 
   def handleResourceUpdate(is: InputStream, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) = {
-    writeToFS(is, artifactInfo.projectName, resourceInfo).map {
+    writeToFS(is, artifactInfo.projectName, artifactInfo.path, resourceInfo).map {
       case file =>
         val hash = DigestUtils.md5Hex(FileUtils.readFileToByteArray(file))
-        ArtifactDAO.insertRessource(artifactInfo)(hash, resourceInfo).map { lastError =>
-          if (lastError.updated > 0) {
-            if (lastError.updatedExisting)
-              publish(ResourceUpdated(artifactInfo, resourceInfo))
-            else
-              publish(ResourceInserted(artifactInfo, resourceInfo))
-          }
+        ArtifactDAO.findResource(artifactInfo, resourceInfo).map {
+          case None =>
+            ArtifactDAO.insertResource(artifactInfo)(hash, resourceInfo).map(_ =>
+              publish(ResourceInserted(file, artifactInfo, resourceInfo)))
+          case Some(r) /*if r.hash != hash*/ =>
+            // TODO: remove comment
+            ArtifactDAO.updateHashOfResource(artifactInfo)(hash, resourceInfo).map(_ =>
+              publish(ResourceUpdated(file, artifactInfo, resourceInfo)))
+          case _ =>
+            Logger.debug(s"Resource is still the same. Resource: $resourceInfo")
         }
     }
   }
@@ -157,8 +162,8 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter wi
     case ResourceFound(inputStream, artifactInfo, resourceInfo) =>
       handleResourceUpdate(inputStream, artifactInfo, resourceInfo)
 
-    case RequestResource(_project, resourceInfo) =>
-      sender ! readFromFS(_project, resourceInfo)
+    case RequestResource(artifactInfo, resourceInfo) =>
+      sender ! readFromFS(artifactInfo.projectName, artifactInfo.path, resourceInfo)
   }
 }
 

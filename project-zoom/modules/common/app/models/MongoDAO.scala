@@ -79,7 +79,13 @@ trait MongoJsonDAO[T] extends MongoDAO[JsObject] {
     asObjectOpt(js).get
 
   def asObjectOpt(js: JsObject)(implicit reader: Reads[T]): Option[T] = {
-    reader.reads(js).asOpt
+    reader.reads(js) match {
+      case JsSuccess(o, _) =>
+        Some(o)
+      case e: JsError => 
+        Logger.error("Failed to parse js: " + e)
+        None
+    }
   }
 
   implicit object formatter extends OFormat[JsObject] {
