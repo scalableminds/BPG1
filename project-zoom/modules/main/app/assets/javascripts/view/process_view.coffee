@@ -47,7 +47,6 @@ class ProcessView
       .off("change")
       .off("click")
 
-
     @graph.changeBehavior(new Behavior())
     @gui.deactivate()
     @artifactFinder.deactivate()
@@ -87,7 +86,7 @@ class ProcessView
         .on("touch", -> mouseDown = true; return )
         .on("release", -> mouseDown = false; return )
 
-      $("body").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+      $(".graph").on "mousewheel", (evt, delta, deltaX, deltaY) =>
 
         evt.preventDefault()
         return if mouseDown

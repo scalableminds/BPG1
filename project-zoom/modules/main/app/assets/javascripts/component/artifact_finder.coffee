@@ -105,10 +105,10 @@ class ArtifactFinder
 
       artifactC = new Artifact(artifact, getSliderValue)    
       @artifactComponents.push artifactC
-      domElement.append(artifactC.domElement)     
+      domElement.append(artifactC.getSvgElement())     
 
       group = _.find(@groups, (g) => g.name is artifact.source)
-      group.div.append(artifactC.domElement)
+      group.div.append(artifactC.getSvgElement())
 
 
   setResized : (func) ->
@@ -138,10 +138,12 @@ class ArtifactFinder
     $(window).off("resize", @resizeHandler)
 
 
-  getArtifact : (id) =>
+
+  getArtifact : (id, bare = false) =>
+
     for artifact in @SAMPLE_ARTIFACTS
       if artifact.id = id
-        return new Artifact( artifact, -> 64 )
+        return new Artifact( artifact, (-> 64), bare)
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">

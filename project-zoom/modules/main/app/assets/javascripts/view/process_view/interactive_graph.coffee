@@ -12,7 +12,7 @@ class InteractiveGraph extends Graph
 
     EventMixin.extend(this)
 
-    @domElement = d3.select("svg")
+    @domElement = d3.select(".graph svg")
     @graphContainer = @domElement.append("svg:g")
 
     @initArrowMarkers()

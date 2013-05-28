@@ -12,10 +12,11 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import projectZoom.thumbnails.Artifact;
 import projectZoom.thumbnails.text.TextThumbnailPlugin;
 
 import projectZoom.thumbnails.text.TextReader;
-import projectZoom.thumbnails.text.Artifact;
 
 import models.Resource;
 import models.ResourceInfo;
