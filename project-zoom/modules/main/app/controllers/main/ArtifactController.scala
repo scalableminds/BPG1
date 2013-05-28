@@ -45,19 +45,17 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
     }
   }
 
-  def download(projectId: String, artifactId: String, resourceType: String, fileName: String) = SecuredAction(ajaxCall = true) { implicit request =>
+  def download(artifactId: String, resourceType: String, fileName: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
       for {
-        projectOpt <- ProjectDAO.findOneById(projectId).map(_.flatMap(ProjectDAO.asObjectOpt))
         artifactOpt <- ArtifactDAO.findOneById(artifactId).map(_.flatMap(ArtifactDAO.asObjectOpt))
-        project <- projectOpt ?~ Messages("project.notFound")
         artifact <- artifactOpt ?~ Messages("artifact.notFound")
       } yield {
         artifact
           .resources
           .find(r => r.fileName == fileName && r.typ == resourceType) match {
             case Some(resource) =>
-              (artifactActor ? RequestResource(project.name, resource))
+              (artifactActor ? RequestResource(artifact.name, resource))
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
