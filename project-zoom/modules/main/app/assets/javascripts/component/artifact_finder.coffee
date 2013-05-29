@@ -1,5 +1,6 @@
 ### define
 jquery : $
+app: app
 underscore : _
 ./artifact : Artifact
 ###
@@ -7,7 +8,7 @@ underscore : _
 
 class ArtifactFinder
 
-  GROUP_NAMES : ["Box", "Dropbox"]
+  GROUP_NAMES : ["Box", "Dropbox", "dummy"]
   TAB_PREFIX : "tab"
 
   domElement : null
@@ -21,13 +22,13 @@ class ArtifactFinder
       id : 12345
       source : "Box"
       resources : [
-        {typ :"primaryThumbnail", id : 123, path : "assets/images/thumbnails/primary_thumbnail/32.png"}
-        {typ :"primaryThumbnail", id : 456, path : "assets/images/thumbnails/primary_thumbnail/64.png"}
-        {typ :"primaryThumbnail", id : 789, path : "assets/images/thumbnails/primary_thumbnail/128.png"}
-        {typ :"primaryThumbnail", id : 112, path : "assets/images/thumbnails/primary_thumbnail/256.png"}
-        {typ :"secondaryThumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
-        {typ :"secondaryThumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
-        {typ :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
+        {typ :"primaryThumbnail", name: "32.png", path : "assets/images/thumbnails/primary_thumbnail/32.png"}
+        {typ :"primaryThumbnail", name: "64.png", path : "assets/images/thumbnails/primary_thumbnail/64.png"}
+        {typ :"primaryThumbnail", name: "128.png", path : "assets/images/thumbnails/primary_thumbnail/128.png"}
+        {typ :"primaryThumbnail", name: "256.png", path : "assets/images/thumbnails/primary_thumbnail/256.png"}
+        {typ :"secondaryThumbnail", name: "256.png", path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
+        {typ :"secondaryThumbnail", name: "512.png", path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
+        {typ :"original",  name: "32.png", path : "assets/images/thumbnails/fail.png"}
       ]
     }
     {
@@ -35,13 +36,13 @@ class ArtifactFinder
       id : 12346
       source : "Box"
       resources : [
-        {typ :"primaryThumbnail", id : 123, path : "assets/images/thumbnails/primary_thumbnail/32.png"}
-        {typ :"primaryThumbnail", id : 456, path : "assets/images/thumbnails/primary_thumbnail/64.png"}
-        {typ :"primaryThumbnail", id : 789, path : "assets/images/thumbnails/primary_thumbnail/128.png"}
-        {typ :"primaryThumbnail", id : 112, path : "assets/images/thumbnails/primary_thumbnail/256.png"}
-        {typ :"secondaryThumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
-        {typ :"secondaryThumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
-        {typ :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
+        {typ :"primaryThumbnail", name: "32.png", path : "assets/images/thumbnails/primary_thumbnail/32.png"}
+        {typ :"primaryThumbnail", name: "64.png", path : "assets/images/thumbnails/primary_thumbnail/64.png"}
+        {typ :"primaryThumbnail", name: "128.png", path : "assets/images/thumbnails/primary_thumbnail/128.png"}
+        {typ :"primaryThumbnail", name: "256.png", path : "assets/images/thumbnails/primary_thumbnail/256.png"}
+        {typ :"secondaryThumbnail", name: "256.png", path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
+        {typ :"secondaryThumbnail", name: "512.png", path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
+        {typ :"original",  name: "32.png", path : "assets/images/thumbnails/fail.png"}
       ]
     }      
     {
@@ -49,13 +50,13 @@ class ArtifactFinder
       id : 12347
       source : "Dropbox"
       resources : [
-        {typ :"primaryThumbnail", id : 123, path : "assets/images/thumbnails/primary_thumbnail/32.png"}
-        {typ :"primaryThumbnail", id : 456, path : "assets/images/thumbnails/primary_thumbnail/64.png"}
-        {typ :"primaryThumbnail", id : 789, path : "assets/images/thumbnails/primary_thumbnail/128.png"}
-        {typ :"primaryThumbnail", id : 112, path : "assets/images/thumbnails/primary_thumbnail/256.png"}
-        {typ :"secondaryThumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
-        {typ :"secondaryThumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/512.gif"}        
-        {typ :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
+        {typ :"primaryThumbnail", name: "32.png", path : "assets/images/thumbnails/primary_thumbnail/32.png"}
+        {typ :"primaryThumbnail", name: "64.png", path : "assets/images/thumbnails/primary_thumbnail/64.png"}
+        {typ :"primaryThumbnail", name: "128.png", path : "assets/images/thumbnails/primary_thumbnail/128.png"}
+        {typ :"primaryThumbnail", name: "256.png", path : "assets/images/thumbnails/primary_thumbnail/256.png"}
+        {typ :"secondaryThumbnail", name: "256.png", path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
+        {typ :"secondaryThumbnail", name: "512.png", path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
+        {typ :"original",  name: "32.png", path : "assets/images/thumbnails/fail.png"}
       ]
     }  
   ]
@@ -73,7 +74,8 @@ class ArtifactFinder
 
     @domElement = domElement
     @initSlider(domElement)
-    @addArtifacts(@SAMPLE_ARTIFACTS)
+
+    app.model.project.get("artifacts", @, (a) => @addArtifacts(a.items))
 
     @resizeHandler = =>
       @domElement.height($(window).height() - @domElement.offset().top - 30)
@@ -103,11 +105,11 @@ class ArtifactFinder
      
     for artifact in artifacts
 
-      artifactC = new Artifact(artifact, getSliderValue)    
+      artifactC = new Artifact(artifact.attributes, getSliderValue)    
       @artifactComponents.push artifactC
       domElement.append(artifactC.getSvgElement())     
 
-      group = _.find(@groups, (g) => g.name is artifact.source)
+      group = _.find(@groups, (g) => g.name is artifact.attributes.source)
       group.div.append(artifactC.getSvgElement())
 
 

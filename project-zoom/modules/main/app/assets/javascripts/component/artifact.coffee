@@ -64,15 +64,18 @@ class Artifact
 
   getNearest : (width, typ) ->
 
-    elements = _.filter(@artifact.resources, (r) -> r.typ is typ)
-    resolutions = _.map(elements, (e) -> (Number) e.path.substring(e.path.lastIndexOf("/") + 1, e.path.lastIndexOf(".")))
+    elements = _.filter(@artifact.resources.items, (r) -> r.attributes.typ is typ)
+    resolutions = _.map(elements, (e) -> (Number) e.attributes.name.substring(0, e.attributes.name.lastIndexOf(".")))
 
     closest = null
     for r in resolutions
       closest = r if not closest? or Math.abs(r - width) < Math.abs(closest - width)
 
-    e =_.find(elements, (e) => (((Number) e.path.substring(e.path.lastIndexOf("/") + 1, e.path.lastIndexOf("."))) is closest))
-    e.path
+    e =_.find(elements, (e) => (((Number) e.attributes.name.substring(0, e.attributes.name.lastIndexOf("."))) is closest))
+    path = null
+    if e?
+      path = "/artifacts/#{@artifact.id}/#{e.attributes.typ}/#{e.attributes.name}"
+    return path
 
 
   getSvgElement : ->
