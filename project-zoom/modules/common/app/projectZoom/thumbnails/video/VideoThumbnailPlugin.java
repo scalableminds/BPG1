@@ -1,10 +1,13 @@
 package projectZoom.thumbnails.video;
 
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
+import javax.imageio.ImageIO;
+
+import models.DefaultResourceTypes;
 import models.ResourceInfo;
 import projectZoom.thumbnails.*;
 import projectZoom.thumbnails.video.VideoReader;
@@ -27,7 +30,7 @@ public class VideoThumbnailPlugin extends ThumbnailPlugin {
 	
 	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
-		System.out.print("onResourceFound called ");
+		System.out.println("Video onResourceFound called ");
 
 		List<TempFile> output = new ArrayList<TempFile>(); 
 		
@@ -35,7 +38,7 @@ public class VideoThumbnailPlugin extends ThumbnailPlugin {
 			return output;
 		
 		String mimetype = TikaUtil.getMimeType(resource);
-		System.out.print(mimetype);
+		System.out.println(mimetype);
 		
 		Iterator<VideoReader> iterator = readers.iterator();
 		while (iterator.hasNext()) {
@@ -43,8 +46,35 @@ public class VideoThumbnailPlugin extends ThumbnailPlugin {
 
 			if (!reader.isSupported(mimetype))
 				continue;
+			
+			List<BufferedImage> frames = reader.getFrames(ressourceInfo.name(), THUMBNAIL_Count);
+			
+			try {
+				for (int width: THUMBNAIL_WIDTHS)
+				{
+					List<BufferedImage> resizedImages = new ArrayList<BufferedImage>();
+					
+					for (BufferedImage b: frames)
+						resizedImages.add(ImageUtil.resizeBufferedImage(b, width));
+					
+					// default image
+					BufferedImage firstImage = resizedImages.get(0);
+					TempFile firstTempFile = new TempFile(width + ".png", DefaultResourceTypes.PRIMARY_THUMBNAIL());
+					ImageIO.write(firstImage, "png", firstTempFile.getFile());
+					output.add(firstTempFile);
+	
+					// sec 
+					TempFile gif = ImageUtil.imagesToGif(resizedImages, width);
+					if (gif != null) {
+						gif.setType(DefaultResourceTypes.SECONDARY_THUMBNAIL());
+						output.add(gif);
+					}
+					
+				}			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
-			output.addAll(reader.getFrames(ressourceInfo.name(), 512, THUMBNAIL_Count));
 		}
 		return output;
 	}

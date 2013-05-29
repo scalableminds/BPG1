@@ -86,7 +86,7 @@ public class TextReader {
 			List<BufferedImage> images = this.pdfToImages2(file, 1);
 			for (int width: widths) {				
 				TempFile art = new TempFile(width + ".png");
-				BufferedImage image = resizeBufferedImage(images.get(0), width);
+				BufferedImage image = ImageUtil.resizeBufferedImage(images.get(0), width);
 				if (image != null)
 				{
 					ImageIO.write(image, "png", art.getFile());
@@ -100,21 +100,6 @@ public class TextReader {
 		return output;
 	}
 	
-	private BufferedImage resizeBufferedImage(BufferedImage image, int width) {
-
-		int w = image.getWidth();
-		int h = image.getHeight();
-		int size = Math.max(w, h);
-		float scale = (float)width/size;
-		BufferedImage newImage = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
-		AffineTransform at = new AffineTransform();
-		at.scale(scale, scale);
-		AffineTransformOp scaleOp = 
-		   new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-		newImage = scaleOp.filter(image, newImage);
-		
-		return newImage;
-	}
 	
 	public List<TempFile> getGifs(File file, int[] widths, int pagecount) {
 		List<TempFile> output = new ArrayList<TempFile>();
@@ -123,8 +108,8 @@ public class TextReader {
 			for(int width: widths) {
 				List<BufferedImage> resizedImages = new ArrayList<BufferedImage>();
 				for (BufferedImage b: images)
-					resizedImages.add(resizeBufferedImage(b, width));
-				TempFile art = imagesToGif(resizedImages, width);
+					resizedImages.add(ImageUtil.resizeBufferedImage(b, width));
+				TempFile art = ImageUtil.imagesToGif(resizedImages, width);
 				if (art != null)
 					output.add(art);
 			}
@@ -355,38 +340,6 @@ public class TextReader {
 		
 	}	
 	
-	public TempFile imagesToGif(List<BufferedImage> images, int width) {
-		
-		TempFile output = new TempFile(width + ".gif");
-		List<GifFrame> gifFrames = new ArrayList<GifFrame>();
-		
-		for(BufferedImage image: images)
-		{
-			int transparantColor = 0xFF00FF; // purple
-			BufferedImage gif = ImageUtil.convertRGBAToGIF(image, transparantColor);
-			
-			// every frame takes 1000ms
-			long delay = 1000;
-			
-			// make transparent pixels not 'shine through'
-			String disposal = GifFrame.RESTORE_TO_BGCOLOR;
-			
-			// add frame to sequence
-			gifFrames.add(new GifFrame(gif, delay, disposal));
-		}
-		
-		int loopCount = 0; // loop indefinitely
-	
-		try {
-			OutputStream out = new FileOutputStream(output.getFile());			   
-			ImageUtil.saveAnimatedGIF(out, gifFrames, loopCount);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-		   
-		return output;
-	}
 	
 	   // This method returns a buffered image with the contents of an image
     public static BufferedImage toBufferedImage(Image image) {

@@ -32,7 +32,7 @@ public class TextThumbnailPlugin extends ThumbnailPlugin {
 	
 	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
-		System.out.println("onResourceFound called ");
+		System.out.println("Text onResourceFound called ");
 
 		List<TempFile> output = new ArrayList<TempFile>(); 
 		

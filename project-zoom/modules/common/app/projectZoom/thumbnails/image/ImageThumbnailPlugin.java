@@ -26,7 +26,7 @@ public class ImageThumbnailPlugin extends ThumbnailPlugin {
 	
 	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
-		System.out.println("onResourceFound called ");
+		System.out.println("Image onResourceFound called ");
 
 		List<TempFile> output = new ArrayList<TempFile>(); 
 		

@@ -27,7 +27,7 @@ public class AllThumbnailPlugin extends ThumbnailPlugin {
 	
 	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
-		System.out.println("Icon onResourceFound called ");
+		System.out.println("All onResourceFound called ");
 		String fn = ressourceInfo.name();
 		String ext = fn.substring(fn.lastIndexOf(".") + 1);
 

@@ -30,6 +30,6 @@ public class ThumbnailsVideoTests {
 		ResourceInfo res = new ResourceInfo(filename, "default"); 
 		List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 		
-		assertTrue(arts.size() == 4);	
+		assertTrue(arts.size() == 8);	
 	}
 }
