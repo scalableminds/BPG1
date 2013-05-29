@@ -58,7 +58,7 @@ class ArtifactFinder
     }  
   ]
 
-  constructor : () ->
+  constructor : (@artifactsModel) ->
 
     @groups = []
     @artifactComponents = []

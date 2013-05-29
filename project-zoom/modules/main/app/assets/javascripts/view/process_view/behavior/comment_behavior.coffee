@@ -6,8 +6,8 @@ class CommentBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $(".graph svg")[0])
-      .on("tap", ".node-image", @commentNode )
+    @hammerContext = Hammer( $("#process-graph")[0])
+      .on("tap", ".node", @commentNode )
       .on("tap", ".cluster", @commentCluster )
       .on("tap", ".edge", @commentEdge )
 
@@ -22,10 +22,9 @@ class CommentBehavior extends Behavior
 
   commentNode : (event) =>
 
-    svgContainer = $(event.gesture.target).closest("foreignObject")[0]
-    node = d3.select(svgContainer).datum()
+    node = d3.select(event.gesture.target).datum()
 
-    text = node.text ? ""
+    text = node.get("comment") ? ""
     @showModal text, (text) =>
 
       node.set(comment: text)
@@ -34,9 +33,9 @@ class CommentBehavior extends Behavior
 
   commentCluster : (event) =>
 
-    cluster = $(event.gesture.target).datum()
+    cluster = d3.select(event.gesture.target).datum()
 
-    text = cluster.comment ? ""
+    text = cluster.get("comment") ? ""
     @showModal "cluster", (text) =>
 
       cluster.set(comment: text)
@@ -45,9 +44,9 @@ class CommentBehavior extends Behavior
 
   commentEdge : (event) =>
 
-    edge = $(event.gesture.target).datum()
+    edge = d3.select(event.gesture.target).datum()
 
-    text = edge.comment ? ""
+    text = edge.get("comment") ? ""
     @showModal "cluster", (text) =>
 
       edge.set(comment: text)
@@ -59,16 +58,20 @@ class CommentBehavior extends Behavior
     $modal = $("#comment-modal")
 
     $textarea = $modal.find("textarea")
-    $textarea.text(text)
+    $textarea.val(text)
 
     $modal.on "shown", -> $textarea.focus()
 
-    $modal.find(".btn-primary").on "click", (event) ->
+    $saveButton = $modal.find(".btn-primary")
+    $saveButton.on "click", (event) ->
 
       $modal.modal("hide")
 
       text = $textarea.val()
       callback(text)
+
+      $modal.off("shown")
+      $saveButton.off("click")
 
     $modal.modal("show")
 
