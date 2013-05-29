@@ -16,51 +16,6 @@ class ArtifactFinder
   onResize : null
   slider : null
 
-  SAMPLE_ARTIFACTS : [
-    {
-      name:"test1"
-      id : 12345
-      source : "Box"
-      resources : [
-        {typ :"primaryThumbnail", name: "32.png", path : "assets/images/thumbnails/primary_thumbnail/32.png"}
-        {typ :"primaryThumbnail", name: "64.png", path : "assets/images/thumbnails/primary_thumbnail/64.png"}
-        {typ :"primaryThumbnail", name: "128.png", path : "assets/images/thumbnails/primary_thumbnail/128.png"}
-        {typ :"primaryThumbnail", name: "256.png", path : "assets/images/thumbnails/primary_thumbnail/256.png"}
-        {typ :"secondaryThumbnail", name: "256.png", path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
-        {typ :"secondaryThumbnail", name: "512.png", path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
-        {typ :"original",  name: "32.png", path : "assets/images/thumbnails/fail.png"}
-      ]
-    }
-    {
-      name:"test2"
-      id : 12346
-      source : "Box"
-      resources : [
-        {typ :"primaryThumbnail", name: "32.png", path : "assets/images/thumbnails/primary_thumbnail/32.png"}
-        {typ :"primaryThumbnail", name: "64.png", path : "assets/images/thumbnails/primary_thumbnail/64.png"}
-        {typ :"primaryThumbnail", name: "128.png", path : "assets/images/thumbnails/primary_thumbnail/128.png"}
-        {typ :"primaryThumbnail", name: "256.png", path : "assets/images/thumbnails/primary_thumbnail/256.png"}
-        {typ :"secondaryThumbnail", name: "256.png", path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
-        {typ :"secondaryThumbnail", name: "512.png", path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
-        {typ :"original",  name: "32.png", path : "assets/images/thumbnails/fail.png"}
-      ]
-    }      
-    {
-      name:"test3"
-      id : 12347
-      source : "Dropbox"
-      resources : [
-        {typ :"primaryThumbnail", name: "32.png", path : "assets/images/thumbnails/primary_thumbnail/32.png"}
-        {typ :"primaryThumbnail", name: "64.png", path : "assets/images/thumbnails/primary_thumbnail/64.png"}
-        {typ :"primaryThumbnail", name: "128.png", path : "assets/images/thumbnails/primary_thumbnail/128.png"}
-        {typ :"primaryThumbnail", name: "256.png", path : "assets/images/thumbnails/primary_thumbnail/256.png"}
-        {typ :"secondaryThumbnail", name: "256.png", path : "assets/images/thumbnails/secondary_thumbnail/256.gif"}
-        {typ :"secondaryThumbnail", name: "512.png", path : "assets/images/thumbnails/secondary_thumbnail/512.gif"} 
-        {typ :"original",  name: "32.png", path : "assets/images/thumbnails/fail.png"}
-      ]
-    }  
-  ]
-
   constructor : (@artifactsModel) ->
 
     @groups = []
