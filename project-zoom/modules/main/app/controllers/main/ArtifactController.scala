@@ -23,6 +23,7 @@ import models.Implicits._
 import controllers.common.ControllerBase
 import play.api.i18n.Messages
 import models.ResourceLike
+import play.api.Logger
 
 object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem with PlayConfig {
 
@@ -63,14 +64,14 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
                 case Some(stream) =>
                   Ok.stream(Enumerator.fromStream(stream))
                 case _ =>
-                  NotFound
+                  NotFound("File not found on disk.")
               }
               .recover {
                 case a: AskTimeoutException =>
-                  NotFound
+                  NotFound("Timeout.")
               }
             case _ =>
-              Future.successful(NotFound)
+              Future.successful(NotFound("Unavailable"))
           }
       }
     }

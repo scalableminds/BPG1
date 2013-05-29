@@ -14,7 +14,7 @@ GET    /projects/:id                                                      contro
 POST   /projects/:id/graphs                                               controllers.main.ProjectController.createGraph(id: String)
 GET    /projects/:id/artifacts                                            controllers.main.ArtifactController.listForProject(id: String, offset: Int ?= 0, limit: Int ?= 50)
 
-GET    /artifacts/:id/:artifactType/:fileName                             controllers.main.ArtifactController.download(id: String, artifactType: String, fileName: String)
+GET    /artifacts/:id/:typ/:name                                          controllers.main.ArtifactController.download(id: String, name: String, typ: String)
 GET    /artifacts/:id                                                     controllers.main.ArtifactController.read(id: String)
 
 GET    /tags                                                              controllers.main.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
