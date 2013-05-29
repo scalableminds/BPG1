@@ -40,10 +40,6 @@ class GUI
         "pointer-events": "all"
       )
 
-    $(window).resize(
-      => @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
-    ).resize()
-
 
   initToolbarHandler : ->
 

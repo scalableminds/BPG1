@@ -22,7 +22,7 @@ class ProcessView
 
   constructor : (@projectModel) ->
 
-    @artifactFinder = new ArtifactFinder()
+    @artifactFinder = new ArtifactFinder(@projectModel.get("artifacts"))
     @gui = new GUI(@artifactFinder)
     @projectModel.get "graphs/0", this, (graphModel) ->
 

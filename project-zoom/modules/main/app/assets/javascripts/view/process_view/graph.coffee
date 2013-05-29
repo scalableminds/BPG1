@@ -58,6 +58,7 @@ class Graph
 
   addCluster : (cluster) ->
 
+    cluster.set("id", @nextId(), silent : true)
     Cluster(cluster).ensureNodes(@nodes)
     @clusters.add(cluster)
     @drawClusters()
