@@ -35,6 +35,7 @@ class Graph
         id : "519b693d030655c8752c2973"
       typ : "project"
     )
+    #node.set({artifact})
     node.artifact = artifact
 
     @nodes.add(node)
@@ -100,10 +101,12 @@ class Graph
   drawNodes : ->
 
     @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
+    imageElement = "svg:image"
 
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
+        #.attr("workaround", (data) -> artifact = data.artifact; if artifact? then imageElement = artifact.getImage())
       .append("svg:image")
       .attr(
 
@@ -120,7 +123,7 @@ class Graph
       )
 
 
-    @drawComment(@nodeGroups)
+    @drawComment(@nodeGroups, Node)
 
     #update existing ones
     @nodeGroups.selectAll("image").attr(
@@ -175,7 +178,7 @@ class Graph
     @clusterPaths.exit().remove()
 
 
-  drawComment : (element) ->
+  drawComment : (element, elementType) ->
 
     commentGroup = element.selectAll("g").data(
       (data) ->
@@ -186,7 +189,9 @@ class Graph
     comment = commentGroup.enter()
       .append("g")
         .attr(
-          transform: (data) -> "translate(#{ data.get("position/x") }, #{ data.get("position/y") })"
+          transform: (data) ->
+            position = elementType(data).getCommentPosition()
+            "translate(#{position.x}, #{position.y})"
         )
 
     comment

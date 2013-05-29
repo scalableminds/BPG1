@@ -22,3 +22,10 @@ Node = (node) ->
     width : NODE_SIZE
     height : NODE_SIZE
 
+
+  getCommentPosition : ->
+
+    position =
+      x: node.get("x")
+      y: node.get("y")
+
