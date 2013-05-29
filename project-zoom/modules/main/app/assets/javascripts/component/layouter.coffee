@@ -1,6 +1,7 @@
 ### define
 jquery : $
-underscore: _
+underscore : _
+d3 : d3
 ###
 
 class Layouter
@@ -25,28 +26,43 @@ class Layouter
 
   textWrap : (svg_text, content, width) ->
 
-    t_copy = _.clone(svg_text)
-
     if svg_text?
+
+      t_copy = _.clone(svg_text)
+
+      pos_x = parseInt( d3.select(svg_text).attr("x") )
+      pos_y = parseInt( d3.select(svg_text).attr("y") )
+
       abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
       t_copy.textContent = abc
       letterWidth = t_copy.getBBox().width / abc.length
       words = content.split(" ")
 
       x = 0
-      s = []
+      split = []
 
       for w in words
         l = w.length
         if x + (l * letterWidth) > width
-          s.push "\n"
+          split.push "\n"
           x = 0
         x += l * letterWidth
-        s.push w + " "
+        split.push w + " "
 
     else console.log "no name"
 
-    s.join("")
+    svg_text.textContent = ""
+    joined = split.join("")
+    lines = joined.split("\n")
+
+    for line, i in lines
+
+      d3.select(svg_text).append("tspan")
+      .text(line)
+      .attr(
+        x: pos_x
+        y: pos_y + i * 15
+      )
 
 
   resizeCircle : (circle, weight) ->

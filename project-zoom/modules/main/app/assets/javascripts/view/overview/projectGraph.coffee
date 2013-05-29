@@ -28,6 +28,7 @@ class ProjectGraph
 
   drawProjects : ->
 
+    names = []
     layouter = @layouter
     @projectNodes = @projectNodes.data(@projects, (data) -> data.id)
 
@@ -49,12 +50,16 @@ class ProjectGraph
         class: "projectHeadline"
         x: (d) -> parseInt(d.x)
         y: (d) -> parseInt(d.y) + 120
+        workaround: (d) -> names.push d.name; return ""
       )
-      .text( (d) -> layouter.textWrap(this, d.name, 120) )
+      # .text( (d) -> layouter.textWrap(this, d.name, 120) )
+      # .append( (d) -> layouter.textWrap(this, d.name, 120) )
 
-    for h in headline[0]
-      # @layouter.textWrap(h, 150)
-      console.log h.textContent
+
+    for h, i in headline[0]
+      @layouter.textWrap(h, names[i], 120)
+      # console.log h.textContent
+      # tspan!!!!!!
 
     # g.append("svg:text") #tags!!!!
 
