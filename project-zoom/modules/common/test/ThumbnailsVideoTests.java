@@ -27,7 +27,7 @@ public class ThumbnailsVideoTests {
 		String filename = folder + "test.wmv";
 		File file = new File(filename);
 		VideoThumbnailPlugin textThumbnailPlugin = new VideoThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		ResourceInfo res = new ResourceInfo("test.png", "default"); 
 		List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 8);	

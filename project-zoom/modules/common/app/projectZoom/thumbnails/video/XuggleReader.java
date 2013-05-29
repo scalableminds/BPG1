@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -48,14 +49,14 @@ public class XuggleReader extends VideoReader {
 	}	
 	
 	@Override
-	public List<BufferedImage> getFrames(String filename, int count)
+	public List<BufferedImage> getFrames(File file, String filename, int count)
 	{
 		this.count = count;
-		long duration = (long) (getVideoDuration(filename) * 0.000001);
+		long duration = (long) (getVideoDuration(file.getAbsolutePath()) * 0.000001);
 		//System.out.println(duration);
 		XuggleReader.MICRO_SECONDS_BETWEEN_FRAMES = (long) (Global.DEFAULT_PTS_PER_SECOND * (duration - 2 * PRETIME)) / (count - 1);
 		//System.out.println(XuggleReader.MICRO_SECONDS_BETWEEN_FRAMES);
-		IMediaReader mediaReader = ToolFactory.makeReader(filename);
+		IMediaReader mediaReader = ToolFactory.makeReader(file.getAbsolutePath());
 		
 		// stipulate that we want BufferedImages created in BGR 24bit color space
 		mediaReader.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);

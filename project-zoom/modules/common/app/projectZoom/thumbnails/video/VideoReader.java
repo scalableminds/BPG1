@@ -3,6 +3,7 @@ package projectZoom.thumbnails.video;
 import projectZoom.thumbnails.*;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -21,7 +22,7 @@ public class VideoReader {
 		return false;
 	}	
 	
-	public List<BufferedImage> getFrames(String filename, int count)
+	public List<BufferedImage> getFrames(File file, String filename, int count)
 	{
 		return new ArrayList<BufferedImage>();
 	}

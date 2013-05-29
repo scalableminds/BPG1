@@ -29,6 +29,8 @@ import java.io.FileInputStream
 import java.io.File
 import models.ProjectDAO
 import projectZoom.thumbnails.all.AllThumbnailActor
+import projectZoom.thumbnails.image.ImageThumbnailActor
+import projectZoom.thumbnails.video.VideoThumbnailActor
 
 object Global extends GlobalSettings with GlobalDBAccess {
 
@@ -40,6 +42,8 @@ object Global extends GlobalSettings with GlobalDBAccess {
     KnowledgeActor.start
     TextThumbnailActor.start
     AllThumbnailActor.start
+    ImageThumbnailActor.start
+    VideoThumbnailActor.start
     SupervisorActor.start
     if (app.mode == Mode.Dev) {
       putSampleValuesInDB
@@ -47,8 +51,8 @@ object Global extends GlobalSettings with GlobalDBAccess {
       sys.scheduler.scheduleOnce(5 seconds) {
         //ProjectDAO.findOneByName(_project)
         List(
-            models.ArtifactInfo("test.png", "null - null", "prototype", "dummy", Json.obj()) -> 
-              new FileInputStream(new File("public/images/favicon.png"))
+            models.ArtifactInfo("test.jpg", "null - null", "prototype", "dummy", Json.obj()) -> 
+              new FileInputStream(new File("public/images/test.jpg"))
         ).map{
           case (info, stream) =>
             Logger.debug("Inserted dummy Artifact: " + info)

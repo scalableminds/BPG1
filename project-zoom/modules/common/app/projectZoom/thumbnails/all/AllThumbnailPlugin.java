@@ -46,7 +46,7 @@ public class AllThumbnailPlugin extends ThumbnailPlugin {
 			return output;
 		 }
 
-		String altUrl = ICON_FOLDER + ext + ".png";
+		String altUrl = ALT_ICON_FOLDER + ext + ".png";
 		f = new File(altUrl);
 		if(f.exists()) {
 			TempFile tempFile = new TempFile(

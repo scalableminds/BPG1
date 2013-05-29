@@ -3,8 +3,8 @@ package projectZoom.thumbnails.image;
 
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
+import models.DefaultResourceTypes;
 import models.ResourceInfo;
 import projectZoom.thumbnails.*;
 
@@ -43,7 +43,10 @@ public class ImageThumbnailPlugin extends ThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 
-			output.addAll(reader.getImages(ressourceInfo.name(), THUMBNAIL_WIDTHS));
+			List<TempFile> tempFiles = reader.getImages(resource, ressourceInfo.name(), THUMBNAIL_WIDTHS);
+			for (TempFile t: tempFiles)
+				t.setType(DefaultResourceTypes.PRIMARY_THUMBNAIL());
+			output.addAll(tempFiles);
 		}
 		return output;
 	}

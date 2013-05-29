@@ -32,10 +32,9 @@ public class DefaultReader extends ImageReader{
 		return false;
 	}	
 	
-	public List<TempFile> getImages(String filename, int[] widths)
+	public List<TempFile> getImages(File file, String filename, int[] widths)
 	{
 		List<TempFile> output = new ArrayList<TempFile>();
-		File file = new File(filename);
 		BufferedImage in;
 		try {
 			in = ImageIO.read(file);

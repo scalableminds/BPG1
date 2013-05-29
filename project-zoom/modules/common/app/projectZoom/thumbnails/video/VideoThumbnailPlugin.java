@@ -47,7 +47,7 @@ public class VideoThumbnailPlugin extends ThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 			
-			List<BufferedImage> frames = reader.getFrames(ressourceInfo.name(), THUMBNAIL_Count);
+			List<BufferedImage> frames = reader.getFrames(resource, ressourceInfo.name(), THUMBNAIL_Count);
 			
 			try {
 				for (int width: THUMBNAIL_WIDTHS)
