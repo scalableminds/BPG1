@@ -35,7 +35,10 @@ class Layouter
 
       abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
       t_copy.textContent = abc
+
       letterWidth = t_copy.getBBox().width / abc.length
+      letterHeight = t_copy.getBBox().height
+
       words = content.split(" ")
 
       x = 0
@@ -61,7 +64,7 @@ class Layouter
       .text(line)
       .attr(
         x: pos_x
-        y: pos_y + i * 15
+        y: pos_y + i * (letterHeight)
       )
 
 
