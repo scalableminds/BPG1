@@ -10,9 +10,6 @@ import org.junit.Test;
 import projectZoom.thumbnails.TempFile;
 import projectZoom.thumbnails.video.VideoThumbnailPlugin;
 
-import projectZoom.thumbnails.video.VideoReader;
-
-import models.Resource;
 import models.ResourceInfo;
 
 public class ThumbnailsVideoTests {

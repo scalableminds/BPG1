@@ -15,7 +15,7 @@ class TextThumbnailActor extends ThumbnailActor {
   
   lazy val thumbnailPlugin = new TextThumbnailPlugin()
 
-  def handleResourceUpdate(resource: File, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) {
+  override def handleResourceUpdate(resource: File, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) {
     if (resourceInfo.typ == DefaultResourceTypes.DEFAULT_TYP) {
       
       val tempFiles = thumbnailPlugin.onResourceFound(resource, resourceInfo)

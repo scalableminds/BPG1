@@ -28,7 +28,7 @@ import play.api.libs.json.Json
 import java.io.FileInputStream
 import java.io.File
 import models.ProjectDAO
-import projectZoom.thumbnails.IconActor
+import projectZoom.thumbnails.all.AllThumbnailActor
 
 object Global extends GlobalSettings with GlobalDBAccess {
 
@@ -39,7 +39,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
     val aa = ArtifactActor.start
     KnowledgeActor.start
     TextThumbnailActor.start
-    IconActor.start
+    AllThumbnailActor.start
     SupervisorActor.start
     if (app.mode == Mode.Dev) {
       putSampleValuesInDB
@@ -48,7 +48,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
         //ProjectDAO.findOneByName(_project)
         List(
             models.ArtifactInfo("test.png", "null - null", "prototype", "dummy", Json.obj()) -> 
-              new FileInputStream(new File("public/images/favicon.png"))
+              new FileInputStream(new File("public/images/test.png"))
         ).map{
           case (info, stream) =>
             Logger.debug("Inserted dummy Artifact: " + info)

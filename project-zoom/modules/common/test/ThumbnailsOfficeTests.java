@@ -1,13 +1,7 @@
 
 import static org.junit.Assert.*;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import org.junit.Before;
@@ -16,9 +10,6 @@ import org.junit.Test;
 import projectZoom.thumbnails.TempFile;
 import projectZoom.thumbnails.text.TextThumbnailPlugin;
 
-import projectZoom.thumbnails.text.TextReader;
-
-import models.Resource;
 import models.ResourceInfo;
 
 public class ThumbnailsOfficeTests {
