@@ -1,25 +1,71 @@
 ### define
 jquery : $
+underscore : _
+d3 : d3
 ###
 
 class Layouter
 
-  clusterPositions =
-    0 : "left"
-    1 : "right"
-    2 : "bottom"
-    3 : "lr"
-    4 : "lb"
-    5 : "br"
-    6 : "middle"
-    7 : "no_cluster"
-
-  PROJECT_SIZE = 64
-  PADDING = 5
-
 	constructor : () ->
 
+    clusterPositions =
+      0 : "left"
+      1 : "right"
+      2 : "bottom"
+      3 : "lr"
+      4 : "lb"
+      5 : "br"
+      6 : "middle"
+      7 : "no_cluster"
+
+    PROJECT_SIZE = 64
+    PADDING = 5
+
     console.log "Hi i'm the Layouter"
+
+
+  textWrap : (svg_text, content, width) ->
+
+    if svg_text?
+
+      t_copy = _.clone(svg_text)
+
+      pos_x = parseInt( d3.select(svg_text).attr("x") )
+      pos_y = parseInt( d3.select(svg_text).attr("y") )
+
+      abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      t_copy.textContent = abc
+
+      letterWidth = t_copy.getBBox().width / abc.length
+      letterHeight = t_copy.getBBox().height
+
+      words = content.split(" ")
+
+      x = 0
+      split = []
+
+      for w in words
+        l = w.length
+        if x + (l * letterWidth) > width
+          split.push "\n"
+          x = 0
+        x += l * letterWidth
+        split.push w + " "
+
+    else console.log "no name"
+
+    svg_text.textContent = ""
+    joined = split.join("")
+    lines = joined.split("\n")
+
+    for line, i in lines
+
+      d3.select(svg_text).append("tspan")
+      .text(line)
+      .attr(
+        x: pos_x
+        y: pos_y + i * (letterHeight)
+      )
 
 
   resizeCircle : (circle, weight) ->

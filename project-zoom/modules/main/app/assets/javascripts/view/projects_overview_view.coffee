@@ -21,24 +21,15 @@ class ProjectsOverviewView
     @initTagbar()
     @gui = new GUI(@tagbar)
     @initGraph()
-    @initToggle()
 
+    EventMixin.extend(this)
+
+    @activate()
 
   initTagbar : ->
 
     @tagbar = new Tagbar()
     $("#tagbar").append( @tagbar.domElement )
-
-  initToggle : ->
-
-    $("a.toggles").click ->
-    $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
-    $("#tagbar").toggle()
-    $("#main").toggleClass "span12 span8"
-
-    EventMixin.extend(this)
-
-    @activate()
 
 
   deactivate : ->
@@ -139,9 +130,10 @@ class ProjectsOverviewView
     @projects = []
 
     start_x = start_y = x = y = 20
-    margin = 30
+    margin_x = 30
+    margin_y = 70
     nodeWidth = 100
-    svgWidth = @domElement[0][0].width.animVal.value
+    svgWidth = @domElement[0][0].width.baseVal.value
 
     app.model.projects.forEach( (project) =>
 
@@ -149,7 +141,7 @@ class ProjectsOverviewView
         id:           project.get("id")
         name:         project.get("name")
         season:       project.get("season")
-        year:         project.get("yaer")
+        year:         project.get("year")
         length:       project.get("length")
         participants: project.get("participants")
         x:            x
@@ -161,10 +153,10 @@ class ProjectsOverviewView
       @projects.push p
 
       if x < (svgWidth - 2 * nodeWidth)
-        x += nodeWidth + margin
+        x += nodeWidth + margin_x
       else
         x = start_x
-        y += nodeWidth + margin
+        y += nodeWidth + margin_y
     )
 
     @graph = new ProjectGraph(@graphContainer, @domElement, @projects)
