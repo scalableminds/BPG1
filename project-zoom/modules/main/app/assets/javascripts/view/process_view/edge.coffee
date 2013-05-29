@@ -51,7 +51,7 @@ Edge = (edge, nodeList) ->
     if tX <= sX and tY >= sY
       angle = Math.asin(distX / hypothenuse)
 
-    else if tX <= sY and tY < sY
+    else if tX <= sX and tY < sY
       angle = PI - Math.asin(distX / hypothenuse)
 
     else if tX > sX and tY <= sY
