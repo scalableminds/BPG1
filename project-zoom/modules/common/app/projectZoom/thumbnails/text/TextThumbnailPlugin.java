@@ -12,7 +12,7 @@ import java.util.List;
 import projectZoom.thumbnails.*;
 
 
-public class TextThumbnailPlugin {
+public class TextThumbnailPlugin extends ThumbnailPlugin {
 	
 	private List<TextReader> readers;
 	static int[] CLOUD_WIDTHS = {64, 128};
@@ -32,7 +32,7 @@ public class TextThumbnailPlugin {
 	
 	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
-		System.out.print("onResourceFound called ");
+		System.out.println("onResourceFound called ");
 
 		List<TempFile> output = new ArrayList<TempFile>(); 
 		
@@ -40,7 +40,7 @@ public class TextThumbnailPlugin {
 			return output;
 		
 		String mimetype = TikaUtil.getMimeType(resource);
-		System.out.print(mimetype);
+		System.out.println(mimetype);
 		
 		Iterator<TextReader> iterator = readers.iterator();
 		while (iterator.hasNext()) {
@@ -61,7 +61,7 @@ public class TextThumbnailPlugin {
 			
 			List<TempFile> gifs = reader.getGifs(
 					resource, 
-					THUMBNAIL_WIDTHS, 
+					GIF_WIDTHS, 
 					GIF_PAGECOUNT);
 			for (TempFile a: gifs)
 				a.setType(DefaultResourceTypes.SECONDARY_THUMBNAIL());

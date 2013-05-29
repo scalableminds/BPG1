@@ -2,18 +2,15 @@ package projectZoom.thumbnails.video;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import org.apache.tika.Tika;
 
 import models.ResourceInfo;
 import projectZoom.thumbnails.*;
 import projectZoom.thumbnails.video.VideoReader;
 
 
-public class VideoThumbnailPlugin {
+public class VideoThumbnailPlugin extends ThumbnailPlugin {
 	
 	private List<VideoReader> readers;
 	static int[] THUMBNAIL_WIDTHS = {64, 128, 256, 512};

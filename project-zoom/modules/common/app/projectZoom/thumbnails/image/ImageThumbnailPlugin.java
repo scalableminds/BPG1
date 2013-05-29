@@ -2,8 +2,6 @@ package projectZoom.thumbnails.image;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -12,7 +10,7 @@ import projectZoom.thumbnails.*;
 
 
 
-public class ImageThumbnailPlugin {
+public class ImageThumbnailPlugin extends ThumbnailPlugin {
 	
 	private List<ImageReader> readers;
 	static int[] THUMBNAIL_WIDTHS = {64, 128, 256, 512};
@@ -28,7 +26,7 @@ public class ImageThumbnailPlugin {
 	
 	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
-		System.out.print("onResourceFound called ");
+		System.out.println("onResourceFound called ");
 
 		List<TempFile> output = new ArrayList<TempFile>(); 
 		
@@ -36,7 +34,7 @@ public class ImageThumbnailPlugin {
 			return output;
 		
 		String mimetype = TikaUtil.getMimeType(resource);
-		System.out.print(mimetype);
+		System.out.println(mimetype);
 		
 		Iterator<ImageReader> iterator = readers.iterator();
 		while (iterator.hasNext()) {

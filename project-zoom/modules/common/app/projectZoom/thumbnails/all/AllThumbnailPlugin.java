@@ -1,19 +1,18 @@
-package projectZoom.thumbnails;
+package projectZoom.thumbnails.all;
 
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import projectZoom.thumbnails.TempFile;
+import projectZoom.thumbnails.ThumbnailPlugin;
 
 import models.ResourceInfo;
 import models.DefaultResourceTypes;
 
 
-public class IconPlugin {
+public class AllThumbnailPlugin extends ThumbnailPlugin {
 	
 	static String ICON_FOLDER = "public/icons/";
 	static String ALT_ICON_FOLDER = "modules/common/public/icons/";
@@ -22,7 +21,7 @@ public class IconPlugin {
 	static String SUFFIX = ".png";
 
 	
-	public IconPlugin() {
+	public AllThumbnailPlugin() {
 
 	}
 	

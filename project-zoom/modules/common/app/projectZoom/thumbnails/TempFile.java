@@ -33,17 +33,21 @@ public class TempFile {
 	}
 
 	public TempFile(String name) {
-		new TempFile(name, DefaultResourceTypes.DEFAULT_TYP());
+		init(name, DefaultResourceTypes.DEFAULT_TYP());
 	}
 	
 	public TempFile(String name, String type) {
+		init(name, type);
+	}
+	
+	public void init(String name, String type) {
 		this.name = name;
 		this.type = type;
 		String suffix = "foo";
 		String prefix = "tmp";
 		
 		if (name.length() > 3) {
-			suffix = name.substring(name.lastIndexOf(".") + 1);
+			suffix = name.substring(name.lastIndexOf("."));
 			prefix = name.substring(0, name.lastIndexOf(".") + 1);
 		}
 			

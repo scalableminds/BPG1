@@ -11,21 +11,14 @@ import models.DefaultResourceTypes
 import java.io.File
 import scala.collection.JavaConversions._
 
-class TextThumbnailActor extends EventSubscriber with EventPublisher{
+class TextThumbnailActor extends ThumbnailActor {
   
-  lazy val textThumbnailPlugin = new TextThumbnailPlugin()
-  
-  def receive = {
-    case ResourceUpdated(resource, artifactInfo, resourceInfo) =>
-      handleResourceUpdate(resource, artifactInfo, resourceInfo)
-    case ResourceInserted(resource, artifactInfo, resourceInfo) =>
-      handleResourceUpdate(resource, artifactInfo, resourceInfo)
-  }
-  
+  lazy val thumbnailPlugin = new TextThumbnailPlugin()
+
   def handleResourceUpdate(resource: File, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) {
     if (resourceInfo.typ == DefaultResourceTypes.DEFAULT_TYP) {
       
-      val tempFiles = textThumbnailPlugin.onResourceFound(resource, resourceInfo)
+      val tempFiles = thumbnailPlugin.onResourceFound(resource, resourceInfo)
       tempFiles.map { tempFile =>
         val iconResource = ResourceInfo(
         name = tempFile.getName(),

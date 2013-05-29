@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import projectZoom.thumbnails.*;
+import projectZoom.thumbnails.all.AllThumbnailPlugin;
 
 import models.ResourceInfo;
 
@@ -24,7 +25,7 @@ public class ThumbnaislIconTests {
 	@Test
 	public void onRessourceFoundDocxTest() {
 		String filename = folder + "test.docx";
-		IconPlugin iconPlugin = new IconPlugin();
+		AllThumbnailPlugin iconPlugin = new AllThumbnailPlugin();
 		ResourceInfo res = new ResourceInfo(filename, "default"); 
 		File file = new File(filename);
 		List<TempFile> tempFiles = iconPlugin.onResourceFound(file, res);
@@ -34,7 +35,7 @@ public class ThumbnaislIconTests {
 	@Test
 	public void onRessourceFoundUndefinedTest() {
 		String filename = folder + "test.undefined";
-		IconPlugin iconPlugin = new IconPlugin();
+		AllThumbnailPlugin iconPlugin = new AllThumbnailPlugin();
 		ResourceInfo res = new ResourceInfo(filename, "default"); 
 		File file = new File(filename);
 		List<TempFile> tempFiles = iconPlugin.onResourceFound(file, res);

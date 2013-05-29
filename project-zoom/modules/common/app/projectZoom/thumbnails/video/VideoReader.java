@@ -1,6 +1,5 @@
 package projectZoom.thumbnails.video;
 
-import java.io.File;
 import projectZoom.thumbnails.*;
 import java.util.List;
 import java.util.ArrayList;
