@@ -48,7 +48,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
         //ProjectDAO.findOneByName(_project)
         List(
             models.ArtifactInfo("test.png", "null - null", "prototype", "dummy", Json.obj()) -> 
-              new FileInputStream(new File("public/images/test.png"))
+              new FileInputStream(new File("public/images/favicon.png"))
         ).map{
           case (info, stream) =>
             Logger.debug("Inserted dummy Artifact: " + info)
