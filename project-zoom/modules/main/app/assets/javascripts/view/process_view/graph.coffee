@@ -147,6 +147,8 @@ class Graph
       )
       .style("marker-end", "url(#end-arrow)")
 
+    #@drawComment(@paths, Edge)
+
     #update existing ones
     @paths.attr(
       d : (data) => Edge(data, @nodes).getLineSegment()
@@ -161,16 +163,19 @@ class Graph
     @clusterPaths = @clusterPaths.data(@clusters.items, (data) -> data.get("id"))
 
     #add new edges or update existing ones
-    clusterPath = @clusterPaths.enter().append("svg:path")
-    clusterPath
-      .attr(
-        class : "cluster"
-        "data-id" : (data) -> data.get("id")
-        d : (data) -> Cluster(data).getLineSegment()
-      )
+    @clusterPaths.enter()
+      .append("svg:g")
+      .append("svg:path")
+        .attr(
+          class : "cluster"
+          "data-id" : (data) -> data.get("id")
+          d : (data) -> Cluster(data).getLineSegment()
+        )
+
+    @drawComment(@clusterPaths, Cluster)
 
     #update existing ones
-    @clusterPaths.attr(
+    @clusterPaths.select("path").attr(
       d : (data) -> Cluster(data).getLineSegment()
     )
 
@@ -190,14 +195,18 @@ class Graph
       .append("g")
         .attr(
           transform: (data) ->
-            position = elementType(data).getCommentPosition()
+            unless elementType instanceOf Edge
+              position = elementType(data).getCommentPosition()
+            else
+              position = elementType(data, @nodes).getCommentPosition()
+
             "translate(#{position.x}, #{position.y})"
         )
 
     comment
       .append("svg:use")
       .attr(
-        x: 0
+        x: -40
         y: -120
         "xlink:href": "#comment-callout"
       )
@@ -205,7 +214,7 @@ class Graph
     comment
       .append("svg:text")
       .attr(
-        x: 20
+        x: -20
         y: -70
         width: 80
         height: 40
@@ -215,8 +224,11 @@ class Graph
     #update existing ones
     commentGroup
       .attr(
-        transform: (data) -> "translate(#{ data.get("position/x") }, #{ data.get("position/y") })"
+        transform: (data) ->
+          position = elementType(data).getCommentPosition()
+          "translate(#{position.x}, #{position.y})"
       )
+
     commentGroup.selectAll("text")
       .text( (data) ->  data.get("comment") )
 

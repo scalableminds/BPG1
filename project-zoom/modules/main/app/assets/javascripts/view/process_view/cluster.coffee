@@ -4,8 +4,6 @@ underscore : _
 
 Cluster = (cluster) ->
 
-  comment = null
-
   getLineSegment : ->
 
     waypoints = cluster.get("waypoints")
@@ -103,4 +101,32 @@ Cluster = (cluster) ->
     return {
       x : (maxX - minX) / 2
       y : (maxY - minY) / 2
+    }
+
+
+  getCommentPosition : ->
+
+    waypoints = cluster.get("waypoints")
+
+    upperRightCorner =
+      x: waypoints.max( (waypoint) -> waypoint.get("x") ).get("x")
+      y: waypoints.min( (waypoint) -> waypoint.get("y") ).get("y")
+
+    distance = upperRightCorner.x + upperRightCorner.y
+    position = null
+
+    #manhattan distance
+    waypoints.forEach (waypoint) ->
+
+      distX = Math.abs(upperRightCorner.x - waypoint.get("x"))
+      distY = Math.abs(upperRightCorner.y - waypoint.get("y"))
+
+      manhattanDistance = distX + distY
+      if manhattanDistance < distance
+        distance = manhattanDistance
+        position = waypoint
+
+    return {
+      x: position.get("x")
+      y: position.get("y")
     }
