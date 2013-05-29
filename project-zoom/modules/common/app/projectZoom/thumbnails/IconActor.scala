@@ -1,4 +1,5 @@
 package projectZoom.thumbnails
+
 import play.api.Logger
 import projectZoom.core.event._
 import projectZoom.util.StartableActor
@@ -7,6 +8,7 @@ import models.ArtifactInfo
 import models.ResourceInfo
 import models.DefaultResourceTypes
 import java.io.File
+import scala.collection.JavaConversions._
 
 class IconActor extends EventSubscriber with EventPublisher {
 
@@ -23,11 +25,14 @@ class IconActor extends EventSubscriber with EventPublisher {
   
   def handleResourceUpdate(resource: File, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) {
     if (resourceInfo.typ == DefaultResourceTypes.DEFAULT_TYP) {
-      val iconStream = iconPlugin.onResourceFound(resource, resourceInfo)
-      val iconResource = ResourceInfo(
-        name = resourceInfo.name.split("\\.").dropRight(1).mkString(".") + ".ico",
-        typ = "icon")
-      publish(ResourceFound(iconStream, artifactInfo, iconResource))
+      
+      val tempFiles = iconPlugin.onResourceFound(resource, resourceInfo)
+      tempFiles.map { tempFile =>
+        val iconResource = ResourceInfo(
+        name = tempFile.getName(),
+        typ = tempFile.getType())
+        publish(ResourceFound(tempFile.getStream(), artifactInfo, iconResource))
+      }
     }
   }
 }

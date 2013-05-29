@@ -20,9 +20,9 @@ public class VideoReader {
 		return false;
 	}	
 	
-	public List<Artifact> getFrames(String filename, int width, int count)
+	public List<TempFile> getFrames(String filename, int width, int count)
 	{
-		return new ArrayList<Artifact>();
+		return new ArrayList<TempFile>();
 	}
 	
 }

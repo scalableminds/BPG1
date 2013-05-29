@@ -15,7 +15,7 @@ import com.xuggle.mediatool.event.IVideoPictureEvent;
 import com.xuggle.xuggler.Global;
 
 
-import projectZoom.thumbnails.Artifact;
+import projectZoom.thumbnails.TempFile;
 
 public class XuggleReader extends VideoReader {
 	
@@ -46,9 +46,9 @@ public class XuggleReader extends VideoReader {
 	}	
 	
 	@Override
-	public List<Artifact> getFrames(String filename, int width, int count)
+	public List<TempFile> getFrames(String filename, int width, int count)
 	{
-		List<Artifact> output = new ArrayList<Artifact>();
+		List<TempFile> output = new ArrayList<TempFile>();
 		//
 		IMediaReader mediaReader = ToolFactory.makeReader(filename);
 		
@@ -103,7 +103,7 @@ public class XuggleReader extends VideoReader {
         
         private String dumpImageToFile(BufferedImage image) {
             try {
-                Artifact a = new Artifact("sc.png");
+                TempFile a = new TempFile("sc.png");
                 ImageIO.write(image, "png", a.getFile());
                 return a.getName();
             } 

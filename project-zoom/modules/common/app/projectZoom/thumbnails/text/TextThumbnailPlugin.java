@@ -2,6 +2,7 @@ package projectZoom.thumbnails.text;
 
 
 import models.ResourceInfo;
+import models.DefaultResourceTypes;
 
 import java.io.File;
 
@@ -29,11 +30,11 @@ public class TextThumbnailPlugin {
 
 	}
 	
-	public List<Artifact> onResourceFound(File resource, ResourceInfo ressourceInfo) {
+	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
 		System.out.print("onResourceFound called ");
 
-		List<Artifact> output = new ArrayList<Artifact>(); 
+		List<TempFile> output = new ArrayList<TempFile>(); 
 		
 		if (!ressourceInfo.typ().equals("default"))
 			return output;
@@ -48,13 +49,25 @@ public class TextThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 
-			output.addAll(reader.getTagClouds(resource, CLOUD_WIDTHS));
-			output.addAll(reader.getThumbnails(resource, THUMBNAIL_WIDTHS));
-			output.addAll(reader.getGifs(resource, THUMBNAIL_WIDTHS, GIF_PAGECOUNT));
-	
+			List<TempFile> clouds = reader.getTagClouds(resource, CLOUD_WIDTHS);
+			for (TempFile a: clouds)
+				a.setType(DefaultResourceTypes.PRIMARY_THUMBNAIL());
+			output.addAll(clouds);
+
+			List<TempFile> thumbnails = reader.getThumbnails(resource, THUMBNAIL_WIDTHS);
+			for (TempFile a: thumbnails)
+				a.setType(DefaultResourceTypes.PRIMARY_THUMBNAIL());
+			output.addAll(thumbnails);
+			
+			List<TempFile> gifs = reader.getGifs(
+					resource, 
+					THUMBNAIL_WIDTHS, 
+					GIF_PAGECOUNT);
+			for (TempFile a: gifs)
+				a.setType(DefaultResourceTypes.SECONDARY_THUMBNAIL());
+			output.addAll(gifs);
 		}
 
 		return output;
-		
 	}
 }

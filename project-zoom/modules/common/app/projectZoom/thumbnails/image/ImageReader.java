@@ -20,9 +20,9 @@ public class ImageReader {
 		return false;
 	}	
 	
-	public List<Artifact> getImages(String filename, int[] widths)
+	public List<TempFile> getImages(String filename, int[] widths)
 	{
-		return new ArrayList<Artifact>();
+		return new ArrayList<TempFile>();
 	}
 	
 }

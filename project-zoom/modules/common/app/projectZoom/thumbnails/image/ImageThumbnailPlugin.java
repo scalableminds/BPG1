@@ -26,11 +26,11 @@ public class ImageThumbnailPlugin {
 
 	}
 	
-	public List<Artifact> onResourceFound(File resource, ResourceInfo ressourceInfo) {
+	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
 		
 		System.out.print("onResourceFound called ");
 
-		List<Artifact> output = new ArrayList<Artifact>(); 
+		List<TempFile> output = new ArrayList<TempFile>(); 
 		
 		if (!ressourceInfo.typ().equals("default"))
 			return output;

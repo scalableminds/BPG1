@@ -32,9 +32,9 @@ public class DefaultReader extends ImageReader{
 		return false;
 	}	
 	
-	public List<Artifact> getImages(String filename, int[] widths)
+	public List<TempFile> getImages(String filename, int[] widths)
 	{
-		List<Artifact> output = new ArrayList<Artifact>();
+		List<TempFile> output = new ArrayList<TempFile>();
 		File file = new File(filename);
 		BufferedImage in;
 		try {
@@ -45,7 +45,7 @@ public class DefaultReader extends ImageReader{
 			g.dispose();	
 			for (int width: widths)
 			{
-				Artifact a = new Artifact(width + ".png");
+				TempFile a = new TempFile(width + ".png");
 				BufferedImage outputImage = ImageUtil.resizeBufferedImage(inputImage, width);
 				ImageIO.write(outputImage, "png", a.getFile());
 				output.add(a);

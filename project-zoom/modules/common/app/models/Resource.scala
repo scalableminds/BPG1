@@ -19,10 +19,12 @@ case class ResourceInfo(name: String, typ: String)
 case class Resource(name: String, hash: String, typ: String)
   extends ResourceLike
   
-trait DefaultResourceTypes {
+trait ResourceTypes {
   val DEFAULT_TYP = "default"
+  val PRIMARY_THUMBNAIL = "primaryThumbnail"
+  val SECONDARY_THUMBNAIL = "secondaryThumbnail"
 }
-object DefaultResourceTypes extends DefaultResourceTypes
+object DefaultResourceTypes extends ResourceTypes
 
 trait ResourceHelpers {
   implicit val resourceFormat: Format[Resource] = Json.format[Resource]

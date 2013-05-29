@@ -50,7 +50,7 @@ import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 
 
-import projectZoom.thumbnails.Artifact;
+import projectZoom.thumbnails.TempFile;
 import projectZoom.thumbnails.GifFrame;
 import projectZoom.thumbnails.ImageUtil;
 import projectZoom.thumbnails.text.MyWordle.Word;
@@ -80,12 +80,12 @@ public class TextReader {
 	}
 	
 	
-	public List<Artifact> getThumbnails(File file, int[] widths) {
-		List<Artifact> output = new ArrayList<Artifact>();
+	public List<TempFile> getThumbnails(File file, int[] widths) {
+		List<TempFile> output = new ArrayList<TempFile>();
 		try {
 			List<BufferedImage> images = this.pdfToImages2(file, 1);
 			for (int width: widths) {				
-				Artifact art = new Artifact(width + ".png");
+				TempFile art = new TempFile(width + ".png");
 				BufferedImage image = resizeBufferedImage(images.get(0), width);
 				if (image != null)
 				{
@@ -116,15 +116,15 @@ public class TextReader {
 		return newImage;
 	}
 	
-	public List<Artifact> getGifs(File file, int[] widths, int pagecount) {
-		List<Artifact> output = new ArrayList<Artifact>();
+	public List<TempFile> getGifs(File file, int[] widths, int pagecount) {
+		List<TempFile> output = new ArrayList<TempFile>();
 		try {
 			List<BufferedImage> images = this.pdfToImages2(file, pagecount);
 			for(int width: widths) {
 				List<BufferedImage> resizedImages = new ArrayList<BufferedImage>();
 				for (BufferedImage b: images)
 					resizedImages.add(resizeBufferedImage(b, width));
-				Artifact art = imagesToGif(resizedImages, width);
+				TempFile art = imagesToGif(resizedImages, width);
 				if (art != null)
 					output.add(art);
 			}
@@ -215,9 +215,9 @@ public class TextReader {
 	}
 	
 	
-	public List<Artifact> getTagClouds(File file, int[] widths) {
+	public List<TempFile> getTagClouds(File file, int[] widths) {
 		
-		List<Artifact> output = new ArrayList<Artifact>();
+		List<TempFile> output = new ArrayList<TempFile>();
 
 		String text = "";
 		try {
@@ -276,7 +276,7 @@ public class TextReader {
 			}
 	
 			
-			Artifact art = new Artifact(width + ".png");
+			TempFile art = new TempFile(width + ".png");
 
 			wordle.doLayout();
 			try {
@@ -355,9 +355,9 @@ public class TextReader {
 		
 	}	
 	
-	public Artifact imagesToGif(List<BufferedImage> images, int width) {
+	public TempFile imagesToGif(List<BufferedImage> images, int width) {
 		
-		Artifact output = new Artifact(width + ".gif");
+		TempFile output = new TempFile(width + ".gif");
 		List<GifFrame> gifFrames = new ArrayList<GifFrame>();
 		
 		for(BufferedImage image: images)
