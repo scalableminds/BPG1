@@ -111,9 +111,9 @@ class ArtifactFinder
 
   getArtifact : (id, bare = false) =>
 
-    for artifact in @SAMPLE_ARTIFACTS
+    for artifact in @artifactsModel.items
       if artifact.id = id
-        return new Artifact( artifact, (-> 64), bare)
+        return new Artifact( artifact.attributes, (-> 64), bare)
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
