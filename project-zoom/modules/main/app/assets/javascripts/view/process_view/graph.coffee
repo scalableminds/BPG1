@@ -116,7 +116,7 @@ class Graph
         width : (data) -> Node(data).getSize().width
         height : (data) -> Node(data).getSize().height
 
-        "xlink:href" : "assets/images/thumbnails/thumbnail/1.png"
+        "xlink:href" : "assets/images/thumbnails/primary_thumbnail/32.png"
         "data-id": (data) -> data.get("id")
       )
 
