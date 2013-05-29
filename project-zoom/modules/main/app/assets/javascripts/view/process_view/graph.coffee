@@ -140,19 +140,22 @@ class Graph
     @paths = @paths.data(@edges.items, (data) -> data.__uid)
 
     #add new edges
-    @paths.enter().append("svg:path")
-      .attr(
-        class : "edge"
-        d : (data) => Edge(data, @nodes).getLineSegment()
-      )
-      .style("marker-end", "url(#end-arrow)")
+    @paths.enter()
+      .append("svg:g")
+      .append("svg:path")
+        .attr(
+          class : "edge"
+          d : (data) => Edge(data, @nodes).getLineSegment()
+        )
+        .style("marker-end", "url(#end-arrow)")
 
-    #@drawComment(@paths, Edge)
+    @drawComment(@paths, Edge)
 
     #update existing ones
-    @paths.attr(
-      d : (data) => Edge(data, @nodes).getLineSegment()
-    )
+    @paths.selectAll("path")
+      .attr(
+        d : (data) => Edge(data, @nodes).getLineSegment()
+      )
 
     #remove deleted edges
     @paths.exit().remove()
@@ -175,9 +178,10 @@ class Graph
     @drawComment(@clusterPaths, Cluster)
 
     #update existing ones
-    @clusterPaths.select("path").attr(
-      d : (data) -> Cluster(data).getLineSegment()
-    )
+    @clusterPaths.select("path")
+      .attr(
+        d : (data) -> Cluster(data).getLineSegment()
+      )
 
     #remove deleted edges
     @clusterPaths.exit().remove()
@@ -194,8 +198,8 @@ class Graph
     comment = commentGroup.enter()
       .append("g")
         .attr(
-          transform: (data) ->
-            unless elementType instanceOf Edge
+          transform: (data) =>
+            unless elementType == Edge
               position = elementType(data).getCommentPosition()
             else
               position = elementType(data, @nodes).getCommentPosition()
@@ -224,9 +228,13 @@ class Graph
     #update existing ones
     commentGroup
       .attr(
-        transform: (data) ->
-          position = elementType(data).getCommentPosition()
-          "translate(#{position.x}, #{position.y})"
+        transform: (data) =>
+            unless elementType == Edge
+              position = elementType(data).getCommentPosition()
+            else
+              position = elementType(data, @nodes).getCommentPosition()
+
+            "translate(#{position.x}, #{position.y})"
       )
 
     commentGroup.selectAll("text")
