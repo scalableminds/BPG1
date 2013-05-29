@@ -1,25 +1,52 @@
 ### define
 jquery : $
+underscore: _
 ###
 
 class Layouter
 
-  clusterPositions =
-    0 : "left"
-    1 : "right"
-    2 : "bottom"
-    3 : "lr"
-    4 : "lb"
-    5 : "br"
-    6 : "middle"
-    7 : "no_cluster"
-
-  PROJECT_SIZE = 64
-  PADDING = 5
-
 	constructor : () ->
 
+    clusterPositions =
+      0 : "left"
+      1 : "right"
+      2 : "bottom"
+      3 : "lr"
+      4 : "lb"
+      5 : "br"
+      6 : "middle"
+      7 : "no_cluster"
+
+    PROJECT_SIZE = 64
+    PADDING = 5
+
     console.log "Hi i'm the Layouter"
+
+
+  textWrap : (svg_text, content, width) ->
+
+    t_copy = _.clone(svg_text)
+
+    if svg_text?
+      abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      t_copy.textContent = abc
+      letterWidth = t_copy.getBBox().width / abc.length
+      words = content.split(" ")
+
+      x = 0
+      s = []
+
+      for w in words
+        l = w.length
+        if x + (l * letterWidth) > width
+          s.push "\n"
+          x = 0
+        x += l * letterWidth
+        s.push w + " "
+
+    else console.log "no name"
+
+    s.join("")
 
 
   resizeCircle : (circle, weight) ->

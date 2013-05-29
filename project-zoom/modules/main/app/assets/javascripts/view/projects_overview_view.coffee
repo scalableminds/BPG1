@@ -141,7 +141,7 @@ class ProjectsOverviewView
     start_x = start_y = x = y = 20
     margin = 30
     nodeWidth = 100
-    svgWidth = @domElement[0][0].width.animVal.value
+    svgWidth = @domElement[0][0].width.baseVal.value
 
     app.model.projects.forEach( (project) =>
 

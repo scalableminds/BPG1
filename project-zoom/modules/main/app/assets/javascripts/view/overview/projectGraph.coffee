@@ -5,6 +5,7 @@ lib/event_mixin : EventMixin
 ./behavior/connect_behavior : ConnectBehavior
 ./behavior/drag_behavior : DragBehavior
 ./behavior/delete_behavior : DeleteBehavior
+../../component/layouter : Layouter
 ###
 
 class ProjectGraph
@@ -15,8 +16,6 @@ class ProjectGraph
     @clusters = []
 
     EventMixin.extend(this)
-    # @initArrowMarkers()
-    # @initProjects()
     @initLayouter()
 
     @circles = @svg.append("svg:g").selectAll("circle")
@@ -29,6 +28,7 @@ class ProjectGraph
 
   drawProjects : ->
 
+    layouter = @layouter
     @projectNodes = @projectNodes.data(@projects, (data) -> data.id)
 
     g = @projectNodes.enter().append("svg:g")
@@ -46,11 +46,15 @@ class ProjectGraph
       )
     headline = g.append("svg:text")
       .attr(
+        class: "projectHeadline"
         x: (d) -> parseInt(d.x)
         y: (d) -> parseInt(d.y) + 120
-        class: "projectHeadline"
       )
-      .text( (d) -> d.name )
+      .text( (d) -> layouter.textWrap(this, d.name, 120) )
+
+    for h in headline[0]
+      # @layouter.textWrap(h, 150)
+      console.log h.textContent
 
     # g.append("svg:text") #tags!!!!
 
@@ -197,7 +201,7 @@ class ProjectGraph
     # alert @snap(14, 10)
     # alert @snap(16, 10)
 
-    # @layouter = new Layouter()
+    @layouter = new Layouter()
 
 
   # initProjects : ->
