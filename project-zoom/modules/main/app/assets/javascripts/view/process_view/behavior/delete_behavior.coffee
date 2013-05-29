@@ -7,8 +7,8 @@ class DeleteBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("svg")[0] )
-      .on("tap", ".node-image", @removeNode)
+    @hammerContext = Hammer( $("#process-graph")[0] )
+      .on("tap", ".node", @removeNode)
       .on("tap", ".edge", @removeEdge)
       .on("tap", ".cluster", @removeCluster)
 
@@ -23,9 +23,7 @@ class DeleteBehavior extends Behavior
 
   removeNode : (event) =>
 
-    svgContainer = $(event.target).closest("foreignObject")[0]
-
-    node = d3.select(svgContainer).datum()
+    node = d3.select(event.target).datum()
     @graph.removeNode(node)
 
 

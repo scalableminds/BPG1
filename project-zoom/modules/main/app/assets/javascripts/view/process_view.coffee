@@ -22,23 +22,11 @@ class ProcessView
 
   constructor : (@projectModel) ->
 
-    @artifactFinder = new ArtifactFinder()
+    @artifactFinder = new ArtifactFinder(@projectModel.get("artifacts"))
     @gui = new GUI(@artifactFinder)
     @projectModel.get "graphs/0", this, (graphModel) ->
 
       @graph = new InteractiveGraph(graphModel)
-
-    @initToggle()
-
-
-  initToggle : ->
-
-    $("a.toggles").click ->
-      $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
-      $("#artifact-finder").toggle()
-      $("#main").toggleClass "span12 span8"
-
-
 
 
     EventMixin.extend(this)
@@ -78,7 +66,7 @@ class ProcessView
 
     # drag artifact into graph
     $("body").on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
-    @hammerContext = Hammer(document.body).on "dragend", "#artifact-finder .artifact-image", @addArtifact
+    @hammerContext = Hammer(document.body).on "dragend", "#artifact-finder image", @addArtifact
 
     # change tool from toolbox
     processView = this
@@ -114,13 +102,12 @@ class ProcessView
     touch = evt.gesture.touches[0]
 
     #is the mouse over the SVG?
-    offset = $("svg").offset()
+    offset = $("#process-graph").offset()
 
     if touch.pageX > offset.left and touch.pageY > offset.top
 
       id = artifact.data("id")
       artifact = @artifactFinder.getArtifact(id)
-      $(artifact.domElement).find("img").addClass("node-image")
 
       @on "view:zooming", artifact.resize
 
@@ -130,7 +117,7 @@ class ProcessView
 
   addNode : (evt, nodeId, artifact = null) =>
 
-    offset = $("svg").offset()
+    offset = $("#process-graph").offset()
     scaleValue = $(".zoom-slider input").val()
 
     x = event.gesture.touches[0].pageX - offset.left

@@ -11,7 +11,6 @@ class GUI
 
     @resizeHandler = =>
       @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
-    
 
 
   activate : ->
@@ -19,10 +18,9 @@ class GUI
     @initSideBar()
     @initToggleHandler()
     @initToolbarHandler()
-    
+
     $(window).on("resize", @resizeHandler)
     @resizeHandler()
-
 
 
   deactivate : ->
@@ -36,12 +34,11 @@ class GUI
 
     @svg = d3.select(".graph")
       .append("svg")
-      .attr("width", $(".graph").width())
-      .attr("pointer-events", "all")
-
-    $(window).resize(
-      => @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
-    ).resize()
+      .attr(
+        id: "process-graph"
+        width: $(".graph").width()
+        "pointer-events": "all"
+      )
 
 
   initToolbarHandler : ->

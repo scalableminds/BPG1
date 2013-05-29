@@ -9,10 +9,19 @@ lib/utils : Utils
 ###
 
 SAVE_THROTTLE = 10000
+SAVE_DEBOUNCE = 500
 SAVE_RETRY_TIMEOUT = 10000
 SAVE_RETRY_COUNT = 20
 
 ModelFunctions =
+  prepareArtifacts : (project) ->
+
+    artifacts = new DataItem.Collection("/projects/#{project.get("id")}/artifacts")
+    artifacts.fetchNext().then(
+      ->
+        project.set("artifacts", artifacts)
+    ) 
+
   prepareGraph : (project) ->
 
     (new $.Deferred (deferred) ->
@@ -37,7 +46,9 @@ ModelFunctions =
         graph.save = ->
 
           if isSaving
-            isSaving.done -> graph.save()
+            isSaving.done -> 
+              graph.isDirty = true
+              graph.save()
             return
 
           patchData = app.model.project.get("graphs/0").patchAcc.flush()
@@ -55,7 +66,9 @@ ModelFunctions =
                 dataType : "json"
               ).then( 
                 ({ version }) -> 
-                  graph.set("version", version, silent : true); return
+                  graph.set("version", version, silent : true)
+                  graph.isDirty = false
+                  return
                 ($xhr) ->
                   if $xhr.status == 400 
                     alert("Sorry. We couldn't save. (400)")
@@ -72,14 +85,24 @@ ModelFunctions =
               alert("Sorry. We couldn't save. (Retry timeout)")
             )
             .always( ->
+              graph.trigger("save:done")
               isSaving = false
             )
 
+        graph.on(graph, "patch:*", ->
+          graph.isDirty = true
+        )
 
-        graph.on(graph, "patch:*", _.throttle(
+        graph.on(graph, "patch:*", _.debounce(
           -> graph.save()
-          SAVE_THROTTLE
+          SAVE_DEBOUNCE
         ))
+
+        $(window).on("beforeunload", ->
+          if graph.isDirty
+            graph.save()
+            return "We haven't saved yet. Please wait a little longer."
+        )
 
     )
 
@@ -97,7 +120,10 @@ app.addInitializer (options, callback) ->
       model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
       model.project = model.projects.at(0)
 
-      ModelFunctions.prepareGraph(model.project)
+      $.when(
+        ModelFunctions.prepareGraph(model.project)
+        ModelFunctions.prepareArtifacts(model.project)
+      )
 
   ).then(
     ->

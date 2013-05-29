@@ -21,7 +21,7 @@ class DrawClusterBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $(".graph svg")[0], { swipe : false} )
+    @hammerContext = Hammer( $("#process-graph")[0], { swipe : false} )
       .on("drag", @throttledDragMove)
       .on("dragstart", @dragStart)
       .on("dragend", @dragEnd)
@@ -57,7 +57,7 @@ class DrawClusterBehavior extends Behavior
     )
     @preview.data(@cluster)
 
-    @offset = $(".graph svg").offset()
+    @offset = $("#process-graph").offset()
     @scaleValue = $(".zoom-slider input").val()
 
 

@@ -23,16 +23,17 @@ class Artifact
     image.setAttributeNS('http://www.w3.org/1999/xlink','href', @imagePaths[0])
     image.setAttribute('x','0')
     image.setAttribute('y','0')
- 
+    image.setAttribute('data-id', @artifact.id)
+
     $(image).on("mouseenter", => @onMouseEnter())
-    $(image).on("mouseleave", => @resize())    
+    $(image).on("mouseleave", => @resize())
 
 
     unless bare
       @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
       $(@svg).append(image)
       @svg.setAttribute("class", "artifact")
-      
+
     @image = image
 
     @resize()
@@ -43,9 +44,9 @@ class Artifact
     width = @width()
 
     @image.setAttribute('width',width)
-    @image.setAttribute('height',width)   
+    @image.setAttribute('height',width)
     @svg?.setAttribute('width',width)
-    @svg?.setAttribute('height',width)  
+    @svg?.setAttribute('height',width)
 
     width = @image.getBoundingClientRect().width
 
@@ -80,10 +81,10 @@ class Artifact
 
 
   getImage : ->
-    
+
     @image
 
-    
+
   destroy : ->
 
   activate : ->
