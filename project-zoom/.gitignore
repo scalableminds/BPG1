@@ -6,6 +6,7 @@ tmp
 eclipsebin
 .history
 .worksheet
+*.sc
 dist
 /.idea
 /data
