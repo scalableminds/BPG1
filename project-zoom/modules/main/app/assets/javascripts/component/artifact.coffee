@@ -5,29 +5,20 @@ jquery : $
 
 class Artifact
 
+  PRIMARY_TYP : "primaryThumbnail"
+  SECONDARY_TYP : "secondaryThumbnail"
+  FAIL_IMAGE : "assets/images/unknown.png"
+
   _domElement : null
-  imagePaths : null
 
 
   constructor : (@artifact, @width, bare = false) ->
 
-    @imagePaths = []
-    for resource in artifact.resources
-
-      if resource.type isnt "thumbnail"
-        continue
-
-      @imagePaths.push resource.path
-
     image = document.createElementNS("http://www.w3.org/2000/svg", "image")
-    image.setAttributeNS('http://www.w3.org/1999/xlink','href', @imagePaths[0])
+    image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestPrimary(0))
     image.setAttribute('x','0')
     image.setAttribute('y','0')
     image.setAttribute('data-id', @artifact.id)
-
-    $(image).on("mouseenter", => @onMouseEnter())
-    $(image).on("mouseleave", => @resize())
-
 
     unless bare
       @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -50,7 +41,7 @@ class Artifact
 
     width = @image.getBoundingClientRect().width
 
-    @image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearest(width, "thumbnail").path)
+    @image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestPrimary(width))
 
 
   onMouseEnter : () =>
@@ -58,21 +49,33 @@ class Artifact
     width = @width()
 
     width = @image.getBoundingClientRect().width
-    @image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearest(width, "secondary_thumbnail").path)
+    @image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestSecondary(width))
 
 
-  getNearest : (width, type) ->
+  getNearestPrimary : (width) ->
 
-    elements = _.filter(@artifact.resources, (r) -> r.type is type)
-    elements = _.sortBy(elements, (e) -> e.path)
-    resolutions = _.map(elements, (e) -> (Number) e.path.substring(e.path.length - 5, e.path.length - 4))
+    path = @getNearest(width, @PRIMARY_TYP) || @FAIL_IMAGE
+
+
+  getNearestSecondary : (width) ->
+
+    path = @getNearest(width, @SECONDARY_TYP) || @getNearestPrimary(width)
+
+
+  getNearest : (width, typ) ->
+
+    elements = _.filter(@artifact.resources.items, (r) -> r.attributes.typ is typ)
+    resolutions = _.map(elements, (e) -> (Number) e.attributes.name.substring(0, e.attributes.name.lastIndexOf(".")))
 
     closest = null
-    base = 2 << 4
     for r in resolutions
-      closest = r if not closest? or Math.abs((base << r) - width) < Math.abs((base << closest) - width)
+      closest = r if not closest? or Math.abs(r - width) < Math.abs(closest - width)
 
-    _.find(elements, (e) => ((Number) e.path.substring(e.path.length - 5, e.path.length - 4)) is closest)
+    e =_.find(elements, (e) => (((Number) e.attributes.name.substring(0, e.attributes.name.lastIndexOf("."))) is closest))
+    path = null
+    if e?
+      path = "/artifacts/#{@artifact.id}/#{e.attributes.typ}/#{e.attributes.name}"
+    return path
 
 
   getSvgElement : ->
@@ -87,8 +90,22 @@ class Artifact
 
   destroy : ->
 
+    @deactivate()
+
+
   activate : ->
 
+    { image } = @
+
+    $(image).on("mouseenter", @onMouseEnter)
+    $(image).on("mouseleave", @resize)
+
+
   deactivate : ->
+
+    { image } = @
+
+    $(image).off("mouseenter", @onMouseEnter)
+    $(image).off("mouseleave", @resize)
 
 

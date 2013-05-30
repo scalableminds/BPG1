@@ -1,4 +1,4 @@
-package projectZoom.thumbnails.image
+package projectZoom.thumbnails.all
 
 import play.api.Logger
 import projectZoom.core.event._
@@ -12,9 +12,9 @@ import java.io.File
 import scala.collection.JavaConversions._
 import models.Resource
 
-class ImageThumbnailActor extends ThumbnailActor {
+class AllThumbnailActor extends ThumbnailActor {
   
-  lazy val thumbnailPlugin = new ImageThumbnailPlugin()
+  lazy val thumbnailPlugin = new AllThumbnailPlugin()
 
   override def handleResourceUpdate(file: File, artifact: ArtifactLike, resource: ResourceLike) {
     if (resource.typ == DefaultResourceTypes.DEFAULT_TYP) {
@@ -30,7 +30,7 @@ class ImageThumbnailActor extends ThumbnailActor {
   }
 }
 
-object ImageThumbnailActor extends StartableActor[ImageThumbnailActor]{
+object AllThumbnailActor extends StartableActor[AllThumbnailActor]{
   
-  def name = "imageThumbnailActor"    
+  def name = "allThumbnailActor"    
 }

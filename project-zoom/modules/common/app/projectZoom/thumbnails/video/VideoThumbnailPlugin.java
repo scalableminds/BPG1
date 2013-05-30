@@ -1,19 +1,19 @@
 package projectZoom.thumbnails.video;
 
 
+import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
-import java.util.List;
-import org.apache.tika.Tika;
 
-import models.ResourceInfo;
+import javax.imageio.ImageIO;
+
+import models.DefaultResourceTypes;
+import models.ResourceLike;
 import projectZoom.thumbnails.*;
 import projectZoom.thumbnails.video.VideoReader;
 
 
-public class VideoThumbnailPlugin {
+public class VideoThumbnailPlugin extends ThumbnailPlugin {
 	
 	private List<VideoReader> readers;
 	static int[] THUMBNAIL_WIDTHS = {64, 128, 256, 512};
@@ -28,17 +28,17 @@ public class VideoThumbnailPlugin {
 
 	}
 	
-	public List<Artifact> onResourceFound(File resource, ResourceInfo ressourceInfo) {
+	public List<TempFile> onResourceFound(File file, ResourceLike resource) {
 		
-		System.out.print("onResourceFound called ");
+		System.out.println("Video onResourceFound called ");
 
-		List<Artifact> output = new ArrayList<Artifact>(); 
+		List<TempFile> output = new ArrayList<TempFile>(); 
 		
-		if (!ressourceInfo.typ().equals("default"))
+		if (!resource.typ().equals("default"))
 			return output;
 		
-		String mimetype = TikaUtil.getMimeType(resource);
-		System.out.print(mimetype);
+		String mimetype = TikaUtil.getMimeType(file);
+		System.out.println(mimetype);
 		
 		Iterator<VideoReader> iterator = readers.iterator();
 		while (iterator.hasNext()) {
@@ -46,8 +46,35 @@ public class VideoThumbnailPlugin {
 
 			if (!reader.isSupported(mimetype))
 				continue;
+			
+			List<BufferedImage> frames = reader.getFrames(file, resource.name(), THUMBNAIL_Count);
+			
+			try {
+				for (int width: THUMBNAIL_WIDTHS)
+				{
+					List<BufferedImage> resizedImages = new ArrayList<BufferedImage>();
+					
+					for (BufferedImage b: frames)
+						resizedImages.add(ImageUtil.resizeBufferedImage(b, width));
+					
+					// default image
+					BufferedImage firstImage = resizedImages.get(0);
+					TempFile firstTempFile = new TempFile(width + ".png", DefaultResourceTypes.PRIMARY_THUMBNAIL());
+					ImageIO.write(firstImage, "png", firstTempFile.getFile());
+					output.add(firstTempFile);
+	
+					// sec 
+					TempFile gif = ImageUtil.imagesToGif(resizedImages, width);
+					if (gif != null) {
+						gif.setType(DefaultResourceTypes.SECONDARY_THUMBNAIL());
+						output.add(gif);
+					}
+					
+				}			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
-			output.addAll(reader.getFrames(ressourceInfo.name(), 512, THUMBNAIL_Count));
 		}
 		return output;
 	}

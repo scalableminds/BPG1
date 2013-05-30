@@ -1,20 +1,20 @@
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import projectZoom.thumbnails.Artifact;
+import projectZoom.thumbnails.TempFile;
 import projectZoom.thumbnails.video.VideoThumbnailPlugin;
 
-import projectZoom.thumbnails.video.VideoReader;
-
-import models.Resource;
 import models.ResourceInfo;
 
-public class videoExtraction {
+public class ThumbnailsVideoTests {
+	
+	String folder = "/home/user/testfiles/";
 
 	@Before
 	public void setUp() throws Exception {
@@ -24,11 +24,12 @@ public class videoExtraction {
 	@Test
 	public void onRessourceFoundWMVTest() {
 		
-		String filename = "/home/user/test.wmv";
+		String filename = folder + "test.wmv";
+		File file = new File(filename);
 		VideoThumbnailPlugin textThumbnailPlugin = new VideoThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
-		List<Artifact> arts = textThumbnailPlugin.onResourceFound(res);
+		ResourceInfo res = new ResourceInfo("test.png", "default"); 
+		List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 		
-		assertTrue(true);	
+		assertTrue(arts.size() == 8);	
 	}
 }

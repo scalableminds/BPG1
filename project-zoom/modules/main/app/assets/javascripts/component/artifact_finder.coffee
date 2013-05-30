@@ -1,5 +1,6 @@
 ### define
 jquery : $
+app: app
 underscore : _
 ./artifact : Artifact
 ###
@@ -7,56 +8,13 @@ underscore : _
 
 class ArtifactFinder
 
-  GROUP_NAMES : ["Dropbox", "Incom", "FileShare"]
+  GROUP_NAMES : ["Box", "Dropbox", "dummy"]
   TAB_PREFIX : "tab"
 
   domElement : null
   groups : null
-
-  SAMPLE_ARTIFACTS : [
-    {
-      name:"test1"
-      id : 12345
-      source : "Dropbox"
-      resources : [
-        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
-        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
-        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
-        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
-        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
-        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"} 
-        {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
-      ]
-    }
-    {
-      name:"test2"
-      id : 12346
-      source : "Dropbox"
-      resources : [
-        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
-        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
-        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
-        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
-        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
-        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"} 
-        {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
-      ]
-    }      
-    {
-      name:"test3"
-      id : 12347
-      source : "Incom"
-      resources : [
-        {type :"thumbnail", id : 123, path : "assets/images/thumbnails/thumbnail/0.png"}
-        {type :"thumbnail", id : 456, path : "assets/images/thumbnails/thumbnail/1.png"}
-        {type :"thumbnail", id : 789, path : "assets/images/thumbnails/thumbnail/2.png"}
-        {type :"thumbnail", id : 112, path : "assets/images/thumbnails/thumbnail/3.png"}
-        {type :"secondary_thumbnail", id : 1, path : "assets/images/thumbnails/secondary_thumbnail/2.gif"}
-        {type :"secondary_thumbnail", id : 2, path : "assets/images/thumbnails/secondary_thumbnail/3.gif"}        
-        {type :"original",  id : 345, path : "assets/images/thumbnails/fail.png"}
-      ]
-    }  
-  ]
+  onResize : null
+  slider : null
 
   constructor : (@artifactsModel) ->
 
@@ -71,7 +29,8 @@ class ArtifactFinder
 
     @domElement = domElement
     @initSlider(domElement)
-    @addArtifacts(@SAMPLE_ARTIFACTS)
+
+    app.model.project.get("artifacts", @, (a) => @addArtifacts(a.items))
 
     @resizeHandler = =>
       @domElement.height($(window).height() - @domElement.offset().top - 30)
@@ -86,15 +45,13 @@ class ArtifactFinder
       max : "400"
       value: "40"
     })
-    slider.on(
-      "change"
-      => @resize()
-    )
+    @onResize = => @resize()
 
     func = -> this.value
     @getSliderValue = _.bind(func, slider[0])
 
     domElement.prepend(slider)
+    @slider = slider
 
 
   addArtifacts : (artifacts) ->
@@ -103,11 +60,11 @@ class ArtifactFinder
      
     for artifact in artifacts
 
-      artifactC = new Artifact(artifact, getSliderValue)    
+      artifactC = new Artifact(artifact.attributes, getSliderValue)    
       @artifactComponents.push artifactC
       domElement.append(artifactC.getSvgElement())     
 
-      group = _.find(@groups, (g) => g.name is artifact.source)
+      group = _.find(@groups, (g) => g.name is artifact.attributes.source)
       group.div.append(artifactC.getSvgElement())
 
 
@@ -130,20 +87,33 @@ class ArtifactFinder
   activate : ->
 
     $(window).on("resize", @resizeHandler)
+    @slider.on(
+      "change"
+      @onResize
+    )
     @resizeHandler()
+
+    for artifact in @artifactComponents
+      artifact.activate()
 
 
   deactivate : ->
 
     $(window).off("resize", @resizeHandler)
+    @slider.off(
+      "change"
+      @onResize
+    )
 
+    for artifact in @artifactComponents
+      artifact.deactivate()
 
 
   getArtifact : (id, bare = false) =>
 
-    for artifact in @SAMPLE_ARTIFACTS
+    for artifact in @artifactsModel.items
       if artifact.id = id
-        return new Artifact( artifact, (-> 64), bare)
+        return new Artifact( artifact.attributes, (-> 64), bare)
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
