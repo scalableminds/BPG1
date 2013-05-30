@@ -27,4 +27,11 @@ object DBProxy {
   }
   
   def setBoxToken(tokens: BoxAccessTokens) = PermanentValueService.put("box.tokens", BoxAccessTokens.boxAccessTokensFormat.writes(tokens))
+
+  def getBoxEventStreamPos(): Future[Option[Long]] = PermanentValueService.get("box.eventStreamPos").map{jsonOpt =>
+    jsonOpt.flatMap(jsNumber => jsNumber.asOpt[Long])
+    }
+ 
+  def setBoxEventStreamPos(eventStreamPos: Long) = PermanentValueService.put("box.eventStreamPos", JsNumber(eventStreamPos)) 
+
 }

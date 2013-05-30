@@ -53,25 +53,19 @@ class BoxAPI(appKeys: BoxAppKeyPair) {
       .flatMap(i => i.run)
   }
 
-  def enumerateEvents(implicit accessTokens: BoxAccessTokens) = {
-    def loop(stream_position: Long, accumulatedEvents: JsArray): Future[JsArray] = {
+  def enumerateEvents(streamPos: Long = 0)(implicit accessTokens: BoxAccessTokens) = {
+    def loop(stream_position: Long, accumulatedEvents: JsArray): Future[(Long, Future[JsArray])] = {
       Logger.debug(s"fetching events at stream pos $stream_position")
       fetchEvents(stream_position).flatMap { json =>
-        val chunk_size = (json \ "chunk_size").as[Int]
-        Logger.debug(s"fetched $chunk_size events")
-        if (chunk_size == 0)
-          Future(accumulatedEvents)
+        val chunkSize = (json \ "chunk_size").as[Int]
+        val nextStreamPos = (json \ "next_stream_position").as[Long]
+        Logger.debug(s"fetched $chunkSize events")
+        if (chunkSize == 0)
+          Future((nextStreamPos, Future(accumulatedEvents)))
         else
-          loop((json \ "next_stream_position").as[Long], accumulatedEvents ++ (json \ "entries").as[JsArray])
+          loop(nextStreamPos, accumulatedEvents ++ (json \ "entries").as[JsArray])
       }
     }
-    loop(0, JsArray())
+    loop(streamPos, JsArray())
   }
-
-  def getEventMap(implicit accessTokens: BoxAccessTokens) = {
-    enumerateEvents.map { jsArr =>
-      jsArr.value.groupBy(event => (event \ "event_type").as[String])
-    }
-  }
-
 }

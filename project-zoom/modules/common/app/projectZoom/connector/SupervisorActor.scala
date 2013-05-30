@@ -21,15 +21,18 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
   val BoxActor = Agent[Option[ActorRef]](None)
 
   def startBoxActor = {
-    DBProxy.getBoxTokens.map(accessTokenOpt =>
+    for {accessTokenOpt <-  DBProxy.getBoxTokens
+         streamPosOpt <- DBProxy.getBoxEventStreamPos} {
       for {
         client_id <- config.getString("box.client_id")
         client_secret <- config.getString("box.client_secret")
         accessTokens <- accessTokenOpt
+        streamPos <- streamPosOpt orElse Some(0.toLong)
       } {
-        val newBoxActor = context.actorOf(Props(new BoxActor(BoxAppKeyPair(client_id, client_secret), accessTokens)))
+        val newBoxActor = context.actorOf(Props(new BoxActor(BoxAppKeyPair(client_id, client_secret), accessTokens, streamPos)))
         BoxActor.send(Some(newBoxActor))
-      })
+      }
+    }
   }
   
   override def preStart {
