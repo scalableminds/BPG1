@@ -51,8 +51,8 @@ object Global extends GlobalSettings with GlobalDBAccess {
       sys.scheduler.scheduleOnce(5 seconds) {
         //ProjectDAO.findOneByName(_project)
         List(
-            models.ArtifactInfo("test.jpg", "null - null", "prototype", "dummy", Json.obj()) -> 
-              new FileInputStream(new File("public/images/test.jpg"))
+            models.Artifact("paper.pdf", "null - null", "prototype", "dummy", Json.obj()) -> 
+              new FileInputStream(new File("paper.pdf"))
         ).map{
           case (info, stream) =>
             Logger.debug("Inserted dummy Artifact: " + info)

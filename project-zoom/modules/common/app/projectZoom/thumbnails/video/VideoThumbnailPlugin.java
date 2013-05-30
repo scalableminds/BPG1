@@ -8,7 +8,7 @@ import java.util.*;
 import javax.imageio.ImageIO;
 
 import models.DefaultResourceTypes;
-import models.ResourceInfo;
+import models.ResourceLike;
 import projectZoom.thumbnails.*;
 import projectZoom.thumbnails.video.VideoReader;
 
@@ -28,16 +28,16 @@ public class VideoThumbnailPlugin extends ThumbnailPlugin {
 
 	}
 	
-	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
+	public List<TempFile> onResourceFound(File file, ResourceLike resource) {
 		
 		System.out.println("Video onResourceFound called ");
 
 		List<TempFile> output = new ArrayList<TempFile>(); 
 		
-		if (!ressourceInfo.typ().equals("default"))
+		if (!resource.typ().equals("default"))
 			return output;
 		
-		String mimetype = TikaUtil.getMimeType(resource);
+		String mimetype = TikaUtil.getMimeType(file);
 		System.out.println(mimetype);
 		
 		Iterator<VideoReader> iterator = readers.iterator();
@@ -47,7 +47,7 @@ public class VideoThumbnailPlugin extends ThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 			
-			List<BufferedImage> frames = reader.getFrames(resource, ressourceInfo.name(), THUMBNAIL_Count);
+			List<BufferedImage> frames = reader.getFrames(file, resource.name(), THUMBNAIL_Count);
 			
 			try {
 				for (int width: THUMBNAIL_WIDTHS)

@@ -6,7 +6,7 @@ import play.api.libs.json.Json
 import projectZoom.util.PlayActorSystem
 import projectZoom.core.artifact.ArtifactActor
 import projectZoom.core.artifact.RequestResource
-import models.ResourceInfo
+import models.Resource
 import models.ArtifactDAO._
 import play.api.libs.concurrent.Execution.Implicits._
 import models.ProjectDAO
@@ -49,7 +49,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
 
   def download(artifactId: String, name: String, typ: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
-      val requestedResource = ResourceInfo(name, typ)
+      val requestedResource = Resource(name, typ)
       for {
         artifactOpt <- ArtifactDAO.findOneById(artifactId).map(_.flatMap(ArtifactDAO.asObjectOpt))
         artifact <- artifactOpt ?~ Messages("artifact.notFound")

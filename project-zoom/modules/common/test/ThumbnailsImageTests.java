@@ -10,11 +10,14 @@ import org.junit.Test;
 import projectZoom.thumbnails.*;
 import projectZoom.thumbnails.image.*;
 
-import models.ResourceInfo;
+import scala.Option;
+import models.Resource;
 
 public class ThumbnailsImageTests {
 
 	String folder = "/home/user/testfiles/";
+	
+	Option<String> empty = Option.apply(null);
 	
 	@Before
 	public void setUp() throws Exception {
@@ -26,7 +29,7 @@ public class ThumbnailsImageTests {
 		String filename = folder + "test.jpg";
 		File file = new File(filename);
 		ImageThumbnailPlugin imageThumbnailPlugin = new ImageThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		Resource res = new Resource(filename, "default", empty); 
 		List<TempFile> arts = imageThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 4);	
@@ -37,7 +40,7 @@ public class ThumbnailsImageTests {
 		String filename = folder + "test.bmp";
 		File file = new File(filename);
 		ImageThumbnailPlugin imageThumbnailPlugin = new ImageThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		Resource res = new Resource(filename, "default", empty); 
 		List<TempFile> arts = imageThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 4);
@@ -48,7 +51,7 @@ public class ThumbnailsImageTests {
 		String filename = folder + "test.png";
 		File file = new File(filename);
 		ImageThumbnailPlugin imageThumbnailPlugin = new ImageThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		Resource res = new Resource(filename, "default", empty); 
 		List<TempFile> arts = imageThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 4);
@@ -59,7 +62,7 @@ public class ThumbnailsImageTests {
 		String filename = folder + "test.tif";
 		File file = new File(filename);
 		ImageThumbnailPlugin imageThumbnailPlugin = new ImageThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		Resource res = new Resource(filename, "default", empty); 
 		List<TempFile> arts = imageThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 4);
@@ -70,7 +73,7 @@ public class ThumbnailsImageTests {
 		String filename = folder + "test.gif";
 		File file = new File(filename);
 		ImageThumbnailPlugin imageThumbnailPlugin = new ImageThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		Resource res = new Resource(filename, "default", empty); 
 		List<TempFile> arts = imageThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 4);
