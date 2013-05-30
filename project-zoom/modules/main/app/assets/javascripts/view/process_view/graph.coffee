@@ -35,6 +35,7 @@ class Graph
         id : "519b693d030655c8752c2973"
       typ : "project"
     )
+    #node.set({artifact})
     node.artifact = artifact
 
     @nodes.add(node)
@@ -101,10 +102,12 @@ class Graph
   drawNodes : ->
 
     @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
+    imageElement = "svg:image"
 
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
+        #.attr("workaround", (data) -> artifact = data.artifact; if artifact? then imageElement = artifact.getImage())
       .append("svg:image")
       .attr(
 
@@ -121,7 +124,7 @@ class Graph
       )
 
 
-    @drawComment(@nodeGroups)
+    @drawComment(@nodeGroups, Node)
 
     #update existing ones
     @nodeGroups.selectAll("image").attr(
@@ -138,17 +141,22 @@ class Graph
     @paths = @paths.data(@edges.items, (data) -> data.__uid)
 
     #add new edges
-    @paths.enter().append("svg:path")
-      .attr(
-        class : "edge"
-        d : (data) => Edge(data, @nodes).getLineSegment()
-      )
-      .style("marker-end", "url(#end-arrow)")
+    @paths.enter()
+      .append("svg:g")
+      .append("svg:path")
+        .attr(
+          class : "edge"
+          d : (data) => Edge(data, @nodes).getLineSegment()
+        )
+        .style("marker-end", "url(#end-arrow)")
+
+    @drawComment(@paths, Edge)
 
     #update existing ones
-    @paths.attr(
-      d : (data) => Edge(data, @nodes).getLineSegment()
-    )
+    @paths.selectAll("path")
+      .attr(
+        d : (data) => Edge(data, @nodes).getLineSegment()
+      )
 
     #remove deleted edges
     @paths.exit().remove()
@@ -159,24 +167,28 @@ class Graph
     @clusterPaths = @clusterPaths.data(@clusters.items, (data) -> data.get("id"))
 
     #add new edges or update existing ones
-    clusterPath = @clusterPaths.enter().append("svg:path")
-    clusterPath
-      .attr(
-        class : "cluster"
-        "data-id" : (data) -> data.get("id")
-        d : (data) -> Cluster(data).getLineSegment()
-      )
+    @clusterPaths.enter()
+      .append("svg:g")
+      .append("svg:path")
+        .attr(
+          class : "cluster"
+          "data-id" : (data) -> data.get("id")
+          d : (data) -> Cluster(data).getLineSegment()
+        )
+
+    @drawComment(@clusterPaths, Cluster)
 
     #update existing ones
-    @clusterPaths.attr(
-      d : (data) -> Cluster(data).getLineSegment()
-    )
+    @clusterPaths.select("path")
+      .attr(
+        d : (data) -> Cluster(data).getLineSegment()
+      )
 
     #remove deleted edges
     @clusterPaths.exit().remove()
 
 
-  drawComment : (element) ->
+  drawComment : (element, elementType) ->
 
     commentGroup = element.selectAll("g").data(
       (data) ->
@@ -187,13 +199,19 @@ class Graph
     comment = commentGroup.enter()
       .append("g")
         .attr(
-          transform: (data) -> "translate(#{ data.get("position/x") }, #{ data.get("position/y") })"
+          transform: (data) =>
+            unless elementType == Edge
+              position = elementType(data).getCommentPosition()
+            else
+              position = elementType(data, @nodes).getCommentPosition()
+
+            "translate(#{position.x}, #{position.y})"
         )
 
     comment
       .append("svg:use")
       .attr(
-        x: 0
+        x: -40
         y: -120
         "xlink:href": "#comment-callout"
       )
@@ -201,7 +219,7 @@ class Graph
     comment
       .append("svg:text")
       .attr(
-        x: 20
+        x: -20
         y: -70
         width: 80
         height: 40
@@ -211,8 +229,15 @@ class Graph
     #update existing ones
     commentGroup
       .attr(
-        transform: (data) -> "translate(#{ data.get("position/x") }, #{ data.get("position/y") })"
+        transform: (data) =>
+            unless elementType == Edge
+              position = elementType(data).getCommentPosition()
+            else
+              position = elementType(data, @nodes).getCommentPosition()
+
+            "translate(#{position.x}, #{position.y})"
       )
+
     commentGroup.selectAll("text")
       .text( (data) ->  data.get("comment") )
 

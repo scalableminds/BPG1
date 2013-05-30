@@ -115,7 +115,7 @@ class ProcessView
       artifact.resize() #call once so, that the right-sized image is loaded
 
 
-  addNode : (evt, nodeId, artifact = null) =>
+  addNode : (evt, artifact = null) =>
 
     offset = $("#process-graph").offset()
     scaleValue = $(".zoom-slider input").val()
@@ -126,7 +126,7 @@ class ProcessView
     x /= scaleValue
     y /= scaleValue
 
-    @graph.addNode(x, y, nodeId, artifact)
+    @graph.addNode(x, y, artifact)
 
 
   changeBehavior : (selectedTool) =>

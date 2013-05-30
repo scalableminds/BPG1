@@ -46,10 +46,10 @@ class ConnectBehavior extends Behavior
 
     startNode = d3.select(event.gesture.startEvent.target).datum()
 
-    if targetElement = d3.select(event.gesture.target)
+    if targetElement = d3.select(event.target)
       currentNode = targetElement.datum()
 
-      unless startNode == currentNode
+      unless startNode == currentNode or typeof currentNode == "undefined"
         @graph.addEdge(startNode, currentNode)
 
     @dragLine.classed("hide", true)
