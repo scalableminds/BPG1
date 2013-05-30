@@ -36,7 +36,7 @@ class ArtifactFinder
       @domElement.height($(window).height() - @domElement.offset().top - 30)
 
 
-  initSlider : (domElement) -> 
+  initSlider : (domElement) ->
 
     slider = $("<input/>", {
       class : "artifact-slider"
@@ -57,14 +57,14 @@ class ArtifactFinder
   addArtifacts : (artifacts) ->
 
     { group, getSliderValue, domElement } = @
-     
+
     for artifact in artifacts
 
-      artifactC = new Artifact(artifact.attributes, getSliderValue)    
+      artifactC = new Artifact(artifact, getSliderValue)
       @artifactComponents.push artifactC
-      domElement.append(artifactC.getSvgElement())     
+      domElement.append(artifactC.getSvgElement())
 
-      group = _.find(@groups, (g) => g.name is artifact.attributes.source)
+      group = _.find(@groups, (g) => g.name is artifact.get("source"))
       group.div.append(artifactC.getSvgElement())
 
 
@@ -111,9 +111,13 @@ class ArtifactFinder
 
   getArtifact : (id, bare = false) =>
 
-    for artifact in @artifactsModel.items
-      if artifact.id = id
-        return new Artifact( artifact.attributes, (-> 64), bare)
+    new Artifact(
+      @artifactsModel.find( (artifact) -> artifact.get("id") == id )
+      (-> 64)
+      bare
+    )
+
+
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
