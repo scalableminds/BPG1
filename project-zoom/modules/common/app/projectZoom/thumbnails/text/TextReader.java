@@ -246,7 +246,8 @@ public class TextReader {
 				
 				Entry<String, Integer> word = iterator.next();
 				float delta = (float) (((float)word.getValue() / (float)highestCount) * 100.0);
-				int size = (int)delta + 20 - lowestCount;
+				int size = (int)Math.sqrt(delta) * 10; //Math.max((int)delta + 20 - lowestCount, 5);
+				//int size = (int)delta + 20 - lowestCount;
 				Word w = new Word(word.getKey(), size);
 				Color c = new Color(rand.nextInt(100),rand.nextInt(100),rand.nextInt(100));
 				w.setFill(c);
