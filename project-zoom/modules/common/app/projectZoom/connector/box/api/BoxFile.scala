@@ -23,13 +23,13 @@ case class BoxFile(
     path_collection: BoxPathCollection,
     created_at: String,
     modified_at: String,
-    trashed_at: String,
-    purged_at: String,
+    trashed_at: Option[String],
+    purged_at: Option[String],
     content_created_at: String,
     content_modified_at: String,
-    created_by: BoxUser,
-    modified_by: BoxUser,
-    owned_by: BoxUser,
+    created_by: BoxMiniUser,
+    modified_by: BoxMiniUser,
+    owned_by: BoxMiniUser,
     parent: BoxMiniFolder,
     item_status: String
     ) extends BoxSource {
@@ -37,7 +37,7 @@ case class BoxFile(
   val path = path_collection.path
 }
 
-object BoxFile extends Function19[String, String, String, String, String, String, Int, BoxPathCollection, String, String, String, String, String, String, BoxUser, BoxUser, BoxUser, BoxMiniFolder, String, BoxFile]{
+object BoxFile extends Function19[String, String, String, String, String, String, Int, BoxPathCollection, String, String, Option[String], Option[String], String, String, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, BoxFile]{
   implicit val BoxFileAsSourceReads: Reads[BoxSource] = (
     (__ \ "id").read[String] and
     (__ \ "sequence_id").read[String] and
@@ -49,13 +49,13 @@ object BoxFile extends Function19[String, String, String, String, String, String
     (__ \ "path_collection").read[BoxPathCollection] and
     (__ \ "created_at").read[String] and
     (__ \ "modified_at").read[String] and
-    (__ \ "trashed_at").read[String] and
-    (__ \ "purged_at").read[String] and
+    (__ \ "trashed_at").readNullable[String] and
+    (__ \ "purged_at").readNullable[String] and
     (__ \ "content_created_at").read[String] and
     (__ \ "content_modified_at").read[String] and
-    (__ \ "created_by").read[BoxUser] and
-    (__ \ "modified_by").read[BoxUser] and
-    (__ \ "owned_by").read[BoxUser] and
+    (__ \ "created_by").read[BoxMiniUser] and
+    (__ \ "modified_by").read[BoxMiniUser] and
+    (__ \ "owned_by").read[BoxMiniUser] and
     (__ \ "parent").read[BoxMiniFolder] and
     (__ \ "item_status").read[String])(BoxFile.apply _)
 }

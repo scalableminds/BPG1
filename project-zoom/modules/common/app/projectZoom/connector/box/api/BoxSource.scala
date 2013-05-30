@@ -6,12 +6,12 @@ import play.api.libs.functional.syntax._
 trait BoxMiniSource
 
 object BoxMiniSource {
-  implicit val BoxMiniSourceReads = (__).read(BoxMiniFile.BoxMiniFileAsSourceReads) or (__).read(BoxMiniFolder.BoxMiniFolderAsSourceReads)
+  implicit val BoxMiniSourceReads = BoxMiniFile.BoxMiniFileAsSourceReads or BoxMiniFolder.BoxMiniFolderAsSourceReads
 }
 
 
 trait BoxSource
 
 object BoxSource {
-  implicit val BoxSourceReads = (__).read(BoxFile.BoxFileAsSourceReads) or (__).read(BoxFolder.BoxFolderAsSourceReads)
+  implicit val BoxSourceReads = BoxFile.BoxFileAsSourceReads or BoxFolder.BoxFolderAsSourceReads
 }
