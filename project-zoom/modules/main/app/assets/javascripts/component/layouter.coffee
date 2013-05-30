@@ -21,7 +21,7 @@ class Layouter
     PROJECT_SIZE = 64
     PADDING = 5
 
-    console.log "Hi i'm the Layouter"
+    console.log "Hi I'm the Layouter"
 
 
   textWrap : (svg_text, content, width) ->
@@ -59,7 +59,6 @@ class Layouter
     lines = joined.split("\n")
 
     for line, i in lines
-
       d3.select(svg_text).append("tspan")
       .text(line)
       .attr(

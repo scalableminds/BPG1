@@ -16,11 +16,11 @@ class ProjectsOverviewView
 
   constructor : ->
 
-    @initEventHandlers()
-
     @initTagbar()
     @gui = new GUI(@tagbar)
     @initGraph()
+
+    $(".tagbarItem input").on "click", (event) => @graph.updateVennDiagram(event.currentTarget)
 
     EventMixin.extend(this)
 
@@ -165,7 +165,7 @@ class ProjectsOverviewView
 
   initEventHandlers : ->
 
-    $(".checkbox-group input").on "click", (event) => @graph.updateVennDiagram(event.currentTarget)
+    $(".checkbox-group input").on "click", (event) => console.log "event" # @graph.updateVennDiagram(event.currentTarget)
 
 
 
