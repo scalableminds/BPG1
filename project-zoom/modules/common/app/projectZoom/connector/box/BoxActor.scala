@@ -10,7 +10,7 @@ import akka.pattern._
 import akka.util.Timeout
 import play.api.libs.json._
 import api._
-import models.ArtifactInfo
+import models.Artifact
 
 class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends ArtifactAggregatorActor {
   val TICKER_INTERVAL = 1 minute
@@ -25,9 +25,9 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Ar
   def handleITEM_UPLOAD(event: BoxEvent)(implicit accessTokens: BoxAccessTokens) {
     event.source.map{ source =>
       source match {
-        case BoxFile(id, _, name, pathCollection) => 
-          box.downloadFile(id).onSuccess{
-            case byteArray => publishFoundArtifact(byteArray, ArtifactInfo(name, "", "box", Json.parse("{}")))
+        case file: BoxFile => 
+          box.downloadFile(file.id).onSuccess{
+            case byteArray => publishFoundArtifact(byteArray, Artifact(file.name, "", "box", file.path, Json.parse("{}")))
           }
       }
     }
