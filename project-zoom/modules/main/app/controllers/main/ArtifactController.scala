@@ -1,10 +1,12 @@
 package controllers.main
 import models.ArtifactDAO
+import models.ArtifactDAO._
+import models.ProjectDAO._
 import play.api.libs.json.Json
 import projectZoom.util.PlayActorSystem
 import projectZoom.core.artifact.ArtifactActor
 import projectZoom.core.artifact.RequestResource
-import models.ResourceInfo
+import models.Resource
 import models.ArtifactDAO._
 import play.api.libs.concurrent.Execution.Implicits._
 import models.ProjectDAO
@@ -19,7 +21,9 @@ import akka.pattern.ask
 import scala.concurrent.Future
 import models.Implicits._
 import controllers.common.ControllerBase
-
+import play.api.i18n.Messages
+import models.ResourceLike
+import play.api.Logger
 
 object ArtifactController extends ControllerBase with JsonCRUDController with PlayActorSystem with PlayConfig {
 
@@ -29,39 +33,47 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
 
   val dao = ArtifactDAO
 
-  def listForProject(project: String, offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
+  def listForProject(projectId: String, offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
     //TODO: restrict access
     Async {
-      dao.findSomeForProject(project, offset, limit).map { l =>
-        Ok(withPortionInfo(Json.toJson(l), offset, limit))
+      for{
+        projectOpt <- ProjectDAO.findOneById(projectId).map(_.flatMap(ProjectDAO.asObjectOpt))
+        project <- projectOpt ?~ Messages("project.notFound")
+      } yield {
+        dao.findSomeForProject(project.name, offset, limit).map { l =>
+          Ok(withPortionInfo(Json.toJson(l.map(createSingleResult)), offset, limit))
+        }
       }
     }
   }
 
-  def download(_project: String, artifactId: String, resourceType: String) = SecuredAction(ajaxCall = true) { implicit request =>
+  def download(artifactId: String, name: String, typ: String) = SecuredAction(ajaxCall = true) { implicit request =>
     Async {
-      (for {
-        project <- ProjectDAO.findOneByName(_project)
-        artifact <- ArtifactDAO.findOneById(artifactId)
+      val requestedResource = Resource(name, typ)
+      for {
+        artifactOpt <- ArtifactDAO.findOneById(artifactId).map(_.flatMap(ArtifactDAO.asObjectOpt))
+        artifact <- artifactOpt ?~ Messages("artifact.notFound")
       } yield {
-        artifact.flatMap(a => (a \ "resources" \ resourceType).asOpt[ResourceInfo]) match {
-          case Some(resource) =>
-            (artifactActor ? RequestResource(_project, resource))
+        artifact
+          .resources
+          .find(_.isSameAs(requestedResource)) match {
+            case Some(resource) =>
+              (artifactActor ? RequestResource(artifact, resource))
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
-                  Ok.feed(Enumerator.fromStream(stream))
+                  Ok.stream(Enumerator.fromStream(stream))
                 case _ =>
-                  NotFound
+                  NotFound("File not found on disk.")
               }
               .recover {
                 case a: AskTimeoutException =>
-                  NotFound
+                  NotFound("Timeout.")
               }
-          case _ =>
-            Future.successful(NotFound)
-        }
-      }).flatten
+            case _ =>
+              Future.successful(NotFound("Unavailable"))
+          }
+      }
     }
   }
 }

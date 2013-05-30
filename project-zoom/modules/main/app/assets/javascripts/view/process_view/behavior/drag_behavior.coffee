@@ -7,8 +7,8 @@ class DragBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".node-image", @dragMoveNode)
+    @hammerContext = Hammer( $("#process-graph")[0] )
+      .on("drag", ".node", @dragMoveNode)
       .on("drag", ".cluster", @dragMoveCluster)
       .on("dragstart", @dragStart)
 
@@ -23,7 +23,7 @@ class DragBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @offset = $("svg").offset()
+    @offset = $("#process-graph").offset()
     @scaleValue = $(".zoom-slider input").val()
 
     @startX = @mousePosition(event).x

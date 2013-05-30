@@ -4,32 +4,47 @@ jquery : $
 
 class GUI
 
-  constructor : ->
+  constructor : (@artifactFinder) ->
 
-    margin = 20
-    @height = $(window).height() - $(".graph").offset().top - margin
+    @appendArtifactFinder()
+    @appendSVG()
 
-    @initToolbar()
-    @initSVG()
+    @resizeHandler = =>
+      @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+
+
+  activate : ->
+
     @initSideBar()
-    @initToggle()
+    @initToggleHandler()
+    @initToolbarHandler()
+
+    $(window).on("resize", @resizeHandler)
+    @resizeHandler()
 
 
-  initSVG : ->
+  deactivate : ->
 
-    width = $(".graph").width()
+    $(".btn-group .btn").off("click")
+    $("a.toggles").off("click")
+    $(window).off("resize", @resizeHandler)
+
+
+  appendSVG : ->
 
     @svg = d3.select(".graph")
       .append("svg")
-      .attr("width", width)
-      .attr("height", @height)
-      .attr("pointer-events", "all")
+      .attr(
+        id: "process-graph"
+        width: $(".graph").width()
+        "pointer-events": "all"
+      )
 
 
-  initToolbar : ->
+  initToolbarHandler : ->
 
-    $('.btn-group .btn').on "click", (event) ->
-      $('.btn-group .btn').removeClass('active')
+    $(".btn-group .btn").on "click", (event) ->
+      $(".btn-group .btn").removeClass('active')
 
       $this = $(@)
       unless $this.hasClass('active')
@@ -43,11 +58,16 @@ class GUI
     $(".side-bar").css("height", @height)
 
 
-  initToggle : ->
+  initToggleHandler : ->
 
     $("a.toggles").click ->
       $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
-      $("#artifact-finder").animate
-        width: "toggle"
-      , 100
+      $("#artifact-finder").toggle()
       $("#main").toggleClass "span12 span8"
+
+
+  appendArtifactFinder : ->
+
+    $("#artifact-finder").append( @artifactFinder.domElement )
+    #make first tab activate
+    $("a[data-toggle=tab]").first().tab("show")

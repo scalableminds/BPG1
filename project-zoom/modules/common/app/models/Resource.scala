@@ -1,27 +1,46 @@
 package models
 
 import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import play.api.libs.json.JsObject
 import reactivemongo.bson.BSONObjectID
-import play.api.libs.json.Format
+import play.api.libs.json.Writes._
 
-case class ResourceInfo(fileName: String, typ: String)
+trait ResourceLike {
+  def name: String
+  def typ: String
+  def hash: Option[String]
 
-case class Resource(path: String, fileName: String, hash: String)
+  def withHash(h: String): ResourceLike
 
-trait DefaultResourceTypes {
-  val DEFAULT_TYP = "default"
+  def isSameAs(o: ResourceLike) =
+    name == o.name && typ == o.typ
 }
-object DefaultResourceTypes extends DefaultResourceTypes
 
-trait ResourceHelpers {
+trait ResourceLikeTransformers {
+  def toTuple(r: ResourceLike) =
+    (r.name, r.typ, r.hash)
+
+  implicit val resourceLikeWrites: Writes[ResourceLike] =
+    ((__ \ 'name).write[String] and
+      (__ \ 'typ).write[String] and
+      (__ \ 'hash).write[Option[String]])(toTuple _)
+}
+
+case class Resource(name: String, typ: String, hash: Option[String] = None)
+    extends ResourceLike {
+
+  def withHash(h: String) = this.copy(hash = Some(h))
+}
+
+trait ResourceTypes {
+  val DEFAULT_TYP = "default"
+  val PRIMARY_THUMBNAIL = "primaryThumbnail"
+  val SECONDARY_THUMBNAIL = "secondaryThumbnail"
+}
+object DefaultResourceTypes extends ResourceTypes
+
+trait ResourceHelpers extends ResourceLikeTransformers{
   implicit val resourceFormat: Format[Resource] = Json.format[Resource]
-
-  implicit val resourceInfoFormat: Format[ResourceInfo] = Json.format[ResourceInfo]
-
-  def resourceCreateFrom(ri: ResourceInfo, path: String, hash: String) =
-    Resource(
-      path,
-      ri.fileName,
-      hash)
 }

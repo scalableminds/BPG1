@@ -50,6 +50,9 @@ import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 
 
+import projectZoom.thumbnails.TempFile;
+import projectZoom.thumbnails.GifFrame;
+import projectZoom.thumbnails.ImageUtil;
 import projectZoom.thumbnails.text.MyWordle.Word;
 import cue.lang.Counter;
 import cue.lang.WordIterator;
@@ -77,13 +80,13 @@ public class TextReader {
 	}
 	
 	
-	public List<Artifact> getThumbnails(File file, int[] widths) {
-		List<Artifact> output = new ArrayList<Artifact>();
+	public List<TempFile> getThumbnails(File file, int[] widths) {
+		List<TempFile> output = new ArrayList<TempFile>();
 		try {
 			List<BufferedImage> images = this.pdfToImages2(file, 1);
 			for (int width: widths) {				
-				Artifact art = new Artifact(width + ".png");
-				BufferedImage image = resizeBufferedImage(images.get(0), width);
+				TempFile art = new TempFile(width + ".png");
+				BufferedImage image = ImageUtil.resizeBufferedImage(images.get(0), width);
 				if (image != null)
 				{
 					ImageIO.write(image, "png", art.getFile());
@@ -97,31 +100,16 @@ public class TextReader {
 		return output;
 	}
 	
-	private BufferedImage resizeBufferedImage(BufferedImage image, int width) {
-
-		int w = image.getWidth();
-		int h = image.getHeight();
-		int size = Math.max(w, h);
-		float scale = (float)width/size;
-		BufferedImage newImage = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
-		AffineTransform at = new AffineTransform();
-		at.scale(scale, scale);
-		AffineTransformOp scaleOp = 
-		   new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-		newImage = scaleOp.filter(image, newImage);
-		
-		return newImage;
-	}
 	
-	public List<Artifact> getGifs(File file, int[] widths, int pagecount) {
-		List<Artifact> output = new ArrayList<Artifact>();
+	public List<TempFile> getGifs(File file, int[] widths, int pagecount) {
+		List<TempFile> output = new ArrayList<TempFile>();
 		try {
 			List<BufferedImage> images = this.pdfToImages2(file, pagecount);
 			for(int width: widths) {
 				List<BufferedImage> resizedImages = new ArrayList<BufferedImage>();
 				for (BufferedImage b: images)
-					resizedImages.add(resizeBufferedImage(b, width));
-				Artifact art = imagesToGif(resizedImages, width);
+					resizedImages.add(ImageUtil.resizeBufferedImage(b, width));
+				TempFile art = ImageUtil.imagesToGif(resizedImages, width);
 				if (art != null)
 					output.add(art);
 			}
@@ -212,9 +200,9 @@ public class TextReader {
 	}
 	
 	
-	public List<Artifact> getTagClouds(File file, int[] widths) {
+	public List<TempFile> getTagClouds(File file, int[] widths) {
 		
-		List<Artifact> output = new ArrayList<Artifact>();
+		List<TempFile> output = new ArrayList<TempFile>();
 
 		String text = "";
 		try {
@@ -258,7 +246,8 @@ public class TextReader {
 				
 				Entry<String, Integer> word = iterator.next();
 				float delta = (float) (((float)word.getValue() / (float)highestCount) * 100.0);
-				int size = (int)delta + 20 - lowestCount;
+				int size = (int)Math.sqrt(delta) * 10; //Math.max((int)delta + 20 - lowestCount, 5);
+				//int size = (int)delta + 20 - lowestCount;
 				Word w = new Word(word.getKey(), size);
 				Color c = new Color(rand.nextInt(100),rand.nextInt(100),rand.nextInt(100));
 				w.setFill(c);
@@ -273,7 +262,7 @@ public class TextReader {
 			}
 	
 			
-			Artifact art = new Artifact(width + ".png");
+			TempFile art = new TempFile(width + ".png");
 
 			wordle.doLayout();
 			try {
@@ -352,38 +341,6 @@ public class TextReader {
 		
 	}	
 	
-	public Artifact imagesToGif(List<BufferedImage> images, int width) {
-		
-		Artifact output = new Artifact(width + ".gif");
-		List<GifFrame> gifFrames = new ArrayList<GifFrame>();
-		
-		for(BufferedImage image: images)
-		{
-			int transparantColor = 0xFF00FF; // purple
-			BufferedImage gif = GifUtil.convertRGBAToGIF(image, transparantColor);
-			
-			// every frame takes 1000ms
-			long delay = 1000;
-			
-			// make transparent pixels not 'shine through'
-			String disposal = GifFrame.RESTORE_TO_BGCOLOR;
-			
-			// add frame to sequence
-			gifFrames.add(new GifFrame(gif, delay, disposal));
-		}
-		
-		int loopCount = 0; // loop indefinitely
-	
-		try {
-			OutputStream out = new FileOutputStream(output.getFile());			   
-			GifUtil.saveAnimatedGIF(out, gifFrames, loopCount);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-		   
-		return output;
-	}
 	
 	   // This method returns a buffered image with the contents of an image
     public static BufferedImage toBufferedImage(Image image) {

@@ -7,6 +7,8 @@ import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 
+import projectZoom.thumbnails.TempFile;
+
 public class OfficeReader extends TextReader {
 	String[] MIME_TYPES = {
 			"application/msword",
@@ -19,7 +21,11 @@ public class OfficeReader extends TextReader {
 			"application/vnd.oasis.opendocument.presentation",
 			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
 			"application/rtf",
-			"text/plain"};
+			"text/plain",
+			"text/css",
+			"text/html",
+			"application/javascript"
+	};
 	
 	@Override
 	public Boolean isSupported(String mimetype)
@@ -34,18 +40,18 @@ public class OfficeReader extends TextReader {
 	}	
 	
 	@Override
-	public List<Artifact> getThumbnails(File file, int[] widths) {
-		Artifact art = new Artifact("temp.pdf");
+	public List<TempFile> getThumbnails(File file, int[] widths) {
+		TempFile art = new TempFile("temp.pdf");
 		this.docToPdf(file, art.getFile());
-		List<Artifact> output = super.getThumbnails(art.getFile(), widths);
+		List<TempFile> output = super.getThumbnails(art.getFile(), widths);
 		return output;
 	}
 	
 	@Override
-	public List<Artifact> getGifs(File file, int[] widths, int pagecount) {
-		Artifact art = new Artifact("temp.pdf");
+	public List<TempFile> getGifs(File file, int[] widths, int pagecount) {
+		TempFile art = new TempFile("temp.pdf");
 		this.docToPdf(file, art.getFile());
-		List<Artifact> output = super.getGifs(art.getFile(), widths, pagecount);
+		List<TempFile> output = super.getGifs(art.getFile(), widths, pagecount);
 		return output;
 	}	
 

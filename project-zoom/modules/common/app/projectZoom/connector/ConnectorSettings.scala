@@ -17,7 +17,7 @@ import models.MongoJsonDAO
 import play.api.libs.concurrent.Execution.Implicits._
 import models.UnsecuredMongoJsonDAO
 
-trait ConnectorSettings extends UnsecuredMongoJsonDAO {
+trait ConnectorSettings extends UnsecuredMongoJsonDAO[JsValue] {
   def identifier: String
 
   val MAX_SETTINGS_AWAIT = 1 second

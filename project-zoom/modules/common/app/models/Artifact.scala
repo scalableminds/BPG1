@@ -1,57 +1,92 @@
 package models
 
 import projectZoom.util.DBCollection
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsValue
-import play.api.libs.json.Json
+import play.api.libs.json._
 import play.api.Logger
-import play.api.libs.json.JsString
-import play.api.libs.json.Format
+import play.api.libs.functional.syntax._
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
+import reactivemongo.bson.BSONObjectID
+import play.modules.reactivemongo.json.BSONFormats._
 
-/* 
- * ArtifactInfo needs to be a subset of artifact. It should contain all 
- * necessary information to create a new artifact.
- */
-case class ArtifactInfo(name: String, _project: String, source: String, metadata: JsValue)
-
-case class Artifact(id: String, name: String, source: String, _project: String, metadata: JsValue, resources: Map[String, Resource])
-
-trait ArtifactInfoFactory {
-  implicit val artifactInfoFormat = Json.format[ArtifactInfo]
-
-  def createArtifactFrom(js: JsObject) = {
-    js.asOpt[ArtifactInfo]
-  }
+trait ArtifactLike {
+  def name: String
+  def projectName: String
+  def path: String
+  def source: String
+  def metadata: JsValue
+  def resources: List[ResourceLike]
 }
+
+trait ArtifactLikeTransformers extends ResourceLikeTransformers{
+  
+  def toTuple(a: ArtifactLike) = 
+    (a.name, a.projectName, a.path, a.source, a.metadata, a.resources)
+  
+  implicit val artifactLikeWrites = 
+    ((__ \ 'name).write[String] and
+    (__ \ 'projectName).write[String] and
+    (__ \ 'path).write[String] and
+    (__ \ 'source).write[String] and
+    (__ \ 'metadata).write[JsValue] and
+    (__ \ 'resources).write[List[ResourceLike]])(toTuple _)
+}
+
+case class Artifact(
+  name: String,
+  projectName: String,
+  path: String,
+  source: String,
+  metadata: JsValue,
+  resources: List[Resource] = Nil,
+  _id: BSONObjectID = BSONObjectID.generate)
+    extends ArtifactLike
 
 trait ArtifactTransformers extends ResourceHelpers {
   implicit val artifactFormat: Format[Artifact] = Json.format[Artifact]
-  //val outputArtifact = ???
-
 }
 
-object ArtifactDAO extends SecuredMongoJsonDAO with ArtifactInfoFactory with ResourceHelpers {
+trait ArtifactFactory extends ArtifactTransformers {
+  def createArtifactFrom(js: JsObject) = {
+    js.asOpt[Artifact]
+  }
+}
+
+object ArtifactDAO
+    extends SecuredMongoJsonDAO[Artifact]
+    with ArtifactFactory
+    with ResourceHelpers
+    with ArtifactLikeTransformers
+    with ArtifactTransformers {
+  
   val collectionName = "artifacts"
 
-  def findByArtifactQ(artifactInfo: ArtifactInfo): JsObject =
-    findByArtifactQ(artifactInfo.name, artifactInfo.source, artifactInfo._project)
+  def findByArtifactQ(artifact: ArtifactLike): JsObject =
+    findByArtifactQ(artifact.name, artifact.source, artifact.projectName)
 
-  def findByArtifactQ(name: String, source: String, project: String) =
-    Json.obj("name" -> name, "source" -> source, "_project" -> project)
+  def findByArtifactQ(name: String, source: String, projectName: String) =
+    Json.obj(
+      "name" -> name,
+      "source" -> source,
+      "projectName" -> projectName)
 
-  def findOne(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext) =
-    collectionFind(findByArtifactQ(artifactInfo)).one[JsObject]
+  def findByResourceQ(resource: ResourceLike): JsObject =
+    Json.obj(
+      "resources.typ" -> resource.typ,
+      "resources.name" -> resource.name)
 
-  def update(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext): Future[LastError] =
-    collectionUpdate(findByArtifactQ(artifactInfo),
-      Json.obj("$set" -> artifactInfo), upsert = true)
+  def findOne(artifact: ArtifactLike)(implicit ctx: DBAccessContext) =
+    collectionFind(findByArtifactQ(artifact)).one[JsObject]
 
-  def markAsDeleted(artifactInfo: ArtifactInfo)(implicit ctx: DBAccessContext) =
-    collectionUpdate(findByArtifactQ(artifactInfo),
-      Json.obj("$set" -> Json.obj("isDeleted" -> true)))
+  def update(artifact: ArtifactLike)(implicit ctx: DBAccessContext): Future[LastError] =
+    collectionUpdate(findByArtifactQ(artifact),
+      Json.obj("$set" -> artifact), upsert = true)
+
+  def markAsDeleted(artifact: ArtifactLike)(implicit ctx: DBAccessContext) =
+    collectionUpdate(findByArtifactQ(artifact),
+      Json.obj("$set" -> Json.obj(
+        "isDeleted" -> true)))
 
   def findSomeForProject(_project: String, offset: Int, limit: Int)(implicit ctx: DBAccessContext) =
     takeSome(findForProject(_project), offset, limit)
@@ -59,14 +94,23 @@ object ArtifactDAO extends SecuredMongoJsonDAO with ArtifactInfoFactory with Res
   def findAllForProject(_project: String)(implicit ctx: DBAccessContext) =
     findForProject(_project).cursor[JsObject].toList
 
-  def findForProject(_project: String)(implicit ctx: DBAccessContext) =
-    collectionFind(Json.obj("_project" -> _project))
+  def findForProject(projectName: String)(implicit ctx: DBAccessContext) =
+    collectionFind(Json.obj(
+      "projectName" -> projectName))
 
-  def insertRessource(artifactInfo: ArtifactInfo)(path: String, hash: String, resourceInfo: ResourceInfo)(implicit ctx: DBAccessContext) = {
-    val resource = resourceCreateFrom(resourceInfo, path, hash)
+  def findResource(artifact: ArtifactLike, resource: ResourceLike)(implicit ctx: DBAccessContext) =
+    collectionFind(findByArtifactQ(artifact) ++ findByResourceQ(resource)).one[Artifact].map(
+      _.flatMap(_.resources.find(_.isSameAs(resource))))
 
-    collectionUpdate(findByArtifactQ(artifactInfo), Json.obj(
+  def insertResource(artifact: ArtifactLike)(hash: String, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
+    collectionUpdate(findByArtifactQ(artifact), Json.obj(
+      "$addToSet" -> Json.obj(
+        "resources" -> resource.withHash(hash))))
+  }
+
+  def updateHashOfResource(artifact: ArtifactLike)(hash: String, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
+    collectionUpdate(findByArtifactQ(artifact) ++ findByResourceQ(resource.withHash(hash)), Json.obj(
       "$set" -> Json.obj(
-        s"resources.${resourceInfo.typ}" -> resource)))
+        "resources.$.hash" -> hash)))
   }
 }

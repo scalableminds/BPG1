@@ -13,7 +13,7 @@ class Graph
 
     @clusterPaths = @container.append("svg:g").selectAll("path")
     @paths = @container.append("svg:g").selectAll("path")
-    @foreignObjects = @container.append("svg:g").selectAll("foreignObject")
+    @nodeGroups = @container.append("svg:g").selectAll("images")
 
     @colors = d3.scale.category10()
 
@@ -26,9 +26,15 @@ class Graph
     @drawClusters()
 
 
-  addNode : (x, y, nodeId, artifact) ->
+  addNode : (x, y, artifact) ->
 
-    node = new DataItem({ x, y, id : @nextId() })
+    node = new DataItem(
+      position : { x, y }
+      id : @nextId()
+      payload :
+        id : "519b693d030655c8752c2973"
+      typ : "project"
+    )
     node.artifact = artifact
 
     @nodes.add(node)
@@ -52,6 +58,7 @@ class Graph
 
   addCluster : (cluster) ->
 
+    cluster.set("id", @nextId(), silent : true)
     Cluster(cluster).ensureNodes(@nodes)
     @clusters.add(cluster)
     @drawClusters()
@@ -66,7 +73,7 @@ class Graph
       .forEach( (edge) => @edges.remove(edge) )
 
     @clusters
-      .filter( (cluster) -> cluster.get("nodes").contains(node.get("id")) )
+      .filter( (cluster) -> cluster.get("content").contains(node.get("id")) )
       .forEach( (cluster) -> Cluster(cluster).removeNode(node) )
 
 
@@ -93,49 +100,37 @@ class Graph
 
   drawNodes : ->
 
-    @foreignObjects = @foreignObjects.data(@nodes.items, (data) -> data.get("id"))
+    @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
 
     #add new nodes
-    @foreignObjects.enter()
-      .append("svg:foreignObject")
-      .attr( class : "node" )
+    @nodeGroups.enter()
+      .append("svg:g")
+      .append("svg:image")
       .attr(
 
-        x : (data) -> data.get("x") - Node(data).getSize().width / 2
-        y : (data) -> data.get("y") - Node(data).getSize().height / 2
+        class : "node"
+
+        x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
+        y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
 
         width : (data) -> Node(data).getSize().width
         height : (data) -> Node(data).getSize().height
 
-        workaround : (data, i) ->
-
-          if data.artifact?
-            html = data.artifact.domElement
-          else
-            html = """
-              <html xmlns="http://www.w3.org/1999/xhtml">
-                <body>
-                  <div class="node-object" style="background-color: rgb(0,127,255)">
-                    <img class="node-image" draggable="false" data-id="#{data.get("id")}">
-                  </div>
-                </body>
-              </html>
-              """
-
-          $(this).append(html)
-          return ""
+        "xlink:href" : "assets/images/thumbnails/primary_thumbnail/32.png"
+        "data-id": (data) -> data.get("id")
       )
 
-    @drawComment(@foreignObjects)
+
+    @drawComment(@nodeGroups)
 
     #update existing ones
-    @foreignObjects.attr(
-      x : (data) -> data.get("x") - Node(data).getSize().width / 2
-      y : (data) -> data.get("y") - Node(data).getSize().height / 2
+    @nodeGroups.selectAll("image").attr(
+      x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
+      y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
     )
 
     #remove deleted nodes
-    @foreignObjects.exit().remove()
+    @nodeGroups.exit().remove()
 
 
   drawEdges : ->
@@ -183,42 +178,59 @@ class Graph
 
   drawComment : (element) ->
 
-    commentGroup = element.selectAll("g")
-      .data( (data) -> if data.comment then [data] else [] )
-      .enter()
-      .append("g")
+    commentGroup = element.selectAll("g").data(
+      (data) ->
+        if data.get("comment") then [data] else []
+      ,(data) ->
+        data.get("id"))
 
-    commentGroup
+    comment = commentGroup.enter()
+      .append("g")
+        .attr(
+          transform: (data) -> "translate(#{ data.get("position/x") }, #{ data.get("position/y") })"
+        )
+
+    comment
       .append("svg:use")
       .attr(
-        x: (data) -> data.x - 32
-        y: (data) -> data.x + 32
+        x: 0
+        y: -120
         "xlink:href": "#comment-callout"
       )
 
-    commentGroup
+    comment
       .append("svg:text")
       .attr(
-        x: (data) -> data.x - 32
-        y: (data) -> data.y + 32
+        x: 20
+        y: -70
+        width: 80
+        height: 40
       )
-      .text( (data) -> data.comment)
+      .text( (data) -> data.get("comment"))
+
+    #update existing ones
+    commentGroup
+      .attr(
+        transform: (data) -> "translate(#{ data.get("position/x") }, #{ data.get("position/y") })"
+      )
+    commentGroup.selectAll("text")
+      .text( (data) ->  data.get("comment") )
+
+    #remove deleted comments
+    commentGroup.exit().remove()
+
 
   # position.x/y are absolute positions
   moveNode : (nodeId, position, checkForCluster = false) ->
 
     node = @nodes.find( (node) -> node.get("id") == nodeId )
 
-    node.set( 
-      x : position.x
-      y : position.y
-    )
+    node.set({ position })
 
     if checkForCluster
       @clusters
         .filter( (cluster) -> not Cluster(cluster).ensureNode(node) )
         .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
-       
 
     @drawNodes()
     @drawEdges()
@@ -229,18 +241,21 @@ class Graph
     cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
 
     #move waypoints
-    cluster.get("waypoints").each (waypoint) ->
-      waypoint.set(
-        x : waypoint.get("x") + distance.x
-        y : waypoint.get("y") + distance.y
+    cluster.update("waypoints", (waypoints) ->
+
+      waypoints.toObject().map( (waypoint) ->
+        x : waypoint.x + distance.x
+        y : waypoint.y + distance.y
       )
+
+    )
 
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
-      
+
       position =
-        x : node.get("x") + distance.x
-        y : node.get("y") + distance.y
+        x : node.get("position/x") + distance.x
+        y : node.get("position/y") + distance.y
 
       @moveNode(node.get("id"), position)
 
@@ -255,6 +270,7 @@ class Graph
       _.flatten [
         @nodes.pluck("id")
         @clusters.pluck("id")
+        [0]
       ]
     ) + 1
 

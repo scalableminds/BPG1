@@ -1,4 +1,34 @@
 @import "graph.less";
-@import "artifact_component.less";
 @import "projects_overview_view.less";
 @import "process_view.less";
+
+body {
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+} 
+
+.version {
+  padding: 10px 20px 10px 0;
+  display: block;
+  float: left;
+}
+
+
+#toasts {
+	position: absolute;
+	top: 0;
+	width: 100%;
+
+	.toast {
+		width: 200px;
+		padding: 10px;
+		color: #fff;
+		text-align: center;
+		margin: 0 auto;
+	}
+}

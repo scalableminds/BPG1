@@ -20,6 +20,17 @@ import models.GraphDAO._
 import models.GlobalDBAccess
 import play.api.libs.concurrent.Execution.Implicits._
 import java.util.UUID
+import akka.actor.ActorSystem
+import scala.concurrent.duration._
+import play.api.libs.json.JsNull
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import java.io.FileInputStream
+import java.io.File
+import models.ProjectDAO
+import projectZoom.thumbnails.all.AllThumbnailActor
+import projectZoom.thumbnails.image.ImageThumbnailActor
+import projectZoom.thumbnails.video.VideoThumbnailActor
 
 object Global extends GlobalSettings with GlobalDBAccess {
 
@@ -27,27 +38,32 @@ object Global extends GlobalSettings with GlobalDBAccess {
     implicit val sys = Akka.system(app)
     EventActor.start
     SettingsActor.start
-    ArtifactActor.start
+    val aa = ArtifactActor.start
     KnowledgeActor.start
     TextThumbnailActor.start
+    AllThumbnailActor.start
+    ImageThumbnailActor.start
+    VideoThumbnailActor.start
     SupervisorActor.start
-    if (app.mode == Mode.Dev)
-      putSampleValuesInDB()
+    if (app.mode == Mode.Dev) {
+      putSampleValuesInDB
+
+      sys.scheduler.scheduleOnce(5 seconds) {
+        //ProjectDAO.findOneByName(_project)
+        List(
+            models.Artifact("paper.pdf", "null - null", "prototype", "dummy", Json.obj()) -> 
+              new FileInputStream(new File("paper.pdf"))
+        ).map{
+          case (info, stream) =>
+            Logger.debug("Inserted dummy Artifact: " + info)
+            aa ! projectZoom.core.artifact.ArtifactFound(stream, info)
+        }
+      }
+    }
   }
 
-  def putSampleValuesInDB() = {
-    GraphDAO.findOne.map {
-      case None =>
-        val nodes = List(
-          Node(1, Position(10, 10), "project", NodePayload("Service Experience - B")),
-          Node(2, Position(50, 50), "project", NodePayload("Library Experience - B")))
-        val edges = List(models.Edge(1, 2, Some("Penis")))
-        val clusters = List()
-
-        val g = models.Graph(UUID.randomUUID().toString, 1, nodes, edges, clusters)
-        GraphDAO.insert(g)
-      case _ =>
-    }
+  def putSampleValuesInDB(implicit sys: ActorSystem) = {
+    
   }
 
   override def onStop(app: Application) {

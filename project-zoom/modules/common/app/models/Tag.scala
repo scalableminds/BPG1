@@ -8,7 +8,7 @@ case class Color(r: Int, b: Int, g: Int)
 
 case class Tag(name: String, color: Color, _tagType: BSONObjectID)
 
-object TagDAO extends SecuredMongoJsonDAO{
+object TagDAO extends SecuredMongoJsonDAO[Tag]{
   val collectionName = "tags"
 
   implicit val colorFormat = Json.format[Color]

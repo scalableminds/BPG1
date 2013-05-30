@@ -6,9 +6,11 @@ tmp
 eclipsebin
 .history
 .worksheet
+*.sc
 dist
 /.idea
-/*.iml
+/data
+*.iml
 /out
 /.idea_modules
 /.classpath

@@ -41,34 +41,4 @@ object ExtendedTypes {
       case _: java.lang.NumberFormatException => None
     }
   }
-
-  import play.api.libs.json.JsPath
-  import projectZoom.core.json.JsMultiPath
-
-  implicit class ExtendedJsPath(val p: JsPath) {
-    def \~(ps: String): JsMultiPath = {
-      if (ps == "" || ps == "/")
-        JsMultiPath(List(JsPath))
-      else {
-        val path = ps.split("/").drop(1).map(_.replace("~1", "/").replace("~0", "~")).toList
-        \~(path)
-      }
-    }
-
-    def \~(ps: List[String]) = {
-      def createNextPaths(results: List[JsPath], path: List[String]): List[JsPath] = path match {
-        case pathSegment :: tail =>
-          pathSegment.toIntOpt match {
-            case Some(idx) =>
-              createNextPaths(results.map(_(idx)) ++ results.map(_ \ pathSegment), tail)
-            case _ =>
-              createNextPaths(results.map(_ \ pathSegment), tail)
-          }
-
-        case _ =>
-          results
-      }
-      JsMultiPath(createNextPaths(List(JsPath), ps))
-    }
-  }
 }

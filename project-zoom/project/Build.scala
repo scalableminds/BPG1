@@ -25,6 +25,7 @@ object ApplicationBuild extends Build {
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",
     "org.jvnet.hudson" % "ganymed-ssh-2" % "build260",
     "org.apache.tika" % "tika-parsers" % "1.3",
+    "xuggle" % "xuggle-xuggler" % "5.4",
     "com.scalableminds" %% "securesocial" % "master-SNAPSHOT" withSources ())
 
 
@@ -36,6 +37,7 @@ object ApplicationBuild extends Build {
     "repo.novus snaps" at "http://repo.novus.com/snapshots/",
     "sonatype rels" at "https://oss.sonatype.org/content/repositories/releases/",
     "sonatype snaps" at "https://oss.sonatype.org/content/repositories/snapshots/",
+    "xuggle repo" at "http://xuggle.googlecode.com/svn/trunk/repo/share/java/",
     "sgodbillon" at "https://bitbucket.org/sgodbillon/repository/raw/master/snapshots/")
 
   lazy val common = play.Project(appName + "-common", appVersion, projectZoomDependencies, path = file("modules/common")).settings(

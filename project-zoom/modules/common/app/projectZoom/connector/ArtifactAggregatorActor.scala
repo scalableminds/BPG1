@@ -1,24 +1,25 @@
 package projectZoom.connector
 
-import java.io.{File, ByteArrayInputStream}
-import models.Artifact
+import java.io.File
+import models.ArtifactLike
 import projectZoom.core.event.{EventPublisher, Event}
-import models.ArtifactInfo
-import projectZoom.core.artifact._
 
+case class ArtifactFound(file: File, artifact: ArtifactLike) extends Event
+case class ArtifactDeleted(artifact: ArtifactLike) extends Event
+case class ArtifactAggregation(l: List[ArtifactFound]) extends Event
 
 trait ArtifactAggregatorActor extends ConnectorActor with EventPublisher {
 
-  def publishFoundArtifact(file: Array[Byte], artifact: ArtifactInfo) = {
-    publish(ArtifactFound(new ByteArrayInputStream(file), artifact))
+  def publishFoundArtifact(file: File, artifact: ArtifactLike) = {
+    publish(ArtifactFound(file, artifact))
   }
 
-  def publishDeletedArtifact(artifact: ArtifactInfo) = {
+  def publishDeletedArtifact(artifact: ArtifactLike) = {
     publish(ArtifactDeleted(artifact))
   }
 
-  def publishAggregatedArtifacts(l: List[Tuple2[Array[Byte], ArtifactInfo]]) = {
-    val foundArtifacts = for (pair <- l) yield ArtifactFound(new ByteArrayInputStream(pair._1), pair._2)
-    publish(ArtifactAggregation("", foundArtifacts))
+  def publishAggregatedArtifacts(l: List[Tuple2[File, ArtifactLike]]) = {
+    val foundArtifacts = for (pair <- l) yield ArtifactFound(pair._1, pair._2)
+    publish(ArtifactAggregation(foundArtifacts))
   }
 }

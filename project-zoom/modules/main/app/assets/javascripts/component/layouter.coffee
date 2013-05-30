@@ -1,13 +1,123 @@
 ### define
 jquery : $
-lib/venn : Venn
-lib/numeric : Numeric
+underscore : _
+d3 : d3
 ###
 
 class Layouter
 
-	constructor : ->
-    console.log "hi i'm the layouter"
+	constructor : () ->
+
+    clusterPositions =
+      0 : "left"
+      1 : "right"
+      2 : "bottom"
+      3 : "lr"
+      4 : "lb"
+      5 : "br"
+      6 : "middle"
+      7 : "no_cluster"
+
+    PROJECT_SIZE = 64
+    PADDING = 5
+
+    console.log "Hi i'm the Layouter"
+
+
+  textWrap : (svg_text, content, width) ->
+
+    if svg_text?
+
+      t_copy = _.clone(svg_text)
+
+      pos_x = parseInt( d3.select(svg_text).attr("x") )
+      pos_y = parseInt( d3.select(svg_text).attr("y") )
+
+      abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      t_copy.textContent = abc
+
+      letterWidth = t_copy.getBBox().width / abc.length
+      letterHeight = t_copy.getBBox().height
+
+      words = content.split(" ")
+
+      x = 0
+      split = []
+
+      for w in words
+        l = w.length
+        if x + (l * letterWidth) > width
+          split.push "\n"
+          x = 0
+        x += l * letterWidth
+        split.push w + " "
+
+    else console.log "no name"
+
+    svg_text.textContent = ""
+    joined = split.join("")
+    lines = joined.split("\n")
+
+    for line, i in lines
+
+      d3.select(svg_text).append("tspan")
+      .text(line)
+      .attr(
+        x: pos_x
+        y: pos_y + i * (letterHeight)
+      )
+
+
+  resizeCircle : (circle, weight) ->
+
+
+  arrangeInSquare : (objects, square) ->
+
+    start_x = square[0][0]
+    start_y = square[0][1]
+
+    len_x   = square[1][0]
+    len_y   = square[1][1]
+
+    object_width = PROJECT_SIZE
+
+    pos_x = start_x
+    pos_y = start_y
+
+    for o in objects
+      o.moveNode(pos_x, pos_y)
+
+      if (pos_x + PADDING + object_width) < (start_x + len_x)
+        pos_x += PADDING + object_width
+
+      else
+        pos_x = start_x
+        pos_y += PADDING + object_width
+
+
+  getSquareInArea : (area) ->
+
+
+  arrangeNodesInVenn : (nodeClusters) ->
+
+    for c in nodeClusters
+      cluster = nodeClusters[c]
+      console.log cluster
+
+    # projectClusters =
+    #   "left" : []
+    #   "right" : []
+    #   "bottom" : []
+    #   "lr" : []
+    #   "lb" : []
+    #   "br" : []
+    #   "middle" : []
+    #   "no_cluster" : []
+
+
+
+
+
 
 
  #  drawVenn : (selectedTags, projects) ->

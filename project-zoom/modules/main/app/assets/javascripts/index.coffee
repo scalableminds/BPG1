@@ -14,6 +14,7 @@ define [
   require [
     # "testProjectsOverview", "jquery.hammer"
     "testGraph"
+    "view/toasts"
     "sample"
     "model"
   ], -> app.start( test : 123 )

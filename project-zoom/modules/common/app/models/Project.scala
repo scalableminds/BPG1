@@ -10,14 +10,15 @@ import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import play.api.Logger
 
-case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[BSONObjectID] = Nil)
+case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[String] = Nil)
 
 case class Participant(duty: String, _user: String)
 
-case class Project(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[BSONObjectID], _id: BSONObjectID = BSONObjectID.generate)
+case class Project(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[String], _id: BSONObjectID = BSONObjectID.generate)
 
-object ProjectDAO extends SecuredMongoJsonDAO {
+object ProjectDAO extends SecuredMongoJsonDAO[Project] {
   override val collectionName = "projects"
+  override val defaultOrderBy = "name"
 
   implicit val participantFormat = Json.format[Participant]
   implicit val projectFormat = Json.format[Project]
@@ -30,7 +31,7 @@ object ProjectDAO extends SecuredMongoJsonDAO {
   def addGraphTo(projectId: String, graph: Graph)(implicit ctx: DBAccessContext) = {
     withValidId(projectId) { id =>
       collectionUpdate(Json.obj("_id" -> id),
-        Json.obj("$push" -> Json.obj("_graphs" -> graph._id)))
+        Json.obj("$push" -> Json.obj("_graphs" -> graph.group)))
     }
   }
 

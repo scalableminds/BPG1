@@ -20,10 +20,10 @@ class ConnectBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("svg")[0] )
-      .on("drag", ".node-image", @dragMove)
-      .on("dragend", ".node-image", @dragEnd)
-      .on("dragstart", ".node-image", @dragStart)
+    @hammerContext = Hammer( $("#process-graph")[0] )
+      .on("drag", ".node", @dragMove)
+      .on("dragend", ".node", @dragEnd)
+      .on("dragstart", ".node", @dragStart)
 
 
   deactivate : ->
@@ -38,16 +38,16 @@ class ConnectBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @offset = $("svg").offset()
+    @offset = $("#process-graph").offset()
     @scaleValue = $(".zoom-slider input").val()
 
 
   dragEnd : (event) =>
 
-    startNode = d3.select($(event.gesture.startEvent.target).closest("foreignObject")[0]).datum()
+    startNode = d3.select(event.gesture.startEvent.target).datum()
 
-    if targetElement = $(event.target).closest("foreignObject")[0]
-      currentNode = d3.select(targetElement).datum()
+    if targetElement = d3.select(event.gesture.target)
+      currentNode = targetElement.datum()
 
       unless startNode == currentNode
         @graph.addEdge(startNode, currentNode)
@@ -57,13 +57,11 @@ class ConnectBehavior extends Behavior
 
   dragMove : (event) =>
 
-    svgContainer = $(event.gesture.target).closest("foreignObject")[0]
-
     mouse = @mousePosition(event)
 
-    nodeData = d3.select(svgContainer).datum()
-    lineStartX = nodeData.get("x")
-    lineStartY = nodeData.get("y")
+    nodeData = d3.select(event.gesture.target).datum()
+    lineStartX = nodeData.get("position/x")
+    lineStartY = nodeData.get("position/y")
 
     @dragLine
       .classed("hide", false)
