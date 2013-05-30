@@ -8,6 +8,7 @@ eclipsebin
 .worksheet
 *.sc
 dist
+/conf/box.conf
 /.idea
 /data
 *.iml
