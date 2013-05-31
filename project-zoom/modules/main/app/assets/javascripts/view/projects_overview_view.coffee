@@ -149,6 +149,7 @@ class ProjectsOverviewView
         image:        "http://upload.wikimedia.org/wikipedia/commons/9/96/Naso_elegans_Oceanopolis.jpg"
         width:        "100px"
         height:       "100px"
+        tags:         [project.get("season")]    # to be set to "year"!
 
       @projects.push p
 
