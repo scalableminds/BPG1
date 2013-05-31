@@ -101,7 +101,6 @@ class Layouter
 
     for c in nodeClusters
       cluster = nodeClusters[c]
-      console.log cluster
 
     # projectClusters =
     #   "left" : []

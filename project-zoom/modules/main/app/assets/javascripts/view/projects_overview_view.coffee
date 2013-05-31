@@ -164,9 +164,6 @@ class ProjectsOverviewView
     @graph.drawProjects()
 
 
-  initEventHandlers : ->
-
-    $(".checkbox-group input").on "click", (event) => console.log "event" # @graph.updateVennDiagram(event.currentTarget)
 
 
 

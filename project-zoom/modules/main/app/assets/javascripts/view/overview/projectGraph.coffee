@@ -54,9 +54,7 @@ class ProjectGraph
       )
 
     for h, i in headline[0]
-      console.log names[i]
       @layouter.textWrap(h, names[i], 120)
-      # console.log h.textContent
 
     # g.append("svg:text") #tags!!!!
 
@@ -140,7 +138,7 @@ class ProjectGraph
 
     @drawVennCircles()
     @onlyShowTagged()
-    # @arrangeProjectsInVenn(tagged) # tagged = @projectNodes!!!!
+    @arrangeProjectsInVenn() # tagged = @projectNodes!!!!
 
 
   onlyShowTagged : ->
@@ -148,11 +146,7 @@ class ProjectGraph
     tagged = []
     for p in @projects
       if _.intersection(p.tags, @selectedTags).length isnt 0
-        console.log "not empty intersection"
         tagged.push p
-      else
-        console.log "one untagged"
-        console.log $("##{p.id}")
 
     @drawProjects tagged
 
@@ -172,11 +166,9 @@ class ProjectGraph
     for p in tagged
       selectedProjectTags = []
       for t in p.tags
-        console.log t, @selectedTags
         selectedProjectTags.push t if t in @selectedTags
 
       assignedCluster = @getAssignedVennCluster selectedProjectTags
-      console.log assignedCluster
 
       projectClusters[assignedCluster].push p.node
 
@@ -190,10 +182,6 @@ class ProjectGraph
     for c in assignedTags
       [cluster] = @circles.filter (ci) -> ci[0][0][0].id == "cluster_#{c}"
       positions.push $(cluster).data("pos")
-      console.log positions
-
-      console.log cluster
-      console.log "hier", $(cluster).data("pos")
 
     if "left" in positions
       if "right" in positions
