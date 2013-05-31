@@ -2,7 +2,6 @@
 lib/event_mixin : EventMixin
 d3 : d3
 hammer: Hammer
-jquery.mousewheel : Mousewheel
 ./process_view/interactive_graph : InteractiveGraph
 ./process_view/gui : GUI
 ./process_view/behavior/behavior : Behavior
@@ -11,6 +10,8 @@ jquery.mousewheel : Mousewheel
 ./process_view/behavior/delete_behavior : DeleteBehavior
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
 ./process_view/behavior/comment_behavior : CommentBehavior
+./process_view/behavior/zoom_behavior : ZoomBehavior
+
 ../component/artifact_finder : ArtifactFinder
 ###
 
@@ -28,10 +29,12 @@ class ProcessView
 
       @graph = new InteractiveGraph(graphModel)
 
+      @zooming = new ZoomBehavior(@graph)
+      #@panning = new PanningBehavior()
+      #@dragAndDrop = new DragAndDropBehavior()
+      @activate()
 
     EventMixin.extend(this)
-
-    @activate()
 
 
   deactivate : ->
@@ -43,23 +46,18 @@ class ProcessView
       .off("release")
 
     $(".btn-group a").off("click")
-    $(".zoom-slider")
-      .off("change")
-      .off("click")
 
     @graph.changeBehavior(new Behavior())
     @gui.deactivate()
     @artifactFinder.deactivate()
-
-    #what about the html?
-    #$("svg").hide()
-    #$("#artifact-finder").hide()
+    @zooming.deactive()
 
 
   activate : ->
 
     @gui.activate()
     @artifactFinder.activate()
+    @zooming.activate()
 
     # add new node
     #Hammer( $("svg")[0] ).on "tap", @addNode
@@ -77,29 +75,6 @@ class ProcessView
       artifact = node.get("payload")
       wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
       wrappedArtifact.onMouseEnter()
-
-    # zooming
-    $(".zoom-slider")
-      .on("change", "input", @zoom)
-      .on("click", ".plus", => @changeZoomSlider(0.1) )
-      .on("click", ".minus", => @changeZoomSlider(-0.1) )
-
-    do =>
-
-      mouseDown = false
-
-      @hammerContext
-        .on("touch", -> mouseDown = true; return )
-        .on("release", -> mouseDown = false; return )
-
-      $(".graph").on "mousewheel", (evt, delta, deltaX, deltaY) =>
-
-        evt.preventDefault()
-        return if mouseDown
-        if deltaY > 0
-          @changeZoomSlider(0.1)
-        else
-          @changeZoomSlider(-0.1)
 
 
   addArtifact : (evt) =>
@@ -159,17 +134,3 @@ class ProcessView
     graph.changeBehavior( behavior )
 
 
-  zoom : (event) =>
-
-    scaleValue = $(".zoom-slider input").val()
-
-    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
-    @graph.drawNodes() #refresh node
-
-  changeZoomSlider : (delta) ->
-
-    $slider = $(".zoom-slider input")
-    sliderValue = parseFloat($slider.val())
-    $slider.val( sliderValue + delta )
-
-    @zoom()
