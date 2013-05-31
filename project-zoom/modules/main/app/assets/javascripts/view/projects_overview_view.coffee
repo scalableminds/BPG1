@@ -35,10 +35,6 @@ class ProjectsOverviewView
   deactivate : ->
 
     $("body").off("dragstart")
-    # @hammerContext
-    #   .off("dragend")
-    #   .off("touch")
-    #   .off("release")
 
     $(".btn-group a").off("click")
     $(".zoom-slider")
@@ -55,12 +51,8 @@ class ProjectsOverviewView
     @gui.activate()
     @tagbar.activate()
 
-    # add new node
-    #Hammer( $("svg")[0] ).on "tap", @addNode
-
     # drag artifact into graph
     $("body").on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
-    # @hammerContext = Hammer(document.body).on "dragend", "#artifact-finder .artifact-image", @addArtifact
 
     # change tool from toolbox
     processView = this
@@ -75,10 +67,6 @@ class ProjectsOverviewView
     do =>
 
       mouseDown = false
-
-      # @hammerContext
-      #   .on("touch", -> mouseDown = true; return )
-      #   .on("release", -> mouseDown = false; return )
 
       $(".graph").on "mousewheel", (evt, delta, deltaX, deltaY) =>
 

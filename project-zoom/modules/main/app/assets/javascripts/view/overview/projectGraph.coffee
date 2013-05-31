@@ -137,11 +137,13 @@ class ProjectGraph
   onlyShowTagged : ->
 
     tagged = []
-    for p in @projects
-      if _.intersection(p.tags, @selectedTags).length isnt 0
-        tagged.push p
+    if @selectedTags.length isnt 0
+      for p in @projects
+        if _.intersection(p.tags, @selectedTags).length isnt 0
+          tagged.push p
 
-    @drawProjects tagged
+      @drawProjects tagged
+    else @drawProjects()
 
 
   arrangeProjectsInVenn : () ->
@@ -189,72 +191,9 @@ class ProjectGraph
       return "bottom"
 
 
-  # changeBehavior : (behavior) ->
-
-  #   @currentBehavior.deactivate()
-  #   @currentBehavior = behavior
-  #   @currentBehavior.activate()
-
-
-
   initLayouter : ->
 
-    # alert @snap(14, 10)
-    # alert @snap(16, 10)
-
     @layouter = new Layouter()
-
-
-  # initProjects : ->
-
-  #   for p in SAMPLE_PROJECTS
-  #     project = new Project(p)
-
-  #     @projects.push project
-
-  #   pos_x = 20
-  #   pos_y = 20
-
-  #   for p in @projects
-  #     node = @addNode(pos_x, pos_y)
-
-  #     p.setNode node
-
-  #     pos_x += 70
-  #     pos_y += 70
-
-
-  # initArrowMarkers : ->
-
-  #   # define arrow markers for graph edges
-  #   @svg.append("svg:defs")
-  #     .append("svg:marker")
-  #       .attr("id", "end-arrow")
-  #       .attr("viewBox", "0 -5 10 10")
-  #       .attr("refX", 6)
-  #       .attr("markerWidth", 3)
-  #       .attr("markerHeight", 3)
-  #       .attr("orient", "auto")
-  #     .append("svg:path")
-  #       .attr("d", "M0,-5L10,0L0,5")
-  #       .attr("fill", "#000")
-
-  #   @svg.append("svg:defs")
-  #     .append("svg:marker")
-  #       .attr("id", "start-arrow")
-  #       .attr("viewBox", "0 -5 10 10")
-  #       .attr("refX", 4)
-  #       .attr("markerWidth", 3)
-  #       .attr("markerHeight", 3)
-  #       .attr("orient", "auto")
-  #     .append("svg:path")
-  #       .attr("d", "M10,-5L0,0L10,5")
-  #       .attr("fill", "#000")
-
-  snap : (value, gridSize, roundFunction) ->
-
-    roundFunction = Math.round  if roundFunction is `undefined`
-    gridSize * roundFunction(value / gridSize)
 
 
 

@@ -87,11 +87,9 @@ class Layouter
 
   arrangeNodesInVenn : (nodeClusters) ->
 
-    console.log @cluster_positions
-
     for p in @cluster_positions
       cluster = nodeClusters[p]
-      console.log p, cluster
+
 
     # projectClusters =
     #   "left" : []
@@ -112,6 +110,12 @@ class Layouter
     #   5 : "br"
     #   6 : "middle"
     #   7 : "no_cluster"
+
+  snap : (value, gridSize, roundFunction) ->
+
+    roundFunction = Math.round  if roundFunction is `undefined`
+    gridSize * roundFunction(value / gridSize)
+
 
 
 
