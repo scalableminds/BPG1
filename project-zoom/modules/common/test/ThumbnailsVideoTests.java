@@ -9,13 +9,16 @@ import org.junit.Test;
 
 import projectZoom.thumbnails.TempFile;
 import projectZoom.thumbnails.video.VideoThumbnailPlugin;
+import scala.Option;
 
-import models.ResourceInfo;
+import models.Resource;
 
 public class ThumbnailsVideoTests {
 	
 	String folder = "/home/user/testfiles/";
 
+	Option<String> empty = Option.apply(null);
+	
 	@Before
 	public void setUp() throws Exception {
 	}
@@ -27,7 +30,7 @@ public class ThumbnailsVideoTests {
 		String filename = folder + "test.wmv";
 		File file = new File(filename);
 		VideoThumbnailPlugin textThumbnailPlugin = new VideoThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo("test.png", "default"); 
+		Resource res = new Resource("test.png", "default", empty); 
 		List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 8);	

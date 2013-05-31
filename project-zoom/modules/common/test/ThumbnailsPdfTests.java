@@ -10,12 +10,15 @@ import org.junit.Test;
 
 import projectZoom.thumbnails.TempFile;
 import projectZoom.thumbnails.text.TextThumbnailPlugin;
+import scala.Option;
 
-import models.ResourceInfo;
+import models.Resource;
 
 public class ThumbnailsPdfTests {
 	
 	String folder = "/home/user/testfiles/";
+	
+	Option<String> empty = Option.apply(null);
 
 	@Before
 	public void setUp() throws Exception {
@@ -28,7 +31,7 @@ public class ThumbnailsPdfTests {
 		String filename = folder + "test.pdf";
 		File file = new File(filename);
 		TextThumbnailPlugin textThumbnailPlugin = new TextThumbnailPlugin();
-		ResourceInfo res = new ResourceInfo(filename, "default"); 
+		Resource res = new Resource(filename, "default", empty); 
 		List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 		
 		assertTrue(arts.size() == 8);	

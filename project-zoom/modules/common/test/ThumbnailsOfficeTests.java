@@ -29,7 +29,7 @@ public class ThumbnailsOfficeTests {
     String filename = folder + "test.ppt";
     File file = new File(filename);
     TextThumbnailPlugin textThumbnailPlugin = new TextThumbnailPlugin();
-    ResourceInfo res = new Resource(filename, "default");
+    Resource res = new Resource(filename, "default", empty);
     List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 
     assertTrue(arts.size() == 8);
@@ -41,7 +41,7 @@ public class ThumbnailsOfficeTests {
     String filename = folder + "test.pptx";
     File file = new File(filename);
     TextThumbnailPlugin textThumbnailPlugin = new TextThumbnailPlugin();
-    ResourceInfo res = new ResourceInfo(filename, "default");
+    Resource res = new Resource(filename, "default", empty);
     List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 
     assertTrue(arts.size() == 8);
@@ -53,7 +53,7 @@ public class ThumbnailsOfficeTests {
     String filename = folder + "test.odp";
     File file = new File(filename);
     TextThumbnailPlugin textThumbnailPlugin = new TextThumbnailPlugin();
-    ResourceInfo res = new ResourceInfo(filename, "default");
+    Resource res = new Resource(filename, "default", empty);
     List<TempFile> arts = textThumbnailPlugin.onResourceFound(file, res);
 
     assertTrue(arts.size() == 8);
