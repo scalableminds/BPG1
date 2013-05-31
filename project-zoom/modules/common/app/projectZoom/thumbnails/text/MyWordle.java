@@ -225,7 +225,6 @@ public class MyWordle
 			int fontSize=(int)w.getWeight();
 			//int fontSize=(int)(((w.getWeight()-low)/(high-low))*(this.biggestSize-this.smallestSize))+this.smallestSize;
 			Font font=new Font(ff,Font.PLAIN,fontSize);
-			System.err.println("fontsize:"+fontSize);
 			Font boundFont=new Font(ff,Font.PLAIN,(int)Math.round(fontSize*2));
 			TextLayout textLayout=new TextLayout(w.getText(), boundFont, frc);
 			Shape shape=textLayout.getOutline(null);

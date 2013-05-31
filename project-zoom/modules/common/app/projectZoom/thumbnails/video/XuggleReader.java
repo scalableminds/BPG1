@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -13,15 +14,17 @@ import com.xuggle.mediatool.MediaListenerAdapter;
 import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.mediatool.event.IVideoPictureEvent;
 import com.xuggle.xuggler.Global;
+import com.xuggle.xuggler.IContainer;
 
 
-import projectZoom.thumbnails.Artifact;
+import projectZoom.thumbnails.TempFile;
 
 public class XuggleReader extends VideoReader {
 	
 	String[] MIME_TYPES = {"video/x-ms-wmv"};
 
-    public static final double SECONDS_BETWEEN_FRAMES = 10;
+    public int count = 3;
+    private static int PRETIME = 1;
 
     // The video stream index, used to ensure we display frames from one and
     // only one video stream from the media container.
@@ -30,8 +33,8 @@ public class XuggleReader extends VideoReader {
     // Time of last frame write
     private static long mLastPtsWrite = Global.NO_PTS;
     
-    public static final long MICRO_SECONDS_BETWEEN_FRAMES = 
-        (long)(Global.DEFAULT_PTS_PER_SECOND * SECONDS_BETWEEN_FRAMES);
+    public static long MICRO_SECONDS_BETWEEN_FRAMES = 10000000;
+
 	
 	@Override
 	public Boolean isSupported(String mimetype)
@@ -46,26 +49,43 @@ public class XuggleReader extends VideoReader {
 	}	
 	
 	@Override
-	public List<Artifact> getFrames(String filename, int width, int count)
+	public List<BufferedImage> getFrames(File file, String filename, int count)
 	{
-		List<Artifact> output = new ArrayList<Artifact>();
-		//
-		IMediaReader mediaReader = ToolFactory.makeReader(filename);
+		this.count = count;
+		long duration = (long) (getVideoDuration(file.getAbsolutePath()) * 0.000001);
+		//System.out.println(duration);
+		XuggleReader.MICRO_SECONDS_BETWEEN_FRAMES = (long) (Global.DEFAULT_PTS_PER_SECOND * (duration - 2 * PRETIME)) / (count - 1);
+		//System.out.println(XuggleReader.MICRO_SECONDS_BETWEEN_FRAMES);
+		IMediaReader mediaReader = ToolFactory.makeReader(file.getAbsolutePath());
 		
 		// stipulate that we want BufferedImages created in BGR 24bit color space
 		mediaReader.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);
 		
-		mediaReader.addListener(new ImageSnapListener());
+		ImageSnapListener il = new ImageSnapListener();
+		mediaReader.addListener(il);
 		
 		// read out the contents of the media file and
 		// dispatch events to the attached listener
 		while (mediaReader.readPacket() == null) ;
-		return output;
+		return il.output;
 	}
 	
+    public long getVideoDuration(String videoFile) {
+        // Create a Xuggler container object
+        IContainer container = IContainer.make();
 
+        // Open up the container
+        if (container.open(videoFile, IContainer.Type.READ, null) < 0) {
+                throw new IllegalArgumentException("Could not open file: " + videoFile);
+        }
+
+        return container.getDuration();
+    }
+    
     private static class ImageSnapListener extends MediaListenerAdapter {
 
+    	ArrayList<BufferedImage> output = new ArrayList<BufferedImage>();
+    	
         public void onVideoPicture(IVideoPictureEvent event) {
 
             if (event.getStreamIndex() != mVideoStreamIndex) {
@@ -80,38 +100,22 @@ public class XuggleReader extends VideoReader {
 
             // if uninitialized, back date mLastPtsWrite to get the very first frame
             if (mLastPtsWrite == Global.NO_PTS)
-                mLastPtsWrite = event.getTimeStamp() - MICRO_SECONDS_BETWEEN_FRAMES;
+                mLastPtsWrite = event.getTimeStamp() - MICRO_SECONDS_BETWEEN_FRAMES + PRETIME;
 
             // if it's time to write the next frame
             if (event.getTimeStamp() - mLastPtsWrite >= 
                     MICRO_SECONDS_BETWEEN_FRAMES) {
                                 
-                String outputFilename = dumpImageToFile(event.getImage());
+            	output.add(event.getImage());
 
                 // indicate file written
                 double seconds = ((double) event.getTimeStamp()) / 
                     Global.DEFAULT_PTS_PER_SECOND;
-                System.out.printf(
-                        "at elapsed time of %6.3f seconds wrote: %s\n",
-                        seconds, outputFilename);
 
                 // update last write time
                 mLastPtsWrite += MICRO_SECONDS_BETWEEN_FRAMES;
             }
 
         }
-        
-        private String dumpImageToFile(BufferedImage image) {
-            try {
-                Artifact a = new Artifact("sc.png");
-                ImageIO.write(image, "png", a.getFile());
-                return a.getName();
-            } 
-            catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }	
-
     }
 }

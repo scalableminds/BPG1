@@ -16,6 +16,8 @@ window.require =
     d3 : "lib/d3-3.0.8"
     hammer : "lib/hammer"
     "jquery.mousewheel" : "lib/jquery.mousewheel"
+    text : "lib/require.text-2.0.6"
+    templates : "../templates"
 
 
   shim :

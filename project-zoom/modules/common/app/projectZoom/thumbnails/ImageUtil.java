@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.*;
@@ -121,5 +122,38 @@ public class ImageUtil {
 			newImage = scaleOp.filter(image, newImage);
 			
 			return newImage;
+		}
+		
+		public static TempFile imagesToGif(List<BufferedImage> images, int width) {
+			
+			TempFile output = new TempFile(width + ".gif");
+			List<GifFrame> gifFrames = new ArrayList<GifFrame>();
+			
+			for(BufferedImage image: images)
+			{
+				int transparantColor = 0xFF00FF; // purple
+				BufferedImage gif = ImageUtil.convertRGBAToGIF(image, transparantColor);
+				
+				// every frame takes 1000ms
+				long delay = 1000;
+				
+				// make transparent pixels not 'shine through'
+				String disposal = GifFrame.RESTORE_TO_BGCOLOR;
+				
+				// add frame to sequence
+				gifFrames.add(new GifFrame(gif, delay, disposal));
+			}
+			
+			int loopCount = 0; // loop indefinitely
+		
+			try {
+				OutputStream out = new FileOutputStream(output.getFile());			   
+				ImageUtil.saveAnimatedGIF(out, gifFrames, loopCount);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}		
+			   
+			return output;
 		}
 }

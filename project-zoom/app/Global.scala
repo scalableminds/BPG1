@@ -28,7 +28,9 @@ import play.api.libs.json.Json
 import java.io.FileInputStream
 import java.io.File
 import models.ProjectDAO
-import projectZoom.thumbnails.IconActor
+import projectZoom.thumbnails.all.AllThumbnailActor
+import projectZoom.thumbnails.image.ImageThumbnailActor
+import projectZoom.thumbnails.video.VideoThumbnailActor
 
 object Global extends GlobalSettings with GlobalDBAccess {
 
@@ -39,7 +41,9 @@ object Global extends GlobalSettings with GlobalDBAccess {
     val aa = ArtifactActor.start
     KnowledgeActor.start
     TextThumbnailActor.start
-    IconActor.start
+    AllThumbnailActor.start
+    ImageThumbnailActor.start
+    VideoThumbnailActor.start
     SupervisorActor.start
     if (app.mode == Mode.Dev) {
       putSampleValuesInDB
@@ -47,8 +51,8 @@ object Global extends GlobalSettings with GlobalDBAccess {
       sys.scheduler.scheduleOnce(5 seconds) {
         //ProjectDAO.findOneByName(_project)
         List(
-            models.ArtifactInfo("test.png", "null - null", "prototype", "dummy", Json.obj()) -> 
-              new FileInputStream(new File("public/images/favicon.png"))
+            models.Artifact("test.jpg", "null - null", "prototype", "dummy", Json.obj()) ->
+              new FileInputStream(new File("public/images/test.jpg"))
         ).map{
           case (info, stream) =>
             Logger.debug("Inserted dummy Artifact: " + info)
@@ -59,7 +63,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
   }
 
   def putSampleValuesInDB(implicit sys: ActorSystem) = {
-    
+
   }
 
   override def onStop(app: Application) {

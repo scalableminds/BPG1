@@ -2,17 +2,15 @@ package projectZoom.thumbnails.image;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
-import models.ResourceInfo;
+import models.DefaultResourceTypes;
+import models.ResourceLike;
 import projectZoom.thumbnails.*;
 
 
 
-public class ImageThumbnailPlugin {
+public class ImageThumbnailPlugin extends ThumbnailPlugin {
 	
 	private List<ImageReader> readers;
 	static int[] THUMBNAIL_WIDTHS = {64, 128, 256, 512};
@@ -26,17 +24,17 @@ public class ImageThumbnailPlugin {
 
 	}
 	
-	public List<Artifact> onResourceFound(File resource, ResourceInfo ressourceInfo) {
+	public List<TempFile> onResourceFound(File file, ResourceLike resource) {
 		
-		System.out.print("onResourceFound called ");
+		System.out.println("Image onResourceFound called ");
 
-		List<Artifact> output = new ArrayList<Artifact>(); 
+		List<TempFile> output = new ArrayList<TempFile>(); 
 		
-		if (!ressourceInfo.typ().equals("default"))
+		if (!resource.typ().equals("default"))
 			return output;
 		
-		String mimetype = TikaUtil.getMimeType(resource);
-		System.out.print(mimetype);
+		String mimetype = TikaUtil.getMimeType(file);
+		System.out.println(mimetype);
 		
 		Iterator<ImageReader> iterator = readers.iterator();
 		while (iterator.hasNext()) {
@@ -45,7 +43,10 @@ public class ImageThumbnailPlugin {
 			if (!reader.isSupported(mimetype))
 				continue;
 
-			output.addAll(reader.getImages(ressourceInfo.name(), THUMBNAIL_WIDTHS));
+			List<TempFile> tempFiles = reader.getImages(file, resource.name(), THUMBNAIL_WIDTHS);
+			for (TempFile t: tempFiles)
+				t.setType(DefaultResourceTypes.PRIMARY_THUMBNAIL());
+			output.addAll(tempFiles);
 		}
 		return output;
 	}

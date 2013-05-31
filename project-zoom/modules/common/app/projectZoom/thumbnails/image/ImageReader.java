@@ -2,6 +2,7 @@ package projectZoom.thumbnails.image;
 
 import projectZoom.thumbnails.*;
 
+import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -20,9 +21,9 @@ public class ImageReader {
 		return false;
 	}	
 	
-	public List<Artifact> getImages(String filename, int[] widths)
+	public List<TempFile> getImages(File resource, String filename, int[] widths)
 	{
-		return new ArrayList<Artifact>();
+		return new ArrayList<TempFile>();
 	}
 	
 }

@@ -11,9 +11,9 @@ import play.api.Logger
 import projectZoom.core.event._
 import projectZoom.util.StartableActor
 import models.ArtifactDAO
-import models.ArtifactInfo
 import models.Artifact
-import models.ResourceInfo
+import models.Artifact
+import models.Resource
 import play.api.Play
 import java.io.FileOutputStream
 import java.io.FileInputStream
@@ -37,20 +37,20 @@ case class UpdateInfo(origin: String, projectName: String)
 /*
  * Subscribed to
  */
-case class ArtifactFound(originalStream: InputStream, artifact: ArtifactInfo) extends ArtifactUpdate
-case class ArtifactDeleted(artifact: ArtifactInfo) extends ArtifactUpdate
+case class ArtifactFound(originalStream: InputStream, artifact: ArtifactLike) extends ArtifactUpdate
+case class ArtifactDeleted(artifact: ArtifactLike) extends ArtifactUpdate
 case class ArtifactAggregation(_project: String, l: List[ArtifactFound]) extends ArtifactUpdate
 
-case class ResourceFound(inputStream: InputStream, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+case class ResourceFound(inputStream: InputStream, artifact: ArtifactLike, resource: ResourceLike) extends Event
 
 /*
  * Publishes
  */
-case class ArtifactUpdated(artifact: ArtifactInfo) extends Event
-case class ArtifactInserted(artifact: ArtifactInfo) extends Event
+case class ArtifactUpdated(artifact: ArtifactLike) extends Event
+case class ArtifactInserted(artifact: ArtifactLike) extends Event
 
-case class ResourceUpdated(file: File, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
-case class ResourceInserted(file: File, artifact: ArtifactInfo, resource: ResourceInfo) extends Event
+case class ResourceUpdated(file: File, artifact: ArtifactLike, resource: ResourceLike) extends Event
+case class ResourceInserted(file: File, artifact: ArtifactLike, resource: ResourceLike) extends Event
 
 trait FSWriter {
   val basePath = {
@@ -72,8 +72,8 @@ trait FSWriter {
       None
   }
 
-  def writeToFS(is: InputStream, projectName: String, artifactPath: String, resourceInfo: ResourceInfo) = {
-    fileFor(projectName, artifactPath, resourceInfo).map {
+  def writeToFS(is: InputStream, projectName: String, artifactPath: String, resource: ResourceLike) = {
+    fileFor(projectName, artifactPath, resource).map {
       case file =>
         file.getParentFile().mkdirs
         val os = new FileOutputStream(file)
@@ -94,31 +94,31 @@ trait FSWriter {
 
 class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess {
 
-  def handleResourceUpdate(is: InputStream, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) = {
-    writeToFS(is, artifactInfo.projectName, artifactInfo.path, resourceInfo).map {
+  def handleResourceUpdate(is: InputStream, artifact: ArtifactLike, resource: ResourceLike) = {
+    writeToFS(is, artifact.projectName, artifact.path, resource).map {
       case file =>
         val hash = DigestUtils.md5Hex(FileUtils.readFileToByteArray(file))
-        ArtifactDAO.findResource(artifactInfo, resourceInfo).map {
+        ArtifactDAO.findResource(artifact, resource).map {
           case None =>
-            ArtifactDAO.insertResource(artifactInfo)(hash, resourceInfo).map(_ =>
-              publish(ResourceInserted(file, artifactInfo, resourceInfo)))
+            ArtifactDAO.insertResource(artifact)(hash, resource).map(_ =>
+              publish(ResourceInserted(file, artifact, resource)))
           case Some(r) /*if r.hash != hash*/ =>
             // TODO: remove comment
-            ArtifactDAO.updateHashOfResource(artifactInfo)(hash, resourceInfo).map(_ =>
-              publish(ResourceUpdated(file, artifactInfo, resourceInfo)))
+            ArtifactDAO.updateHashOfResource(artifact)(hash, resource).map(_ =>
+              publish(ResourceUpdated(file, artifact, resource)))
           case _ =>
-            Logger.debug(s"Resource is still the same. Resource: $resourceInfo")
+            Logger.debug(s"Resource is still the same. Resource: $resource")
         }
     }
   }
 
-  def handleArtifactUpdate(artifactInfo: ArtifactInfo) = {
-    ArtifactDAO.update(artifactInfo).map { lastError =>
+  def handleArtifactUpdate(artifact: ArtifactLike) = {
+    ArtifactDAO.update(artifact).map { lastError =>
       if (lastError.updated > 0) {
         if (lastError.updatedExisting)
-          publish(ArtifactUpdated(artifactInfo))
+          publish(ArtifactUpdated(artifact))
         else
-          publish(ArtifactInserted(artifactInfo))
+          publish(ArtifactInserted(artifact))
       }
     }
   }
@@ -136,34 +136,34 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter wi
     }
   }
 
-  def handleArtifactFound(originalStream: InputStream, artifactInfo: ArtifactInfo) = {
-    val resourceInfo = ResourceInfo(artifactInfo.name, DefaultResourceTypes.DEFAULT_TYP)
-    handleArtifactUpdate(artifactInfo)
-    handleResourceUpdate(originalStream, artifactInfo, resourceInfo)
+  def handleArtifactFound(originalStream: InputStream, artifact: ArtifactLike) = {
+    val resource = Resource(artifact.name, DefaultResourceTypes.DEFAULT_TYP)
+    handleArtifactUpdate(artifact)
+    handleResourceUpdate(originalStream, artifact, resource)
   }
 
-  def handleArtifactDelete(artifactInfo: ArtifactInfo) = {
-    ArtifactDAO.markAsDeleted(artifactInfo).map { lastError =>
+  def handleArtifactDelete(artifact: ArtifactLike) = {
+    ArtifactDAO.markAsDeleted(artifact).map { lastError =>
       if (lastError.updated > 0)
-        publish(ArtifactUpdated(artifactInfo))
+        publish(ArtifactUpdated(artifact))
     }
   }
 
   def receive = {
-    case ArtifactFound(originalStream, artifactInfo) =>
-      handleArtifactFound(originalStream, artifactInfo)
+    case ArtifactFound(originalStream, artifact) =>
+      handleArtifactFound(originalStream, artifact)
 
-    case ArtifactDeleted(artifactInfo) =>
-      handleArtifactDelete(artifactInfo)
+    case ArtifactDeleted(artifact) =>
+      handleArtifactDelete(artifact)
 
     case ArtifactAggregation(_project, artifacts) =>
       handleArtifactAggregation(_project, artifacts)
 
-    case ResourceFound(inputStream, artifactInfo, resourceInfo) =>
-      handleResourceUpdate(inputStream, artifactInfo, resourceInfo)
+    case ResourceFound(inputStream, artifact, resource) =>
+      handleResourceUpdate(inputStream, artifact, resource)
 
-    case RequestResource(artifactInfo, resourceInfo) =>
-      sender ! readFromFS(artifactInfo.projectName, artifactInfo.path, resourceInfo)
+    case RequestResource(artifact, resource) =>
+      sender ! readFromFS(artifact.projectName, artifact.path, resource)
   }
 }
 

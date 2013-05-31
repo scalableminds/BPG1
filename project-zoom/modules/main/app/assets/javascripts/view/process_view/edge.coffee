@@ -10,9 +10,10 @@ Edge = (edge, nodeList) ->
   PI_HALF = PI / 2
   PI_QUARTER = PI / 4
 
-  comment : null
+
   source : nodeList.find( (node) -> node.get("id") == edge.get("from"))
   target : nodeList.find( (node) -> node.get("id") == edge.get("to"))
+
 
   getArrowDirection : ->
 
@@ -51,7 +52,7 @@ Edge = (edge, nodeList) ->
     if tX <= sX and tY >= sY
       angle = Math.asin(distX / hypothenuse)
 
-    else if tX <= sY and tY < sY
+    else if tX <= sX and tY < sY
       angle = PI - Math.asin(distX / hypothenuse)
 
     else if tX > sX and tY <= sY
@@ -82,4 +83,20 @@ Edge = (edge, nodeList) ->
       point.x -= @HALF_SIZE
 
     return point
+
+
+  getCommentPosition : ->
+
+    tX = @target.get("position/x")
+    tY = @target.get("position/y")
+    sX = @source.get("position/x")
+    sY = @source.get("position/y")
+
+    offset =
+      x : 20
+      y: 0
+
+    position =
+      x: Math.min(tX, sX) + Math.abs( tX - sX ) / 2 + offset.x
+      y: Math.min(tY, sY) + Math.abs( tY - sY ) / 2
 
