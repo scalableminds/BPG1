@@ -51,6 +51,7 @@ class ProjectGraph
       )
     g.attr(
       id: (d) -> d.id
+      "data-tags": (d)-> d.tags.toString()
       )
 
     for h, i in headline[0]
@@ -69,15 +70,7 @@ class ProjectGraph
 
 
 
-
-
-
-
-
-
-
 ################# Venn: ##################
-
 
   drawVennCircles : ->
 
@@ -151,7 +144,7 @@ class ProjectGraph
     @drawProjects tagged
 
 
-  arrangeProjectsInVenn : (tagged) ->
+  arrangeProjectsInVenn : () ->
 
     projectClusters =
       "left" : []
@@ -161,16 +154,14 @@ class ProjectGraph
       "lb" : []
       "br" : []
       "middle" : []
-      "no_cluster" : []
 
-    for p in tagged
-      selectedProjectTags = []
-      for t in p.tags
-        selectedProjectTags.push t if t in @selectedTags
+
+    for p in @projectNodes[0]
+      projectTags = _.flatten [$(p).data("tags").toString()]
+      selectedProjectTags = _.intersection(projectTags, @selectedTags)
 
       assignedCluster = @getAssignedVennCluster selectedProjectTags
-
-      projectClusters[assignedCluster].push p.node
+      projectClusters[assignedCluster].push $("##{p.id}")
 
     @layouter.arrangeNodesInVenn(projectClusters)
 
@@ -180,8 +171,7 @@ class ProjectGraph
     positions = []
 
     for c in assignedTags
-      [cluster] = @circles.filter (ci) -> ci[0][0][0].id == "cluster_#{c}"
-      positions.push $(cluster).data("pos")
+      positions.push $("#cluster_#{c}").data("pos")
 
     if "left" in positions
       if "right" in positions
@@ -197,7 +187,6 @@ class ProjectGraph
       else return "right"
     else if "bottom" in positions
       return "bottom"
-    else return "no_cluster"
 
 
   # changeBehavior : (behavior) ->

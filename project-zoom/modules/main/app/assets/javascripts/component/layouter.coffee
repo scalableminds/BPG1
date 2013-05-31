@@ -8,15 +8,7 @@ class Layouter
 
 	constructor : () ->
 
-    CLUSTER_POSITIONS =
-      0 : "left"
-      1 : "right"
-      2 : "bottom"
-      3 : "lr"
-      4 : "lb"
-      5 : "br"
-      6 : "middle"
-      7 : "no_cluster"
+    @cluster_positions = ["left", "right", "bottom", "lr", "lb", "br", "middle", "no_cluster"]
 
     PROJECT_SIZE = 64
     PADDING = 5
@@ -95,8 +87,11 @@ class Layouter
 
   arrangeNodesInVenn : (nodeClusters) ->
 
-    for c in nodeClusters
-      cluster = nodeClusters[c]
+    console.log @cluster_positions
+
+    for p in @cluster_positions
+      cluster = nodeClusters[p]
+      console.log p, cluster
 
     # projectClusters =
     #   "left" : []
@@ -107,6 +102,16 @@ class Layouter
     #   "br" : []
     #   "middle" : []
     #   "no_cluster" : []
+
+    # @cluster_positions =
+    #   0 : "left"
+    #   1 : "right"
+    #   2 : "bottom"
+    #   3 : "lr"
+    #   4 : "lb"
+    #   5 : "br"
+    #   6 : "middle"
+    #   7 : "no_cluster"
 
 
 
