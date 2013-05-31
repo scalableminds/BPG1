@@ -26,16 +26,13 @@ class ProjectGraph
     @currentBehavior.activate()
 
 
-  drawProjects : ->
+  drawProjects : (projects = @projects) ->
 
     names = []
     layouter = @layouter
-    @projectNodes = @projectNodes.data(@projects, (data) -> data.id)
+    @projectNodes = @projectNodes.data(projects, (data) -> data.id)
 
     g = @projectNodes.enter().append("svg:g")
-    # g.attr(
-    #   transform: "translate(20,25)"
-    #   )
     g.append("svg:image")
       .attr(
         class: "projectImage"
@@ -52,14 +49,14 @@ class ProjectGraph
         y: (d) -> parseInt(d.y) + 120
         workaround: (d) -> names.push d.name; return ""
       )
-      # .text( (d) -> layouter.textWrap(this, d.name, 120) )
-      # .append( (d) -> layouter.textWrap(this, d.name, 120) )
-
+    g.attr(
+      id: (d) -> d.id
+      )
 
     for h, i in headline[0]
+      console.log names[i]
       @layouter.textWrap(h, names[i], 120)
       # console.log h.textContent
-      # tspan!!!!!!
 
     # g.append("svg:text") #tags!!!!
 
@@ -88,6 +85,16 @@ class ProjectGraph
 
     @circles = @circles.data(@clusters, (data) -> data.id)
     g = @circles.enter().append("svg:g")
+    g.append("svg:circle")
+      .attr(
+        r: 200
+        cx: (d) -> d.position[0]
+        cy: (d) -> d.position[1]
+        id: (d) -> "cluster_#{d.name}"
+        fill: (d) -> d.color
+        "fill-opacity": .5
+        "data-pos": (d) -> d.data_pos
+      )
     g.append("svg:text")
       .attr(
         id: "text1"
@@ -97,16 +104,6 @@ class ProjectGraph
         class: "label"
       )
       .text( (d) -> d.name )
-    g.append("svg:circle")
-      .attr(
-        r: 200
-        cx: (d) -> d.position[0]
-        cy: (d) -> d.position[1]
-        id: (d) -> "cluster_#{d.name}"
-        fill: (d) -> d.color
-        "fill-opacity": .5
-        "data-pos": location
-      )
 
     @circles.exit().remove()
 
@@ -114,9 +111,9 @@ class ProjectGraph
   updateVennDiagram : (checkbox) =>
 
     positions =
-      0: [300, 200, 250, 50]
-      1: [550, 200, 550, 50]
-      2: [425, 400, 425, 575]
+      0: [[300, 200, 250, 50], "left"]
+      1: [[550, 200, 550, 50], "right"]
+      2: [[425, 400, 425, 575], "bottom"]
 
     color =
       0: "steelblue"
@@ -133,18 +130,34 @@ class ProjectGraph
     if @selectedTags.length <= 3
       for t, index in @selectedTags
         cluster =
-          position: positions[index]
+          position: positions[index][0]
           color: color[index]
           name: t
           id: t
+          data_pos: positions[index][1]
 
         @clusters.push cluster
 
     @drawVennCircles()
-    @arrangeProjectsInVenn()
+    @onlyShowTagged()
+    # @arrangeProjectsInVenn(tagged) # tagged = @projectNodes!!!!
 
 
-  arrangeProjectsInVenn : () ->
+  onlyShowTagged : ->
+
+    tagged = []
+    for p in @projects
+      if _.intersection(p.tags, @selectedTags).length isnt 0
+        console.log "not empty intersection"
+        tagged.push p
+      else
+        console.log "one untagged"
+        console.log $("##{p.id}")
+
+    @drawProjects tagged
+
+
+  arrangeProjectsInVenn : (tagged) ->
 
     projectClusters =
       "left" : []
@@ -156,12 +169,14 @@ class ProjectGraph
       "middle" : []
       "no_cluster" : []
 
-    for p in @projects
+    for p in tagged
       selectedProjectTags = []
       for t in p.tags
-        selectedProjectTags.push t.name if t.name in @selectedTags
+        console.log t, @selectedTags
+        selectedProjectTags.push t if t in @selectedTags
 
       assignedCluster = @getAssignedVennCluster selectedProjectTags
+      console.log assignedCluster
 
       projectClusters[assignedCluster].push p.node
 
@@ -173,8 +188,12 @@ class ProjectGraph
     positions = []
 
     for c in assignedTags
-      [cluster] = assignedTags.filter (c) -> c[0][0][0].id == "cluster_#{c}"
+      [cluster] = @circles.filter (ci) -> ci[0][0][0].id == "cluster_#{c}"
       positions.push $(cluster).data("pos")
+      console.log positions
+
+      console.log cluster
+      console.log "hier", $(cluster).data("pos")
 
     if "left" in positions
       if "right" in positions

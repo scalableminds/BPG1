@@ -26,7 +26,7 @@ class Layouter
 
   textWrap : (svg_text, content, width) ->
 
-    if svg_text?
+    if svg_text? and content?
 
       t_copy = _.clone(svg_text)
 
@@ -52,19 +52,19 @@ class Layouter
         x += l * letterWidth
         split.push w + " "
 
+      svg_text.textContent = ""
+      joined = split.join("")
+      lines = joined.split("\n")
+
+      for line, i in lines
+        d3.select(svg_text).append("tspan")
+        .text(line)
+        .attr(
+          x: pos_x
+          y: pos_y + i * (letterHeight)
+        )
+
     else console.log "no name"
-
-    svg_text.textContent = ""
-    joined = split.join("")
-    lines = joined.split("\n")
-
-    for line, i in lines
-      d3.select(svg_text).append("tspan")
-      .text(line)
-      .attr(
-        x: pos_x
-        y: pos_y + i * (letterHeight)
-      )
 
 
   resizeCircle : (circle, weight) ->
