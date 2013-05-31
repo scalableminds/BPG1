@@ -20,6 +20,7 @@ class Artifact
       image.setAttribute('x','0')
       image.setAttribute('y','0')
       image.setAttribute('data-id', @dataItem.get("id"))
+      image.setAttribute('class', "node")
 
     unless bare
       @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -73,14 +74,12 @@ class Artifact
 
     resources = @dataItem.get("resources").filter( (a) -> a.get("typ") is typ )
 
-    closestResource = resources.reduce(
-      (closestResource, resource) =>
-        if not closestResource? or
-        Math.abs(@getResourceResolution(resource) - width) <= Math.abs(@getResourceResolution(closestResource) - width)
-          closestResource = resource
+    closestResource
+    for resource in resources
+      if not closestResource? or
+      Math.abs(@getResourceResolution(resource) - width) <= Math.abs(@getResourceResolution(closestResource) - width)
+        closestResource = resource
 
-      null
-    )
 
     if closestResource?
       "/artifacts/#{@dataItem.get("id")}/#{closestResource.get("typ")}/#{closestResource.get("name")}"

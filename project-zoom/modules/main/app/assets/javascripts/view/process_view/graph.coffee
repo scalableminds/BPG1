@@ -12,7 +12,7 @@ lib/event_mixin : EventMixin
 
 class Graph
 
-  constructor : (domElement, @graphModel) ->
+  constructor : (domElement, @graphModel, @artifactFinder) ->
 
     EventMixin.extend(this)
 
@@ -110,24 +110,21 @@ class Graph
 
   drawNodes : ->
 
+    el = []
+
     @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
 
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
-      .append("svg:image")
-        .attr(
-          class : "node"
+      .select( -> el = this)
+      .select( (data) =>
+        artifactId = data.get("payload").get("id")
+        artifact = @artifactFinder.getArtifact(artifactId, true)
 
-          x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
-          y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
+        el.appendChild(artifact.getImage())
+      )
 
-          width : (data) -> Node(data).getSize().width
-          height : (data) -> Node(data).getSize().height
-
-          "xlink:href" : (data) -> new Artifact(data.get("payload"), (->64), true, this).resize()
-          "data-id": (data) -> data.get("id")
-        )
 
     @drawComment(@nodeGroups, Node)
 
@@ -256,9 +253,7 @@ class Graph
 
 
   # position.x/y are absolute positions
-  moveNode : (nodeId, position, checkForCluster = false) ->
-
-    node = @nodes.find( (node) -> node.get("id") == nodeId )
+  moveNode : (node, position, checkForCluster = false) ->
 
     node.set({ position })
 

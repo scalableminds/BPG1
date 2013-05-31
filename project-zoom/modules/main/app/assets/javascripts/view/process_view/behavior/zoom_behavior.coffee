@@ -1,10 +1,12 @@
 ### define
 ./behavior : Behavior
 jquery.mousewheel : Mousewheel
-
 ###
 
 class ZoomBehavior extends Behavior
+
+  constructor : (@graph) ->
+
 
   activate : ->
 
@@ -31,6 +33,8 @@ class ZoomBehavior extends Behavior
           @changeZoomSlider(-0.1)
 
 
+
+
   deactivate : ->
 
     $(".zoom-slider")
@@ -44,11 +48,16 @@ class ZoomBehavior extends Behavior
 
   zoom : (event) =>
 
+    graphContainer = @graph.graphContainer
+
     scaleValue = $(".zoom-slider input").val()
 
-    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
-    @graph.drawNodes() #refresh nodes
+    transformation = d3.transform(graphContainer.attr("transform"))
+    transformation.scale = [scaleValue, scaleValue]
 
+    graphContainer.attr("transform", transformation.toString())
+
+    app.trigger "zooming"
 
   changeZoomSlider : (delta) ->
 

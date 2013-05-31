@@ -5,6 +5,11 @@ hammer : Hammer
 jquery.mousewheel : Mousewheel
 ./process_view/graph : Graph
 ./process_view/gui : GUI
+
+../component/artifact_finder : ArtifactFinder
+../component/artifact : Artifact
+text!templates/process_view.html : ProcessViewTemplate
+
 ./process_view/behavior/behavior : Behavior
 ./process_view/behavior/connect_behavior : ConnectBehavior
 ./process_view/behavior/drag_behavior : DragBehavior
@@ -12,10 +17,8 @@ jquery.mousewheel : Mousewheel
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
 ./process_view/behavior/comment_behavior : CommentBehavior
 ./process_view/behavior/zoom_behavior : ZoomBehavior
+./process_view/behavior/pan_behavior : PanBehavior
 
-../component/artifact_finder : ArtifactFinder
-../component/artifact : Artifact
-text!templates/process_view.html : ProcessViewTemplate
 ###
 
 class ProcessView
@@ -36,10 +39,10 @@ class ProcessView
     @gui = new GUI(@$el, @artifactFinder)
     @projectModel.get("graphs/0", this, (graphModel) =>
 
-      @graph = new Graph(@$el.find(".graph")[0], graphModel)
+      @graph = new Graph(@$el.find(".graph")[0], graphModel, @artifactFinder)
       @zooming = new ZoomBehavior(@graph)
-      #@panning = new PanningBehavior()
-      #@dragAndDrop = new DragAndDropBehavior()
+      @panning = new PanBehavior(@graph)
+      #@dragAndDrop = new DragAndDropBehavior(@graph)
       @activate()
     )
 
@@ -60,6 +63,7 @@ class ProcessView
     @gui.deactivate()
     @artifactFinder.deactivate()
     @zooming.deactive()
+    @panning.deactive()
 
 
   activate : ->
@@ -67,6 +71,7 @@ class ProcessView
     @gui.activate()
     @artifactFinder.activate()
     @zooming.activate()
+    @panning.activate()
 
     # drag artifact into graph
     @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )

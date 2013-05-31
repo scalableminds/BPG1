@@ -23,19 +23,18 @@ class DragBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @offset = $("svg").offset()
+    @offset = $("#process-view").offset()
     @scaleValue = $(".zoom-slider input").val()
 
-    @startX = @mousePosition(event).x
-    @startY = @mousePosition(event).y
+    @startPoint = @mousePosition(event)
 
 
   dragMoveNode : (event) =>
 
-    nodeId = $(event.gesture.target).data("id")
+    node = $(event.gesture.target).datum()
     mouse = @mousePosition(event)
 
-    @graph.moveNode(nodeId, mouse, true)
+    @graph.moveNode(node, mouse, true)
 
 
   dragMoveCluster : (event) =>
@@ -44,8 +43,8 @@ class DragBehavior extends Behavior
     mouse = @mousePosition(event)
 
     distance =
-      x : mouse.x - @startX
-      y : mouse.y - @startY
+      x : mouse.x - @startPoint.x
+      y : mouse.y - @startPoint.y
 
     @graph.moveCluster(clusterId, distance)
 

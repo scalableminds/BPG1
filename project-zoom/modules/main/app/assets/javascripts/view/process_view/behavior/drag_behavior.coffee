@@ -32,10 +32,10 @@ class DragBehavior extends Behavior
 
   dragMoveNode : (event) =>
 
-    nodeId = $(event.gesture.target).data("id")
+    node = d3.select(event.gesture.target).datum()
     mouse = @mousePosition(event)
 
-    @graph.moveNode(nodeId, mouse, true)
+    @graph.moveNode(node, mouse, true)
 
 
   dragMoveCluster : (event) =>
