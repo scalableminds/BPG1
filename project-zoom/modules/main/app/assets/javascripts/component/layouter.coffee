@@ -8,7 +8,7 @@ class Layouter
 
 	constructor : () ->
 
-    clusterPositions =
+    CLUSTER_POSITIONS =
       0 : "left"
       1 : "right"
       2 : "bottom"
@@ -20,8 +20,6 @@ class Layouter
 
     PROJECT_SIZE = 64
     PADDING = 5
-
-    console.log "Hi I'm the Layouter"
 
 
   textWrap : (svg_text, content, width) ->
@@ -42,18 +40,18 @@ class Layouter
       words = content.split(" ")
 
       x = 0
-      split = []
+      line_words = []
 
       for w in words
         l = w.length
         if x + (l * letterWidth) > width
-          split.push "\n"
+          line_words.push "\n"
           x = 0
         x += l * letterWidth
-        split.push w + " "
+        line_words.push w + " "
 
       svg_text.textContent = ""
-      joined = split.join("")
+      joined = line_words.join("")
       lines = joined.split("\n")
 
       for line, i in lines
@@ -63,8 +61,6 @@ class Layouter
           x: pos_x
           y: pos_y + i * (letterHeight)
         )
-
-    else console.log "no name"
 
 
   resizeCircle : (circle, weight) ->
