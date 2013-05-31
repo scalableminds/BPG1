@@ -12,13 +12,14 @@ class Artifact
   _domElement : null
 
 
-  constructor : (@dataItem, @width, bare = false) ->
+  constructor : (@dataItem, @width, bare = false, image) ->
 
-    image = document.createElementNS("http://www.w3.org/2000/svg", "image")
-    image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestPrimary(0))
-    image.setAttribute('x','0')
-    image.setAttribute('y','0')
-    image.setAttribute('data-id', @dataItem.get("id"))
+    unless image
+      image = document.createElementNS("http://www.w3.org/2000/svg", "image")
+      image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestPrimary(0))
+      image.setAttribute('x','0')
+      image.setAttribute('y','0')
+      image.setAttribute('data-id', @dataItem.get("id"))
 
     unless bare
       @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -62,15 +63,24 @@ class Artifact
     path = @getNearest(width, @SECONDARY_TYP) || @getNearestPrimary(width)
 
 
+  getResourceResolution : (resource) ->
+
+    name = resource.get("name")
+    +name.substring(0, name.lastIndexOf("."))
+
+
   getNearest : (width, typ) ->
 
     resources = @dataItem.get("resources").filter( (a) -> a.get("typ") is typ )
-    resourcesWithResolutions = resources.map( (e) -> [ +e.get("name").substring(0, e.get("name").lastIndexOf(".")), e ])
 
-    closestResource = null
-    for [ resolution, resource ] in resourcesWithResolutions
-      if not closestResource? or Math.abs(resolution - width) < Math.abs(closest - width)
-        closestResource = resource
+    closestResource = resources.reduce(
+      (closestResource, resource) =>
+        if not closestResource? or
+        Math.abs(@getResourceResolution(resource) - width) <= Math.abs(@getResourceResolution(closestResource) - width)
+          closestResource = resource
+
+      null
+    )
 
     if closestResource?
       "/artifacts/#{@dataItem.get("id")}/#{closestResource.get("typ")}/#{closestResource.get("name")}"

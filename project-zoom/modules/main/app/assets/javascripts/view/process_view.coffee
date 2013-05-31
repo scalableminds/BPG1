@@ -72,6 +72,12 @@ class ProcessView
     processView = this
     $(".btn-group a").on "click", (event) -> processView.changeBehavior(this)
 
+    Hammer($("#process-graph")[0]).on "tap", ".node", (event) ->
+      node = d3.select(event.target).datum()
+      artifact = node.get("payload")
+      wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
+      wrappedArtifact.onMouseEnter()
+
     # zooming
     $(".zoom-slider")
       .on("change", "input", @zoom)
@@ -158,8 +164,7 @@ class ProcessView
     scaleValue = $(".zoom-slider input").val()
 
     @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
-    @trigger("view:zooming")
-
+    @graph.drawNodes() #refresh node
 
   changeZoomSlider : (delta) ->
 

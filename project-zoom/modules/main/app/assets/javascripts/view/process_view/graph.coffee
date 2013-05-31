@@ -4,6 +4,7 @@ d3 : d3
 ./node : Node
 ./edge : Edge
 ./cluster : Cluster
+../../component/artifact : Artifact
 lib/data_item : DataItem
 ###
 
@@ -31,12 +32,9 @@ class Graph
     node = new DataItem(
       position : { x, y }
       id : @nextId()
-      payload :
-        id : "519b693d030655c8752c2973"
-      typ : "project"
+      payload : artifact.dataItem
+      typ : "artifact"
     )
-    #node.set({artifact})
-    node.artifact = artifact
 
     @nodes.add(node)
 
@@ -102,27 +100,23 @@ class Graph
   drawNodes : ->
 
     @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
-    imageElement = "svg:image"
 
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
-        #.attr("workaround", (data) -> artifact = data.artifact; if artifact? then imageElement = artifact.getImage())
       .append("svg:image")
-      .attr(
+        .attr(
+          class : "node"
 
-        class : "node"
+          x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
+          y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
 
-        x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
-        y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
+          width : (data) -> Node(data).getSize().width
+          height : (data) -> Node(data).getSize().height
 
-        width : (data) -> Node(data).getSize().width
-        height : (data) -> Node(data).getSize().height
-
-        "xlink:href" : "assets/images/thumbnails/primary_thumbnail/32.png"
-        "data-id": (data) -> data.get("id")
-      )
-
+          "xlink:href" : (data) -> new Artifact(data.get("payload"), (->64), true, this).resize()
+          "data-id": (data) -> data.get("id")
+        )
 
     @drawComment(@nodeGroups, Node)
 
@@ -130,6 +124,8 @@ class Graph
     @nodeGroups.selectAll("image").attr(
       x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
       y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
+      #"xlink:href" : (data) -> a = new Artifact(data.get("payload"), (->64), true, this); a.activate(); a.resize()
+      "xlink:href" : (data) -> new Artifact(data.get("payload"), (->64), true, this).resize()
     )
 
     #remove deleted nodes
