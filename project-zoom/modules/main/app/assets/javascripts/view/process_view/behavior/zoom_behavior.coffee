@@ -47,7 +47,7 @@ class ZoomBehavior extends Behavior
     scaleValue = $(".zoom-slider input").val()
 
     @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
-    @graph.drawNodes() #refresh node
+    @graph.drawNodes() #refresh nodes
 
 
   changeZoomSlider : (delta) ->

@@ -1,8 +1,9 @@
 ### define
 lib/event_mixin : EventMixin
 d3 : d3
-hammer: Hammer
-./process_view/interactive_graph : InteractiveGraph
+hammer : Hammer
+jquery.mousewheel : Mousewheel
+./process_view/graph : Graph
 ./process_view/gui : GUI
 ./process_view/behavior/behavior : Behavior
 ./process_view/behavior/connect_behavior : ConnectBehavior
@@ -13,6 +14,8 @@ hammer: Hammer
 ./process_view/behavior/zoom_behavior : ZoomBehavior
 
 ../component/artifact_finder : ArtifactFinder
+../component/artifact : Artifact
+text!templates/process_view.html : ProcessViewTemplate
 ###
 
 class ProcessView
@@ -23,29 +26,35 @@ class ProcessView
 
   constructor : (@projectModel) ->
 
+    EventMixin.extend(this)
+
+    @$el = $(ProcessViewTemplate)
+    @el = @$el[0]
+    $(".content").append(@$el)
+
     @artifactFinder = new ArtifactFinder(@projectModel.get("artifacts"))
-    @gui = new GUI(@artifactFinder)
-    @projectModel.get "graphs/0", this, (graphModel) ->
+    @gui = new GUI(@$el, @artifactFinder)
+    @projectModel.get("graphs/0", this, (graphModel) =>
 
-      @graph = new InteractiveGraph(graphModel)
-
+      @graph = new Graph(@$el.find(".graph")[0], graphModel)
       @zooming = new ZoomBehavior(@graph)
       #@panning = new PanningBehavior()
       #@dragAndDrop = new DragAndDropBehavior()
       @activate()
-
-    EventMixin.extend(this)
+    )
 
 
   deactivate : ->
 
-    $("body").off("dragstart")
-    @hammerContext
+    @$el.find("#artifact-finder").off("dragstart")
+    Hammer(@$el.find("#artifact-finder")[0])
       .off("dragend")
-      .off("touch")
-      .off("release")
 
-    $(".btn-group a").off("click")
+    @$el.find(".toolbar a")
+      .off("click")
+    @$el.find(".zoom-slider")
+      .off("change")
+      .off("click")
 
     @graph.changeBehavior(new Behavior())
     @gui.deactivate()
@@ -59,16 +68,13 @@ class ProcessView
     @artifactFinder.activate()
     @zooming.activate()
 
-    # add new node
-    #Hammer( $("svg")[0] ).on "tap", @addNode
-
     # drag artifact into graph
-    $("body").on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
-    @hammerContext = Hammer(document.body).on "dragend", "#artifact-finder image", @addArtifact
+    @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
+    Hammer(@$el.find("#artifact-finder")[0]).on("dragend", "image", @addArtifact)
 
     # change tool from toolbox
     processView = this
-    $(".btn-group a").on "click", (event) -> processView.changeBehavior(this)
+    @$el.find(".toolbar a").on "click", (event) -> processView.changeBehavior(this)
 
     Hammer($("#process-graph")[0]).on "tap", ".node", (event) ->
       node = d3.select(event.target).datum()
@@ -83,7 +89,7 @@ class ProcessView
     touch = evt.gesture.touches[0]
 
     #is the mouse over the SVG?
-    offset = $("#process-graph").offset()
+    offset = @$el.find("#process-graph").offset()
 
     if touch.pageX > offset.left and touch.pageY > offset.top
 
@@ -98,8 +104,8 @@ class ProcessView
 
   addNode : (evt, artifact = null) =>
 
-    offset = $("#process-graph").offset()
-    scaleValue = $(".zoom-slider input").val()
+    offset = @$el.find("#process-graph").offset()
+    scaleValue = @$el.find(".zoom-slider input").val()
 
     x = event.gesture.touches[0].pageX - offset.left
     y = event.gesture.touches[0].pageY - offset.top
@@ -115,7 +121,7 @@ class ProcessView
     graph = @graph
     graphContainer = @graph.graphContainer
 
-    toolBox = $(".btn-group a")
+    toolBox = @$el.find(".toolbar a")
     behavior = switch selectedTool
 
       when toolBox[0] then new DragBehavior(graph)
@@ -132,5 +138,4 @@ class ProcessView
       when toolBox[11] then new CommentBehavior(graph)
 
     graph.changeBehavior( behavior )
-
 

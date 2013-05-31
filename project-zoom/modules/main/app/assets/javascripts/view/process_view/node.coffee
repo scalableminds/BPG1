@@ -25,6 +25,6 @@ Node = (node) ->
   getCommentPosition : ->
 
     position =
-      x: node.get("position/x") + HALF_SIZE
-      y: node.get("position/y") - HALF_SIZE / 2
+      x: node.get("position/x") + HALF_SIZE / 3
+      y: node.get("position/y") - HALF_SIZE
 
