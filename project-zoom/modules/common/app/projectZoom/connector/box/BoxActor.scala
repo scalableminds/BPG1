@@ -18,7 +18,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
   implicit val timeout = Timeout(30 seconds)
   
   lazy val tokenActor = context.actorOf(Props(new BoxTokenActor(appKeys, accessTokens)))
-  lazy val box = new BoxAPI(appKeys)
+  lazy val box = new BoxExtendedAPI(appKeys)
 
   var updateTicker: Cancellable = null
   
