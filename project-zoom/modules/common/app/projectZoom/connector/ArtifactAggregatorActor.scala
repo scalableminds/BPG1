@@ -8,6 +8,8 @@ import java.io.ByteArrayInputStream
 
 trait ArtifactAggregatorActor extends ConnectorActor with EventPublisher {
 
+  def projects = ProjectCache.getProjects
+  
   def toInputStream(bytes: Array[Byte]) = new ByteArrayInputStream(bytes)
   
   def publishFoundArtifact(bytes: Array[Byte], artifact: ArtifactLike) = {

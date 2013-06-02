@@ -47,9 +47,10 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
 
   val connectors = List[ActorRef]()
 
-  def updateProjects = {
-
-  }
+  def updateProjects =
+    DBProxy.getProjects.map{projects =>
+      ProjectCache.setProjects(projects)
+    }
 
   def updateUsers = {
 

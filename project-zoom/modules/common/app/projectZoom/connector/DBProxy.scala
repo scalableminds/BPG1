@@ -1,7 +1,7 @@
 package projectZoom.connector
 
 import models.PermanentValueService
-import models.ProjectDAO
+import models.{ProjectDAO, ProjectLike}
 import models.GlobalDBAccess
 import play.api.libs.json._
 import scala.concurrent._
@@ -9,11 +9,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import box.BoxAccessTokens
 import play.api.Logger
 
-
 object DBProxy {
   implicit val ctx = models.GlobalAccessContext
-  
-  def getProjects = ProjectDAO.findAll
+  import ProjectDAO.projectLikeFormat
   
   def getBoxTokens(): Future[Option[BoxAccessTokens]] = PermanentValueService.get("box.tokens").map{jsonOpt => 
     jsonOpt match  {
@@ -34,4 +32,15 @@ object DBProxy {
  
   def setBoxEventStreamPos(eventStreamPos: Long) = PermanentValueService.put("box.eventStreamPos", JsNumber(eventStreamPos)) 
 
+  def getProjects = ProjectDAO.findAll.map{jsonList =>
+    jsonList.flatMap{ json => 
+      json.validate[ProjectLike] match {
+        case JsSuccess(proj, _) =>  Some(proj)
+        case JsError(err) => Logger.error(s"Error reading projects:\n${err.mkString}")
+          None
+      }
+    }
+  }
+  
+  
 }
