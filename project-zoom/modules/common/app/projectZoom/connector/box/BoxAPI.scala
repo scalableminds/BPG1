@@ -45,8 +45,8 @@ class BoxAPI(appKeys: BoxAppKeyPair) {
     jsonAPI(s"$apiURL/files/$fileId")
   }
 
-  def fetchEvents(stream_position: Long = 0)(implicit accessTokens: BoxAccessTokens) = {
-    jsonAPI(s"$apiURL/events?stream_position=$stream_position")
+  def fetchEvents(stream_position: Long = 0, limit: Int = 100)(implicit accessTokens: BoxAccessTokens) = {
+    jsonAPI(s"$apiURL/events?stream_position=$stream_position&limit=$limit")
   }
 
   def downloadFile(fileId: String)(implicit accessTokens: BoxAccessTokens) = {
@@ -55,21 +55,5 @@ class BoxAPI(appKeys: BoxAppKeyPair) {
       .withHeaders(authHeader)
       .get(status => Iteratee.consume[Array[Byte]]())
       .flatMap(i => i.run)
-  }
-
-  def enumerateEvents(streamPos: Long = 0)(implicit accessTokens: BoxAccessTokens) = {
-    def loop(stream_position: Long, accumulatedEvents: JsArray): Future[(Long, Future[JsArray])] = {
-      Logger.debug(s"fetching events at stream pos $stream_position")
-      fetchEvents(stream_position).flatMap { json =>
-        val chunkSize = (json \ "chunk_size").as[Int]
-        val nextStreamPos = (json \ "next_stream_position").as[Long]
-        Logger.debug(s"fetched $chunkSize events")
-        if (chunkSize == 0)
-          Future((nextStreamPos, Future(accumulatedEvents)))
-        else
-          loop(nextStreamPos, accumulatedEvents ++ (json \ "entries").as[JsArray])
-      }
-    }
-    loop(streamPos, JsArray())
   }
 }

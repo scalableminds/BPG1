@@ -33,10 +33,10 @@ case class BoxFolder(
     owned_by: BoxMiniUser,
     parent: BoxMiniFolder,
     item_status: String,
-    item_collection: List[BoxMiniSource],
+    item_collection: Option[List[BoxMiniSource]],
     synced: Boolean) extends BoxSource with BoxBaseFolder
 
-object BoxFolder extends Function16[String, Option[String], Option[String], String, String, String, String, Int, BoxPathCollection, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, List[BoxMiniSource], Boolean, BoxFolder]{
+object BoxFolder extends Function16[String, Option[String], Option[String], String, String, String, String, Int, BoxPathCollection, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, Option[List[BoxMiniSource]], Boolean, BoxFolder]{
   val BoxFolderAsSourceReads: Reads[BoxSource] = 
     ((__ \ "id").read[String] and
     (__ \ "sequence_id").readNullable[String] and
@@ -52,6 +52,6 @@ object BoxFolder extends Function16[String, Option[String], Option[String], Stri
     (__ \ "owned_by").read[BoxMiniUser] and
     (__ \ "parent").read[BoxMiniFolder] and
     (__ \ "item_status").read[String] and
-    (__ \ "item_collection").read[List[BoxMiniSource]] and
+    (__ \ "item_collection").readNullable[List[BoxMiniSource]] and
     (__ \ "synced").read[Boolean])(BoxFolder.apply _)
 }

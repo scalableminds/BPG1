@@ -12,26 +12,27 @@ import play.api.libs.json._
 import api._
 import models.Artifact
 
+import scala.util.{Success,Failure}
+
 class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventStreamPos: Long) extends ArtifactAggregatorActor {
-  type FolderId=String
-  
+
+  Logger.debug(projects.mkString("\n"))
   val TICKER_INTERVAL = 1 minute
   
   implicit val timeout = Timeout(30 seconds)
   
   lazy val tokenActor = context.actorOf(Props(new BoxTokenActor(appKeys, accessTokens)))
   lazy val box = new BoxExtendedAPI(appKeys)
- 
-  val collaborations = scala.collection.mutable.Map[FolderId, List[String]]()
 
   var updateTicker: Cancellable = null
   
   def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Future[String] = {
     box.fetchCollaborators(file).map{ collaborators =>
       val emailAddresses = collaborators.map(_.login)
-      projects.maxBy{ project =>
+      val mostLikelyProject = projects.maxBy{ project =>
         project.participants.count(p => emailAddresses.contains(p._user))
-      }.name
+      }
+      mostLikelyProject.name
     }
   }
   
@@ -40,21 +41,26 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
       source match {
         case file: BoxFile => 
           //box.downloadFile(file.id).map{byteArray =>
-          findProjectForFile(file).foreach{ projectName =>
-            Logger.info(s"found ${file.fullPath} to be in project $projectName")
+          findProjectForFile(file).onComplete{ 
+            case Success(projectName) =>
+              Logger.info(s"found ${file.fullPath} to be in project $projectName")
             //publishFoundArtifact(byteArray, Artifact(file.name, projectName, "box", file.path, Json.parse("{}")))
+            case Failure(err) => 
+              Logger.error(err.toString)
           }
         //}
+        case folder: BoxFolder =>
+          Logger.debug(s"found folder being uploaded: $folder")
       }
     }
   }
   
   def handleEventStream(implicit accessTokens: BoxAccessTokens) {
-    box.enumerateEvents(eventStreamPos).map { p =>
-      DBProxy.setBoxEventStreamPos(p._1)
-      eventStreamPos = p._1
-      p._2.map{eventArr =>
-        eventArr.value.map { json =>
+    box.fetchEvents(eventStreamPos).map { jsonResponse => 
+      eventStreamPos = (jsonResponse \ "next_stream_position").as[Long]
+      DBProxy.setBoxEventStreamPos(eventStreamPos)
+      Logger.debug(s"new eventStreamPos: $eventStreamPos")
+      (jsonResponse \ "entries").as[JsArray].value.map { json =>
           json.validate(api.BoxEvent.BoxEventReads) match {
             case JsSuccess(event, _) => Some(event)
             case JsError(err) =>
@@ -72,8 +78,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
           }
         }
       }
-    }
-  }
+    }  
   
   def aggregate() = {
     (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map{tokenOpt => 
