@@ -188,7 +188,7 @@ class Graph
     @drawComment(@clusterPaths, Cluster)
 
     #update existing ones
-    @clusterPaths.select(".cluster")
+    @clusterPaths.selectAll(".cluster")
       .attr(
         d : (data) -> Cluster(data).getLineSegment()
       )
@@ -292,7 +292,7 @@ class Graph
         x : node.get("position/x") + distance.x
         y : node.get("position/y") + distance.y
 
-      @moveNode(node.get("id"), position)
+      @moveNode(node, position)
 
     #actually move the svg elements
     @drawClusters()
