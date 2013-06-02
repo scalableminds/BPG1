@@ -13,22 +13,38 @@ import api._
 import models.Artifact
 
 class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventStreamPos: Long) extends ArtifactAggregatorActor {
+  type FolderId=String
+  
   val TICKER_INTERVAL = 1 minute
   
   implicit val timeout = Timeout(30 seconds)
   
   lazy val tokenActor = context.actorOf(Props(new BoxTokenActor(appKeys, accessTokens)))
   lazy val box = new BoxExtendedAPI(appKeys)
+ 
+  val collaborations = scala.collection.mutable.Map[FolderId, List[String]]()
 
   var updateTicker: Cancellable = null
+  
+  def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Future[String] = {
+    box.fetchCollaborators(file).map{ collaborators =>
+      val emailAddresses = collaborators.map(_.login)
+      projects.maxBy{ project =>
+        project.participants.count(p => emailAddresses.contains(p._user))
+      }.name
+    }
+  }
   
   def handleITEM_UPLOAD(event: BoxEvent)(implicit accessTokens: BoxAccessTokens) {
     event.source.map{ source =>
       source match {
         case file: BoxFile => 
-          box.downloadFile(file.id).onSuccess{
-            case byteArray => publishFoundArtifact(byteArray, Artifact(file.name, "", "box", file.path, Json.parse("{}")))
+          //box.downloadFile(file.id).map{byteArray =>
+          findProjectForFile(file).foreach{ projectName =>
+            Logger.info(s"found ${file.fullPath} to be in project $projectName")
+            //publishFoundArtifact(byteArray, Artifact(file.name, projectName, "box", file.path, Json.parse("{}")))
           }
+        //}
       }
     }
   }
