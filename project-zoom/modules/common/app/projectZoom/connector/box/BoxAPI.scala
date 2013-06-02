@@ -29,6 +29,10 @@ class BoxAPI(appKeys: BoxAppKeyPair) {
   def fetchFolderInfo(folderId: String)(implicit accessTokens: BoxAccessTokens): Future[JsValue] = {
     jsonAPI(s"$apiURL/folders/$folderId")
   }
+  
+  def fetchFolderCollaborations(folderId: String)(implicit accessTokens: BoxAccessTokens): Future[JsValue] = {
+    jsonAPI(s"$apiURL/folders/$folderId/collaborations")
+  }
 
   def fetchFolderContent(folderId: String,
     offset: Int = 0,
