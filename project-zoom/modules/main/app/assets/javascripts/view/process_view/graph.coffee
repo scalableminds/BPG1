@@ -38,7 +38,9 @@ class Graph
     @drawClusters()
 
 
-  addNode : (x, y, artifact) ->
+  addNode : (x, y, artifactId) ->
+
+    artifact = @artifactFinder.getArtifact(artifactId)
 
     node = new DataItem(
       position : { x, y }
