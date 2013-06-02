@@ -117,12 +117,15 @@ class Graph
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
-      .select( -> el = this)
-      .select( (data) =>
+      .select( (data, i)-> #hacky
+        el[i] = @;
+        return this
+      )
+      .select( (data, i) =>
         artifactId = data.get("payload").get("id")
         artifact = @artifactFinder.getArtifact(artifactId, true)
 
-        el.appendChild(artifact.getImage())
+        el[i].appendChild(artifact.getImage())
       )
 
 

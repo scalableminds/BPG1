@@ -142,5 +142,10 @@ class ProcessView
       when toolBox[10] then new DrawClusterBehavior(graph, graphContainer, "test")
       when toolBox[11] then new CommentBehavior(graph)
 
+    if behavior instanceof ConnectBehavior or behavior instanceof DrawClusterBehavior
+      @panning.deactivate()
+    else
+      @panning.activate()
+
     graph.changeBehavior( behavior )
 

@@ -5,18 +5,28 @@ hammer : Hammer
 
 class PanBehavior extends Behavior
 
+  constructor : (@graph) ->
+
+    @active = false
+
   activate : ->
 
-    @hammerContext = Hammer($("#process-graph")[0])
-    .on("dragstart", @panStart)
-    .on("drag", @pan)
+    unless @active
+      @hammerContext = Hammer($("#process-graph")[0])
+      .on("dragstart", @panStart)
+      .on("drag", @pan)
+
+      @active = true
 
 
   deactivate : ->
 
-    @hammerContext
-      .off("dragstart")
-      .off("dragmove")
+    if @active
+      @hammerContext
+        .off("dragstart", @panStart)
+        .off("drag", @pan)
+
+      @active = false
 
 
   panStart : (event) =>
