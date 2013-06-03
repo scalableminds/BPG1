@@ -10,7 +10,7 @@ import akka.pattern._
 import akka.util.Timeout
 import play.api.libs.json._
 import api._
-import models.Artifact
+import models.{Artifact, ProjectLike}
 
 import scala.util.{Success,Failure}
 
@@ -26,33 +26,51 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
 
   var updateTicker: Cancellable = null
   
-  def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Future[String] = {
-    box.fetchCollaborators(file).map{ collaborators =>
-      val emailAddresses = collaborators.map(_.login)
-      //bad workaround
-      if(emailAddresses.size > 20) throw new IllegalArgumentException("general information file")
+  def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): String = {
+    val collaborators = box.fetchCollaborators(file)
+    val emailAddresses = collaborators.map(_.login)
+    val canonicalPathSegments = splitAndCanonicalizePath(file.path)
+    //bad workaround
+    if(emailAddresses.size > 20) "generalInformation"
+    else {
       val mostLikelyProject = projects.maxBy{ project =>
-        project.participants.count(p => emailAddresses.contains(p._user))
+        project.participants.count(p => emailAddresses.contains(p._user)) + 
+        evaluatePathName(canonicalPathSegments, project)
       }
       mostLikelyProject.name
     }
   }
   
-  def handleITEM_UPLOAD(event: BoxEvent)(implicit accessTokens: BoxAccessTokens) {
-    event.source.map{ source =>
-      source match {
-        case file: BoxFile => 
-          box.downloadFile(file.id).map{ byteArray =>
-          findProjectForFile(file).onComplete{ 
-            case Success(projectName) =>
-              Logger.info(s"found ${file.fullPath} to be in project $projectName")
-              publishFoundArtifact(byteArray, Artifact(file.name, projectName, file.path, "box", Json.parse("{}")))
-            case Failure(err) => 
-              Logger.error(err.toString)
-          }
+  def splitAndCanonicalizePath(path: String) = path.replace("-", " ").toLowerCase.split(" ").filterNot(_.isEmpty).toList
+  
+  def evaluatePathName(canonicalPathSegments: List[String], project: ProjectLike):Int = {
+    val projectNameSplit = project.canonicalName.split(" ").filterNot(_.isEmpty)
+    
+    val maxMatch = canonicalPathSegments.map{seg => 
+      projectNameSplit.count(el => canonicalPathSegments.contains(el))
+    }.max
+    
+    maxMatch * maxMatch
+  }
+  
+  def handleITEM_UPLOAD(events: List[BoxEvent])(implicit accessTokens: BoxAccessTokens) {
+    box.buildCollaboratorCache(events).onComplete{
+      case x => 
+      events.foreach{ event =>
+        event.source match {
+          case Some(file: BoxFile) => 
+            box.downloadFile(file.id).map{ byteArray =>
+            val projectName = findProjectForFile(file)
+            if(projectName != "generalInformation"){
+              Logger.debug(s"found ${file.fullPath} to be in project $projectName")
+              //publishFoundArtifact(byteArray, Artifact(file.name, projectName, file.path, "box", Json.parse("{}")))
+            }
+            else
+              Logger.debug(s"found ${file.fullPath} to be general Information only")
+            }
+          case Some(folder: BoxFolder) =>
+            Logger.debug(s"found folder being uploaded: $folder")
         }
-        case folder: BoxFolder =>
-          Logger.debug(s"found folder being uploaded: $folder")
       }
     }
   }
@@ -73,12 +91,9 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
         }.flatten
       }
       .onSuccess{
-        case eventList => eventList.foreach{ event =>
-          event.event_type match {
-            case "ITEM_UPLOAD" => handleITEM_UPLOAD(event)
-            case otherType => Logger.debug(s"event of Type '$otherType' found: $event")
-          }
-        }
+        case eventList => 
+          val eventMap = eventList.groupBy{ event => event.event_type}
+          handleITEM_UPLOAD(eventMap.get("ITEM_UPLOAD").map(_.toList) getOrElse Nil)
       }
     }  
   
