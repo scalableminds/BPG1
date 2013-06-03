@@ -46,7 +46,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
           findProjectForFile(file).onComplete{ 
             case Success(projectName) =>
               Logger.info(s"found ${file.fullPath} to be in project $projectName")
-              publishFoundArtifact(byteArray, Artifact(file.name, projectName, "box", file.path, Json.parse("{}")))
+              publishFoundArtifact(byteArray, Artifact(file.name, projectName, file.path, "box", Json.parse("{}")))
             case Failure(err) => 
               Logger.error(err.toString)
           }
