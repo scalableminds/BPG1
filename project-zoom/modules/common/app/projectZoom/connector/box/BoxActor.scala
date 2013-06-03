@@ -76,7 +76,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
         case eventList => eventList.foreach{ event =>
           event.event_type match {
             case "ITEM_UPLOAD" => handleITEM_UPLOAD(event)
-            case otherType => Logger.debug(s"event of Type '$otherType' found")
+            case otherType => Logger.debug(s"event of Type '$otherType' found: $event")
           }
         }
       }
