@@ -13,5 +13,10 @@ object BoxMiniSource {
 trait BoxSource
 
 object BoxSource {
-  implicit val BoxSourceReads = BoxFile.BoxFileAsSourceReads or BoxFolder.BoxFolderAsSourceReads
+  implicit val BoxSourceReads = 
+    BoxFile.BoxFileAsSourceReads or 
+    BoxFolder.BoxFolderAsSourceReads or 
+    BoxCollaboration.boxCollaborationAsSourceReads or
+    BoxComment.BoxCommentAsSourceReads or
+    BoxLock.BoxLockAsSourceReads
 }

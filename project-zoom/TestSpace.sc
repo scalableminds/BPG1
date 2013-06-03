@@ -1,13 +1,8 @@
 object TestSpace {
-  import models.Project
-  import models.ProjectDAO
   import play.api.libs.json.Json
+  import projectZoom.connector.box.api._
 
-  val js = Json.obj(
-    "_id" -> "517188503A029499DDE7A286",
-    "firstName" -> "T",
-    "lastName" -> "T",
-    "email" -> "tombocklisch@gmail.com")
+  val js = Json.parse("""{"type":"event","event_id":"9e1b6f53d80a725844a54e8a3150b7a814331202","created_by":{"type":"user","id":"196775798","name":"Thomas Werkmeister","login":"Thomas.werkmeister@student.hpi.uni-potsdam.de"},"created_at":"2013-05-24T02:09:42-07:00","recorded_at":"2013-05-24T02:09:42-07:00","event_type":"ITEM_UPLOAD","session_id":"14039182519f2e164d5d8","source":{"type":"file","id":"8280529533","sequence_id":"0","etag":"0","sha1":"64731613fcd19fddf2dc4683d8890aed175d7f0d","name":"Network - Server.png","description":"","size":751,"path_collection":{"total_count":1,"entries":[{"type":"folder","id":"0","sequence_id":null,"etag":null,"name":"All Files"}]},"created_at":"2013-05-24T02:09:42-07:00","modified_at":"2013-05-24T02:09:42-07:00","trashed_at":null,"purged_at":null,"content_created_at":"2013-05-24T02:09:42-07:00","content_modified_at":"2013-05-24T02:09:42-07:00","created_by":{"type":"user","id":"196775798","name":"Thomas Werkmeister","login":"Thomas.werkmeister@student.hpi.uni-potsdam.de"},"modified_by":{"type":"user","id":"196775798","name":"Thomas Werkmeister","login":"Thomas.werkmeister@student.hpi.uni-potsdam.de"},"owned_by":{"type":"user","id":"196775798","name":"Thomas Werkmeister","login":"Thomas.werkmeister@student.hpi.uni-potsdam.de"},"shared_link":null,"parent":{"type":"folder","id":"0","sequence_id":null,"etag":null,"name":"All Files"},"item_status":"active","synced":true}}""")
     
   ProjectDAO.reads(js)
 }

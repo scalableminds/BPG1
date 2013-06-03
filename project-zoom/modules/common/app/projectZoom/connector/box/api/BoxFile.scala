@@ -10,6 +10,8 @@ object BoxMiniFile extends Function3[String, String, String, BoxMiniFile] {
       (__ \ "id").read[String] and
       (__ \ "sequence_id").read[String] and 
       (__ \ "name").read[String])(BoxMiniFile.apply _)
+      
+  implicit val BoxMiniFileReads: Reads[BoxMiniFile] = Json.reads[BoxMiniFile]
 }
 
 case class BoxFile(

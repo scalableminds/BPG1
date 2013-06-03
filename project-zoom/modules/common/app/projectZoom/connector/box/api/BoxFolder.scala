@@ -3,7 +3,11 @@ package projectZoom.connector.box.api
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class BoxMiniFolder(id: String, sequence_id: Option[String], name: String) extends BoxMiniSource
+trait BoxBaseFolder{
+  val id: String
+}
+
+case class BoxMiniFolder(id: String, sequence_id: Option[String], name: String) extends BoxMiniSource with BoxBaseFolder
 
 object BoxMiniFolder extends Function3[String, Option[String], String, BoxMiniFolder]{
   implicit val BoxMiniFolderAsSourceReads: Reads[BoxMiniSource] = (
@@ -29,10 +33,10 @@ case class BoxFolder(
     owned_by: BoxMiniUser,
     parent: BoxMiniFolder,
     item_status: String,
-    item_collection: List[BoxMiniSource],
-    synced: Boolean) extends BoxSource
+    item_collection: Option[List[BoxMiniSource]],
+    synced: Boolean) extends BoxSource with BoxBaseFolder
 
-object BoxFolder extends Function16[String, Option[String], Option[String], String, String, String, String, Int, BoxPathCollection, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, List[BoxMiniSource], Boolean, BoxFolder]{
+object BoxFolder extends Function16[String, Option[String], Option[String], String, String, String, String, Int, BoxPathCollection, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, Option[List[BoxMiniSource]], Boolean, BoxFolder]{
   val BoxFolderAsSourceReads: Reads[BoxSource] = 
     ((__ \ "id").read[String] and
     (__ \ "sequence_id").readNullable[String] and
@@ -48,6 +52,6 @@ object BoxFolder extends Function16[String, Option[String], Option[String], Stri
     (__ \ "owned_by").read[BoxMiniUser] and
     (__ \ "parent").read[BoxMiniFolder] and
     (__ \ "item_status").read[String] and
-    (__ \ "item_collection").read[List[BoxMiniSource]] and
+    (__ \ "item_collection").readNullable[List[BoxMiniSource]] and
     (__ \ "synced").read[Boolean])(BoxFolder.apply _)
 }
