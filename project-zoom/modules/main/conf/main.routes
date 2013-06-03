@@ -18,6 +18,7 @@ GET    /artifacts/:id/:typ/:name                                          contro
 GET    /artifacts/:id                                                     controllers.main.ArtifactController.read(id: String)
 
 GET    /tags                                                              controllers.main.TagController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /tags/:id                                                          controllers.main.TagController.read(id: String)
 
 GET    /users                                                             controllers.main.ProfileController.list(offset: Int ?= 0, limit: Int ?= 50)
 GET    /users/:name                                                       controllers.main.ProfileController.read(name)
