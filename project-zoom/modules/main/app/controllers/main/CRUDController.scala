@@ -66,7 +66,7 @@ trait CRUDController[T] extends SecureSocial with ListPortionHelpers with MongoH
         case Some(obj) =>
           Ok(createSingleResult(obj))
         case _ =>
-          Ok(Json.obj())
+          NotFound(Json.obj())
       }
     }
   }

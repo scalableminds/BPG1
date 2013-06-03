@@ -16,13 +16,14 @@ trait ArtifactLike {
   def path: String
   def source: String
   def metadata: JsValue
+  def isDeleted: Boolean
   def resources: List[ResourceLike]
 }
 
 trait ArtifactLikeTransformers extends ResourceLikeTransformers{
   
   def toTuple(a: ArtifactLike) = 
-    (a.name, a.projectName, a.path, a.source, a.metadata, a.resources)
+    (a.name, a.projectName, a.path, a.source, a.metadata, a.isDeleted, a.resources)
   
   implicit val artifactLikeWrites = 
     ((__ \ 'name).write[String] and
@@ -30,6 +31,7 @@ trait ArtifactLikeTransformers extends ResourceLikeTransformers{
     (__ \ 'path).write[String] and
     (__ \ 'source).write[String] and
     (__ \ 'metadata).write[JsValue] and
+    (__ \ 'isDeleted).write[Boolean] and
     (__ \ 'resources).write[List[ResourceLike]])(toTuple _)
 }
 
@@ -39,6 +41,7 @@ case class Artifact(
   path: String,
   source: String,
   metadata: JsValue,
+  isDeleted: Boolean = false,
   resources: List[Resource] = Nil,
   _id: BSONObjectID = BSONObjectID.generate)
     extends ArtifactLike
