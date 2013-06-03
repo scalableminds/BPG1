@@ -32,12 +32,19 @@ class ProjectGraph
     layouter = @layouter
     @projectNodes = @projectNodes.data(projects, (data) -> data.id)
 
+    start_x = start_y = x = y = 20
+    margin_x = 30
+    margin_y = 70
+    nodeWidth = 100
+    svgWidth = parseInt @svg.attr("width")
+    next_line = parseInt(svgWidth / (margin_x + nodeWidth))
+
     g = @projectNodes.enter().append("svg:g")
     g.append("svg:image")
       .attr(
         class: "projectImage"
-        x: (d) -> d.x
-        y: (d) -> d.y
+        x: (d, i) -> margin_x + (i % next_line) * (nodeWidth + margin_x)
+        y: (d, i) -> start_y + parseInt(i / next_line) * (nodeWidth + margin_y)
         width: (d) -> d.width
         height: (d) -> d.height
         "xlink:href": (d) -> d.image
@@ -45,8 +52,8 @@ class ProjectGraph
     headline = g.append("svg:text")
       .attr(
         class: "projectHeadline"
-        x: (d) -> parseInt(d.x)
-        y: (d) -> parseInt(d.y) + 120
+        x: (d, i) -> margin_x + (i % next_line) * (nodeWidth + margin_x)
+        y: (d, i) -> start_y + parseInt(i / next_line) * (nodeWidth + margin_y) + 120
         workaround: (d) -> names.push d.name; return ""
       )
     g.attr(
@@ -129,9 +136,9 @@ class ProjectGraph
 
         @clusters.push cluster
 
-    @drawVennCircles()
+    # @drawVennCircles()
     @onlyShowTagged()
-    @arrangeProjectsInVenn() # tagged = @projectNodes!!!!
+    # @arrangeProjectsInVenn() # tagged = @projectNodes!!!!
 
 
   onlyShowTagged : ->
@@ -142,6 +149,7 @@ class ProjectGraph
         if _.intersection(p.tags, @selectedTags).length isnt 0
           tagged.push p
 
+      @drawProjects []
       @drawProjects tagged
     else @drawProjects()
 
