@@ -26,30 +26,32 @@ class DragBehavior extends Behavior
     @offset = $("#process-graph").offset()
     @scaleValue = $(".zoom-slider input").val()
 
-    @startX = @mousePosition(event).x
-    @startY = @mousePosition(event).y
-
+    @startPoint = @mousePosition(event)
 
   dragMoveNode : (event) =>
 
     node = d3.select(event.gesture.target).datum()
     mouse = @mousePosition(event)
 
-    @graph.moveNode(node, mouse, true)
+    delta =
+      x : mouse.x - @startPoint.x
+      y : mouse.y - @startPoint.y
 
+    @graph.moveNode(node, delta, true)
+
+    @startPoint = mouse
 
   dragMoveCluster : (event) =>
 
     clusterId = $(event.gesture.target).data("id")
     mouse = @mousePosition(event)
 
-    distance =
-      x : mouse.x - @startX
-      y : mouse.y - @startY
+    delta =
+      x : mouse.x - @startPoint.x
+      y : mouse.y - @startPoint.y
 
-    @graph.moveCluster(clusterId, distance)
+    @graph.moveCluster(clusterId, delta)
 
-    @startX = mouse.x
-    @startY = mouse.y
+    @startPoint = mouse
 
 
