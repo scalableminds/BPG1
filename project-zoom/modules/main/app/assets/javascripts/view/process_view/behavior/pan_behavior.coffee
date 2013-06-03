@@ -5,18 +5,28 @@ hammer : Hammer
 
 class PanBehavior extends Behavior
 
+  constructor : (@graph) ->
+
+    @active = false
+
   activate : ->
 
-    @hammerContext = Hammer($("#process-graph")[0])
-    .on("dragstart", @panStart)
-    .on("drag", @pan)
+    unless @active
+      @hammerContext = Hammer($("#process-graph")[0])
+      .on("dragstart", @panStart)
+      .on("drag", @pan)
+
+      @active = true
 
 
   deactivate : ->
 
-    @hammerContext
-      .off("dragstart")
-      .off("dragmove")
+    if @active
+      @hammerContext
+        .off("dragstart", @panStart)
+        .off("drag", @pan)
+
+      @active = false
 
 
   panStart : (event) =>
@@ -29,8 +39,8 @@ class PanBehavior extends Behavior
     graphContainer = @graph.graphContainer
 
     transformation = d3.transform(graphContainer.attr("transform"))
-    @startPoint.x -= transformation.translate[0]
-    @startPoint.y -= transformation.translate[1]
+    # @startPoint.x -= transformation.translate[0]
+    # @startPoint.y -= transformation.translate[1]
 
 
   pan : (event) =>
@@ -41,6 +51,8 @@ class PanBehavior extends Behavior
       return
 
     mouse = @mousePosition(event)
+    graphContainer = @graph.graphContainer
+    transformation = d3.transform(graphContainer.attr("transform"))
 
     distX = mouse.x - @startPoint.x
     distY = mouse.y - @startPoint.y
@@ -48,9 +60,11 @@ class PanBehavior extends Behavior
     x = distX / @scaleValue
     y = distY / @scaleValue
 
-    graphContainer = @graph.graphContainer
 
-    transformation = d3.transform(graphContainer.attr("transform"))
+    x = transformation.translate[0] + x
+    y = transformation.translate[1] + y
+
+
     transformation.translate = [x, y]
 
     graphContainer.attr("transform", transformation.toString())

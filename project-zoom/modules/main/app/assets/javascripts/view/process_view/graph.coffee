@@ -38,7 +38,9 @@ class Graph
     @drawClusters()
 
 
-  addNode : (x, y, artifact) ->
+  addNode : (x, y, artifactId) ->
+
+    artifact = @artifactFinder.getArtifact(artifactId)
 
     node = new DataItem(
       position : { x, y }
@@ -117,12 +119,15 @@ class Graph
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
-      .select( -> el = this)
-      .select( (data) =>
+      .select( (data, i)-> #hacky
+        el[i] = @;
+        return this
+      )
+      .select( (data, i) =>
         artifactId = data.get("payload").get("id")
         artifact = @artifactFinder.getArtifact(artifactId, true)
 
-        el.appendChild(artifact.getImage())
+        el[i].appendChild(artifact.getImage())
       )
 
 
@@ -183,7 +188,7 @@ class Graph
     @drawComment(@clusterPaths, Cluster)
 
     #update existing ones
-    @clusterPaths.select(".cluster")
+    @clusterPaths.selectAll(".cluster")
       .attr(
         d : (data) -> Cluster(data).getLineSegment()
       )
@@ -287,7 +292,7 @@ class Graph
         x : node.get("position/x") + distance.x
         y : node.get("position/y") + distance.y
 
-      @moveNode(node.get("id"), position)
+      @moveNode(node, position)
 
     #actually move the svg elements
     @drawClusters()

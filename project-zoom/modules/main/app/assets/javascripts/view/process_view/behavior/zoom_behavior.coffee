@@ -38,12 +38,8 @@ class ZoomBehavior extends Behavior
   deactivate : ->
 
     $(".zoom-slider")
-      .off("change")
-      .off("click")
-
-    @hammerContext
-      .off("dragend")
-      .off("touch")
+      .off("change", @zoom)
+      .off("click", @changeZoomSlider)
 
 
   zoom : (event) =>

@@ -18,6 +18,7 @@ text!templates/process_view.html : ProcessViewTemplate
 ./process_view/behavior/comment_behavior : CommentBehavior
 ./process_view/behavior/zoom_behavior : ZoomBehavior
 ./process_view/behavior/pan_behavior : PanBehavior
+./process_view/behavior/drag_and_drop_behavior : DragAndDropBehavior
 
 ###
 
@@ -42,7 +43,8 @@ class ProcessView
       @graph = new Graph(@$el.find(".graph")[0], graphModel, @artifactFinder)
       @zooming = new ZoomBehavior(@graph)
       @panning = new PanBehavior(@graph)
-      #@dragAndDrop = new DragAndDropBehavior(@graph)
+      @dragAndDrop = new DragAndDropBehavior(@graph, @$el)
+
       @activate()
     )
 
@@ -50,8 +52,6 @@ class ProcessView
   deactivate : ->
 
     @$el.find("#artifact-finder").off("dragstart")
-    Hammer(@$el.find("#artifact-finder")[0])
-      .off("dragend")
 
     @$el.find(".toolbar a")
       .off("click")
@@ -64,6 +64,7 @@ class ProcessView
     @artifactFinder.deactivate()
     @zooming.deactive()
     @panning.deactive()
+    @dragAndDrop.deactivate()
 
 
   activate : ->
@@ -72,53 +73,20 @@ class ProcessView
     @artifactFinder.activate()
     @zooming.activate()
     @panning.activate()
+    @dragAndDrop.activate()
 
     # drag artifact into graph
     @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
-    Hammer(@$el.find("#artifact-finder")[0]).on("dragend", "image", @addArtifact)
 
     # change tool from toolbox
     processView = this
     @$el.find(".toolbar a").on "click", (event) -> processView.changeBehavior(this)
 
-    Hammer($("#process-graph")[0]).on "tap", ".node", (event) ->
+    Hammer($("#process-graph")[0]).on "mouseenter", ".node", (event) ->
       node = d3.select(event.target).datum()
       artifact = node.get("payload")
       wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
       wrappedArtifact.onMouseEnter()
-
-
-  addArtifact : (evt) =>
-
-    artifact = $(evt.gesture.target)
-    touch = evt.gesture.touches[0]
-
-    #is the mouse over the SVG?
-    offset = @$el.find("#process-graph").offset()
-
-    if touch.pageX > offset.left and touch.pageY > offset.top
-
-      id = artifact.data("id")
-      artifact = @artifactFinder.getArtifact(id)
-
-      @on "view:zooming", artifact.resize
-
-      @addNode(evt, artifact)
-      artifact.resize() #call once so, that the right-sized image is loaded
-
-
-  addNode : (evt, artifact = null) =>
-
-    offset = @$el.find("#process-graph").offset()
-    scaleValue = @$el.find(".zoom-slider input").val()
-
-    x = event.gesture.touches[0].pageX - offset.left
-    y = event.gesture.touches[0].pageY - offset.top
-
-    x /= scaleValue
-    y /= scaleValue
-
-    @graph.addNode(x, y, artifact)
 
 
   changeBehavior : (selectedTool) =>
@@ -141,6 +109,11 @@ class ProcessView
       when toolBox[9] then new DrawClusterBehavior(graph, graphContainer, "prototype")
       when toolBox[10] then new DrawClusterBehavior(graph, graphContainer, "test")
       when toolBox[11] then new CommentBehavior(graph)
+
+    if behavior instanceof ConnectBehavior or behavior instanceof DrawClusterBehavior
+      @panning.deactivate()
+    else
+      @panning.activate()
 
     graph.changeBehavior( behavior )
 
