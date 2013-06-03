@@ -31,7 +31,7 @@ object TagDAO extends SecuredMongoJsonDAO[Tag] {
   def ensureTag(tagName: String)(implicit ctx: DBAccessContext) = {
     collectionUpdate(Json.obj("name" -> tagName), Json.obj( "$setOnInsert" -> Json.obj(
       "name" -> tagName,
-      "color" -> Color.random)))
+      "color" -> Color.random)), upsert = true)
   }
 
   def findByName(name: String)(implicit ctx: DBAccessContext) = {
