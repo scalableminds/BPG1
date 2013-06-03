@@ -5,8 +5,9 @@ import projectZoom.core.event._
 import projectZoom.util.StartableActor
 import projectZoom.core.artifact._
 import projectZoom.thumbnails._
-import models.ArtifactInfo
-import models.ResourceInfo
+import models.ArtifactLike
+import models.Resource
+import models.ResourceLike
 import models.DefaultResourceTypes
 import java.io.File
 import scala.collection.JavaConversions._
@@ -15,15 +16,15 @@ class VideoThumbnailActor extends ThumbnailActor {
   
   lazy val thumbnailPlugin = new VideoThumbnailPlugin()
 
-  override def handleResourceUpdate(resource: File, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) {
-    if (resourceInfo.typ == DefaultResourceTypes.DEFAULT_TYP) {
+  override def handleResourceUpdate(file: File, artifact: ArtifactLike, resource: ResourceLike) {
+    if (resource.typ == DefaultResourceTypes.DEFAULT_TYP) {
       
-      val tempFiles = thumbnailPlugin.onResourceFound(resource, resourceInfo)
+      val tempFiles = thumbnailPlugin.onResourceFound(file, resource)
       tempFiles.map { tempFile =>
-        val iconResource = ResourceInfo(
+        val iconResource = Resource(
         name = tempFile.getName(),
         typ = tempFile.getType())
-        publish(ResourceFound(tempFile.getStream(), artifactInfo, iconResource))
+        publish(ResourceFound(tempFile.getStream(), artifact, iconResource))
       }
     }
   }

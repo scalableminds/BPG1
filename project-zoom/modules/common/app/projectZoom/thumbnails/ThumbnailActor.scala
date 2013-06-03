@@ -3,21 +3,21 @@ package projectZoom.thumbnails
 import projectZoom.core.event._
 import projectZoom.util.StartableActor
 import projectZoom.core.artifact._
-import models.ArtifactInfo
-import models.ResourceInfo
+import models.ArtifactLike
+import models.ResourceLike
 import models.DefaultResourceTypes
 import java.io.File
 import scala.collection.JavaConversions._
 import projectZoom.thumbnails.all._
 
-class ThumbnailActor extends EventSubscriber with EventPublisher {
+trait ThumbnailActor extends EventSubscriber with EventPublisher {
 
   def receive = {
-    case ResourceUpdated(resource, artifactInfo, resourceInfo) =>
-      handleResourceUpdate(resource, artifactInfo, resourceInfo)
-    case ResourceInserted(resource, artifactInfo, resourceInfo) =>
-      handleResourceUpdate(resource, artifactInfo, resourceInfo)
+    case ResourceUpdated(file, artifact, resource) =>
+      handleResourceUpdate(file, artifact, resource)
+    case ResourceInserted(file, artifact, resource) =>
+      handleResourceUpdate(file, artifact, resource)
   }
   
-  def handleResourceUpdate(resource: File, artifactInfo: ArtifactInfo, resourceInfo: ResourceInfo) {}
+  def handleResourceUpdate(file: File, artifact: ArtifactLike, resource: ResourceLike)
 }

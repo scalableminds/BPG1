@@ -36,7 +36,7 @@ class CommentBehavior extends Behavior
     cluster = d3.select(event.gesture.target).datum()
 
     text = cluster.get("comment") ? ""
-    @showModal "cluster", (text) =>
+    @showModal text, (text) =>
 
       cluster.set(comment: text)
       @graph.drawClusters()
@@ -47,7 +47,7 @@ class CommentBehavior extends Behavior
     edge = d3.select(event.gesture.target).datum()
 
     text = edge.get("comment") ? ""
-    @showModal "cluster", (text) =>
+    @showModal text, (text) =>
 
       edge.set(comment: text)
       @graph.drawEdges()

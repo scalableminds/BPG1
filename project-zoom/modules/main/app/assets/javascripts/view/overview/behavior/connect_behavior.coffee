@@ -38,7 +38,7 @@ class ConnectBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @offset = $("svg").offset()
+    @offset = $("#process-view").offset()
     @scaleValue = $(".zoom-slider input").val()
 
 

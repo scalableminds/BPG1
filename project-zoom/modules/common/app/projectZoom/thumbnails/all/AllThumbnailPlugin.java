@@ -8,8 +8,8 @@ import java.util.List;
 import projectZoom.thumbnails.TempFile;
 import projectZoom.thumbnails.ThumbnailPlugin;
 
-import models.ResourceInfo;
 import models.DefaultResourceTypes;
+import models.ResourceLike;
 
 
 public class AllThumbnailPlugin extends ThumbnailPlugin {
@@ -25,10 +25,10 @@ public class AllThumbnailPlugin extends ThumbnailPlugin {
 
 	}
 	
-	public List<TempFile> onResourceFound(File resource, ResourceInfo ressourceInfo) {
+	public List<TempFile> onResourceFound(File file, ResourceLike resource) {
 		
 		System.out.println("All onResourceFound called ");
-		String fn = ressourceInfo.name();
+		String fn = resource.name();
 		String ext = fn.substring(fn.lastIndexOf(".") + 1);
 
 		String url = ICON_FOLDER + ext + ".png";

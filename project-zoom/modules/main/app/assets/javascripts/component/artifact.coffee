@@ -12,13 +12,15 @@ class Artifact
   _domElement : null
 
 
-  constructor : (@artifact, @width, bare = false) ->
+  constructor : (@dataItem, @width, bare = false, image) ->
 
-    image = document.createElementNS("http://www.w3.org/2000/svg", "image")
-    image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestPrimary(0))
-    image.setAttribute('x','0')
-    image.setAttribute('y','0')
-    image.setAttribute('data-id', @artifact.id)
+    unless image
+      image = document.createElementNS("http://www.w3.org/2000/svg", "image")
+      image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestPrimary(0))
+      image.setAttribute('x','0')
+      image.setAttribute('y','0')
+      image.setAttribute('data-id', @dataItem.get("id"))
+      image.setAttribute('class', "node")
 
     unless bare
       @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -62,20 +64,25 @@ class Artifact
     path = @getNearest(width, @SECONDARY_TYP) || @getNearestPrimary(width)
 
 
+  getResourceResolution : (resource) ->
+
+    name = resource.get("name")
+    +name.substring(0, name.lastIndexOf("."))
+
+
   getNearest : (width, typ) ->
 
-    elements = _.filter(@artifact.resources.items, (r) -> r.attributes.typ is typ)
-    resolutions = _.map(elements, (e) -> (Number) e.attributes.name.substring(0, e.attributes.name.lastIndexOf(".")))
+    resources = @dataItem.get("resources").filter( (a) -> a.get("typ") is typ )
 
-    closest = null
-    for r in resolutions
-      closest = r if not closest? or Math.abs(r - width) < Math.abs(closest - width)
+    closestResource
+    for resource in resources
+      if not closestResource? or
+      Math.abs(@getResourceResolution(resource) - width) <= Math.abs(@getResourceResolution(closestResource) - width)
+        closestResource = resource
 
-    e =_.find(elements, (e) => (((Number) e.attributes.name.substring(0, e.attributes.name.lastIndexOf("."))) is closest))
-    path = null
-    if e?
-      path = "/artifacts/#{@artifact.id}/#{e.attributes.typ}/#{e.attributes.name}"
-    return path
+
+    if closestResource?
+      "/artifacts/#{@dataItem.get("id")}/#{closestResource.get("typ")}/#{closestResource.get("name")}"
 
 
   getSvgElement : ->

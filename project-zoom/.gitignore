@@ -6,10 +6,12 @@ tmp
 eclipsebin
 .history
 .worksheet
+*.sc
 dist
+/conf/box.conf
 /.idea
 /data
-/*.iml
+*.iml
 /out
 /.idea_modules
 /.classpath

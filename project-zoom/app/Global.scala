@@ -51,7 +51,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
       sys.scheduler.scheduleOnce(5 seconds) {
         //ProjectDAO.findOneByName(_project)
         List(
-            models.ArtifactInfo("test.jpg", "null - null", "prototype", "dummy", Json.obj()) -> 
+            models.Artifact("test.jpg", "null - null", "prototype", "dummy", Json.obj()) ->
               new FileInputStream(new File("public/images/test.jpg"))
         ).map{
           case (info, stream) =>
@@ -63,7 +63,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
   }
 
   def putSampleValuesInDB(implicit sys: ActorSystem) = {
-    
+
   }
 
   override def onStop(app: Application) {

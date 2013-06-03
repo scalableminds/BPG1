@@ -9,12 +9,16 @@ class Tagbar
   taglist = [
     {type :"project_partner", name : "SAP"},
     {type :"date", name : "2013"},
+    {type :"date", name : "2012"},
+    {type :"date", name : "2011"},
+    {type :"date", name : "2010"},
     {type :"branch", name : "Health"},
     {type :"branch", name : "Energy"},
   ]
 
 
   constructor : () ->
+
     @availableTags = taglist
 
     domElement = $("<div/>")
@@ -24,11 +28,11 @@ class Tagbar
 
 
   setResized : (func) ->
+
     @onResized = func
 
 
   populateTagForm : ->
-    # jquery elemente mit $-zeichen am anfang benennen.
 
     $branchTaglist = $("#branchtags")
     $dateTaglist = $("#datetags")
@@ -51,7 +55,7 @@ class Tagbar
       label = document.createElement("label") #jquery!
       label.innerHTML = tagName
 
-      #       $label = $("label")
+      # $label = $("label")
       # $label.text tagName
 
       $container.append $checkbox
