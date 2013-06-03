@@ -29,6 +29,8 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
   def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Future[String] = {
     box.fetchCollaborators(file).map{ collaborators =>
       val emailAddresses = collaborators.map(_.login)
+      //bad workaround
+      if(emailAddresses.size > 20) throw new IllegalArgumentException("general information file")
       val mostLikelyProject = projects.maxBy{ project =>
         project.participants.count(p => emailAddresses.contains(p._user))
       }
@@ -40,15 +42,15 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
     event.source.map{ source =>
       source match {
         case file: BoxFile => 
-          //box.downloadFile(file.id).map{byteArray =>
+          box.downloadFile(file.id).map{ byteArray =>
           findProjectForFile(file).onComplete{ 
             case Success(projectName) =>
               Logger.info(s"found ${file.fullPath} to be in project $projectName")
-            //publishFoundArtifact(byteArray, Artifact(file.name, projectName, "box", file.path, Json.parse("{}")))
+              publishFoundArtifact(byteArray, Artifact(file.name, projectName, "box", file.path, Json.parse("{}")))
             case Failure(err) => 
               Logger.error(err.toString)
           }
-        //}
+        }
         case folder: BoxFolder =>
           Logger.debug(s"found folder being uploaded: $folder")
       }
