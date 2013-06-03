@@ -35,6 +35,7 @@ class ArtifactFinder
     @resizeHandler = =>
       @domElement.height($(window).height() - @domElement.offset().top - 30)
 
+    app.on "zooming", @resize
 
   initSlider : (domElement) ->
 
@@ -73,7 +74,7 @@ class ArtifactFinder
     @onResized = func
 
 
-  resize : ->
+  resize : =>
 
     for artifact in @artifactComponents
       artifact.resize()
@@ -111,13 +112,15 @@ class ArtifactFinder
 
   getArtifact : (id, bare = false) =>
 
-    new Artifact(
-      @artifactsModel.find( (artifact) -> artifact.get("id") == id )
-      (-> 64)
-      bare
-    )
+    artifact = new Artifact(
+        @artifactsModel.find( (artifact) -> artifact.get("id") == id )
+        (-> 64)
+        bare
+      )
 
+    @artifactComponents.push artifact
 
+    artifact
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">

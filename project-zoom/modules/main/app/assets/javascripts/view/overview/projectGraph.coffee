@@ -26,16 +26,13 @@ class ProjectGraph
     @currentBehavior.activate()
 
 
-  drawProjects : ->
+  drawProjects : (projects = @projects) ->
 
     names = []
     layouter = @layouter
-    @projectNodes = @projectNodes.data(@projects, (data) -> data.id)
+    @projectNodes = @projectNodes.data(projects, (data) -> data.id)
 
     g = @projectNodes.enter().append("svg:g")
-    # g.attr(
-    #   transform: "translate(20,25)"
-    #   )
     g.append("svg:image")
       .attr(
         class: "projectImage"
@@ -52,14 +49,13 @@ class ProjectGraph
         y: (d) -> parseInt(d.y) + 120
         workaround: (d) -> names.push d.name; return ""
       )
-      # .text( (d) -> layouter.textWrap(this, d.name, 120) )
-      # .append( (d) -> layouter.textWrap(this, d.name, 120) )
-
+    g.attr(
+      id: (d) -> d.id
+      "data-tags": (d)-> d.tags.toString()
+      )
 
     for h, i in headline[0]
       @layouter.textWrap(h, names[i], 120)
-      # console.log h.textContent
-      # tspan!!!!!!
 
     # g.append("svg:text") #tags!!!!
 
@@ -74,20 +70,22 @@ class ProjectGraph
 
 
 
-
-
-
-
-
-
-
 ################# Venn: ##################
-
 
   drawVennCircles : ->
 
     @circles = @circles.data(@clusters, (data) -> data.id)
     g = @circles.enter().append("svg:g")
+    g.append("svg:circle")
+      .attr(
+        r: 200
+        cx: (d) -> d.position[0]
+        cy: (d) -> d.position[1]
+        id: (d) -> "cluster_#{d.name}"
+        fill: (d) -> d.color
+        "fill-opacity": .5
+        "data-pos": (d) -> d.data_pos
+      )
     g.append("svg:text")
       .attr(
         id: "text1"
@@ -97,16 +95,6 @@ class ProjectGraph
         class: "label"
       )
       .text( (d) -> d.name )
-    g.append("svg:circle")
-      .attr(
-        r: 200
-        cx: (d) -> d.position[0]
-        cy: (d) -> d.position[1]
-        id: (d) -> "cluster_#{d.name}"
-        fill: (d) -> d.color
-        "fill-opacity": .5
-        "data-pos": location
-      )
 
     @circles.exit().remove()
 
@@ -114,9 +102,9 @@ class ProjectGraph
   updateVennDiagram : (checkbox) =>
 
     positions =
-      0: [300, 200, 250, 50]
-      1: [550, 200, 550, 50]
-      2: [425, 400, 425, 575]
+      0: [[300, 200, 250, 50], "left"]
+      1: [[550, 200, 550, 50], "right"]
+      2: [[425, 400, 425, 575], "bottom"]
 
     color =
       0: "steelblue"
@@ -133,15 +121,29 @@ class ProjectGraph
     if @selectedTags.length <= 3
       for t, index in @selectedTags
         cluster =
-          position: positions[index]
+          position: positions[index][0]
           color: color[index]
           name: t
           id: t
+          data_pos: positions[index][1]
 
         @clusters.push cluster
 
     @drawVennCircles()
-    @arrangeProjectsInVenn()
+    @onlyShowTagged()
+    @arrangeProjectsInVenn() # tagged = @projectNodes!!!!
+
+
+  onlyShowTagged : ->
+
+    tagged = []
+    if @selectedTags.length isnt 0
+      for p in @projects
+        if _.intersection(p.tags, @selectedTags).length isnt 0
+          tagged.push p
+
+      @drawProjects tagged
+    else @drawProjects()
 
 
   arrangeProjectsInVenn : () ->
@@ -154,16 +156,14 @@ class ProjectGraph
       "lb" : []
       "br" : []
       "middle" : []
-      "no_cluster" : []
 
-    for p in @projects
-      selectedProjectTags = []
-      for t in p.tags
-        selectedProjectTags.push t.name if t.name in @selectedTags
+
+    for p in @projectNodes[0]
+      projectTags = _.flatten [$(p).data("tags").toString()]
+      selectedProjectTags = _.intersection(projectTags, @selectedTags)
 
       assignedCluster = @getAssignedVennCluster selectedProjectTags
-
-      projectClusters[assignedCluster].push p.node
+      projectClusters[assignedCluster].push $("##{p.id}")
 
     @layouter.arrangeNodesInVenn(projectClusters)
 
@@ -173,8 +173,7 @@ class ProjectGraph
     positions = []
 
     for c in assignedTags
-      [cluster] = assignedTags.filter (c) -> c[0][0][0].id == "cluster_#{c}"
-      positions.push $(cluster).data("pos")
+      positions.push $("#cluster_#{c}").data("pos")
 
     if "left" in positions
       if "right" in positions
@@ -190,75 +189,11 @@ class ProjectGraph
       else return "right"
     else if "bottom" in positions
       return "bottom"
-    else return "no_cluster"
-
-
-  # changeBehavior : (behavior) ->
-
-  #   @currentBehavior.deactivate()
-  #   @currentBehavior = behavior
-  #   @currentBehavior.activate()
-
 
 
   initLayouter : ->
 
-    # alert @snap(14, 10)
-    # alert @snap(16, 10)
-
     @layouter = new Layouter()
-
-
-  # initProjects : ->
-
-  #   for p in SAMPLE_PROJECTS
-  #     project = new Project(p)
-
-  #     @projects.push project
-
-  #   pos_x = 20
-  #   pos_y = 20
-
-  #   for p in @projects
-  #     node = @addNode(pos_x, pos_y)
-
-  #     p.setNode node
-
-  #     pos_x += 70
-  #     pos_y += 70
-
-
-  # initArrowMarkers : ->
-
-  #   # define arrow markers for graph edges
-  #   @svg.append("svg:defs")
-  #     .append("svg:marker")
-  #       .attr("id", "end-arrow")
-  #       .attr("viewBox", "0 -5 10 10")
-  #       .attr("refX", 6)
-  #       .attr("markerWidth", 3)
-  #       .attr("markerHeight", 3)
-  #       .attr("orient", "auto")
-  #     .append("svg:path")
-  #       .attr("d", "M0,-5L10,0L0,5")
-  #       .attr("fill", "#000")
-
-  #   @svg.append("svg:defs")
-  #     .append("svg:marker")
-  #       .attr("id", "start-arrow")
-  #       .attr("viewBox", "0 -5 10 10")
-  #       .attr("refX", 4)
-  #       .attr("markerWidth", 3)
-  #       .attr("markerHeight", 3)
-  #       .attr("orient", "auto")
-  #     .append("svg:path")
-  #       .attr("d", "M10,-5L0,0L10,5")
-  #       .attr("fill", "#000")
-
-  snap : (value, gridSize, roundFunction) ->
-
-    roundFunction = Math.round  if roundFunction is `undefined`
-    gridSize * roundFunction(value / gridSize)
 
 
 

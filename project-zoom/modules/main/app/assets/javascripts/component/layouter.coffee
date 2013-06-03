@@ -8,25 +8,15 @@ class Layouter
 
 	constructor : () ->
 
-    clusterPositions =
-      0 : "left"
-      1 : "right"
-      2 : "bottom"
-      3 : "lr"
-      4 : "lb"
-      5 : "br"
-      6 : "middle"
-      7 : "no_cluster"
+    @cluster_positions = ["left", "right", "bottom", "lr", "lb", "br", "middle", "no_cluster"]
 
     PROJECT_SIZE = 64
     PADDING = 5
 
-    console.log "Hi i'm the Layouter"
-
 
   textWrap : (svg_text, content, width) ->
 
-    if svg_text?
+    if svg_text? and content?
 
       t_copy = _.clone(svg_text)
 
@@ -42,30 +32,27 @@ class Layouter
       words = content.split(" ")
 
       x = 0
-      split = []
+      line_words = []
 
       for w in words
         l = w.length
         if x + (l * letterWidth) > width
-          split.push "\n"
+          line_words.push "\n"
           x = 0
         x += l * letterWidth
-        split.push w + " "
+        line_words.push w + " "
 
-    else console.log "no name"
+      svg_text.textContent = ""
+      joined = line_words.join("")
+      lines = joined.split("\n")
 
-    svg_text.textContent = ""
-    joined = split.join("")
-    lines = joined.split("\n")
-
-    for line, i in lines
-
-      d3.select(svg_text).append("tspan")
-      .text(line)
-      .attr(
-        x: pos_x
-        y: pos_y + i * (letterHeight)
-      )
+      for line, i in lines
+        d3.select(svg_text).append("tspan")
+        .text(line)
+        .attr(
+          x: pos_x
+          y: pos_y + i * (letterHeight)
+        )
 
 
   resizeCircle : (circle, weight) ->
@@ -100,9 +87,9 @@ class Layouter
 
   arrangeNodesInVenn : (nodeClusters) ->
 
-    for c in nodeClusters
-      cluster = nodeClusters[c]
-      console.log cluster
+    for p in @cluster_positions
+      cluster = nodeClusters[p]
+
 
     # projectClusters =
     #   "left" : []
@@ -113,6 +100,22 @@ class Layouter
     #   "br" : []
     #   "middle" : []
     #   "no_cluster" : []
+
+    # @cluster_positions =
+    #   0 : "left"
+    #   1 : "right"
+    #   2 : "bottom"
+    #   3 : "lr"
+    #   4 : "lb"
+    #   5 : "br"
+    #   6 : "middle"
+    #   7 : "no_cluster"
+
+  snap : (value, gridSize, roundFunction) ->
+
+    roundFunction = Math.round  if roundFunction is `undefined`
+    gridSize * roundFunction(value / gridSize)
+
 
 
 

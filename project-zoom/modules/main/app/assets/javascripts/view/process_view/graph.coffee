@@ -12,7 +12,7 @@ lib/event_mixin : EventMixin
 
 class Graph
 
-  constructor : (domElement, @graphModel) ->
+  constructor : (domElement, @graphModel, @artifactFinder) ->
 
     EventMixin.extend(this)
 
@@ -38,7 +38,9 @@ class Graph
     @drawClusters()
 
 
-  addNode : (x, y, artifact) ->
+  addNode : (x, y, artifactId) ->
+
+    artifact = @artifactFinder.getArtifact(artifactId)
 
     node = new DataItem(
       position : { x, y }
@@ -110,24 +112,24 @@ class Graph
 
   drawNodes : ->
 
+    el = []
+
     @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
 
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
-      .append("svg:image")
-        .attr(
-          class : "node"
+      .select( (data, i)-> #hacky
+        el[i] = @;
+        return this
+      )
+      .select( (data, i) =>
+        artifactId = data.get("payload").get("id")
+        artifact = @artifactFinder.getArtifact(artifactId, true)
 
-          x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
-          y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
+        el[i].appendChild(artifact.getImage())
+      )
 
-          width : (data) -> Node(data).getSize().width
-          height : (data) -> Node(data).getSize().height
-
-          "xlink:href" : (data) -> new Artifact(data.get("payload"), (->64), true, this).resize()
-          "data-id": (data) -> data.get("id")
-        )
 
     @drawComment(@nodeGroups, Node)
 
@@ -160,7 +162,7 @@ class Graph
     @drawComment(@paths, Edge)
 
     #update existing ones
-    @paths.selectAll("path")
+    @paths.selectAll(".edge")
       .attr(
         d : (data) => Edge(data, @nodes).getLineSegment()
       )
@@ -186,7 +188,7 @@ class Graph
     @drawComment(@clusterPaths, Cluster)
 
     #update existing ones
-    @clusterPaths.select("path")
+    @clusterPaths.selectAll(".cluster")
       .attr(
         d : (data) -> Cluster(data).getLineSegment()
       )
@@ -216,18 +218,21 @@ class Graph
         )
 
     comment
-      .append("svg:use")
-      .attr(
-        x: -40
-        y: -120
-        "xlink:href": "#comment-callout"
-      )
+      .append("svg:path")
+        .attr(
+          d: "m 62.584475,-76.967196 -61.6288949,0.43865 c -3.8066336,0.0271 -10.2524701,1.00117 -11.6238301,6.36022 -1.58407,7.047528 -2.111911,38.764588 0.43877,43.644831 1.880361,3.936121 3.6264785,5.248771 5.4827005,6.360051 5.4987956,2.64158 31.1436795,2.19312 31.1436795,2.19312 L 2.271705,0.45270496 38.02073,-18.189614 l 26.537644,1.8e-4 c 3.723799,0 7.129077,-2.34182 8.334118,-7.457071 2.09811,-9.288063 2.50653,-35.338064 0.438661,-41.451351 -1.959602,-5.585379 -5.252951,-9.90844 -10.746678,-9.86934 z"
+        )
+        .style(
+          fill: "white";
+          stroke: "black";
+          "stroke-width": 2;
+        )
 
     comment
       .append("svg:text")
       .attr(
-        x: -20
-        y: -70
+        x: 0
+        y: -50
         width: 80
         height: 40
       )
@@ -253,9 +258,7 @@ class Graph
 
 
   # position.x/y are absolute positions
-  moveNode : (nodeId, position, checkForCluster = false) ->
-
-    node = @nodes.find( (node) -> node.get("id") == nodeId )
+  moveNode : (node, position, checkForCluster = false) ->
 
     node.set({ position })
 
@@ -289,7 +292,7 @@ class Graph
         x : node.get("position/x") + distance.x
         y : node.get("position/y") + distance.y
 
-      @moveNode(node.get("id"), position)
+      @moveNode(node, position)
 
     #actually move the svg elements
     @drawClusters()
@@ -343,15 +346,7 @@ class Graph
           id: "comment-callout"
           class: "comment-callout"
         )
-        .append("svg:path")
-          .attr(
-            d: "M 91.327094,24.650308 29.698196,25.08895 c -3.806634,0.02708 -10.252469,1.001177 -11.623829,6.360221 -1.58407,7.047529 -2.111911,38.764592 0.43877,43.644832 1.880362,3.93612 3.626479,5.248771 5.482699,6.360056 5.498796,2.64158 31.143682,2.193113 31.143682,2.193113 L 31.014321,102.0702 66.763348,83.427882 l 26.537645,1.8e-4 c 3.723799,0 7.129077,-2.341813 8.334117,-7.45707 2.09811,-9.288053 2.50653,-35.338056 0.43866,-41.451347 -1.9596,-5.58538 -5.252949,-9.90844 -10.746676,-9.869337 z"
-          )
-          .style(
-            fill: "white";
-            stroke: "black";
-            "stroke-width": 2;
-          )
+
 
   changeBehavior : (behavior) ->
 

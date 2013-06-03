@@ -92,11 +92,8 @@ Edge = (edge, nodeList) ->
     sX = @source.get("position/x")
     sY = @source.get("position/y")
 
-    offset =
-      x : 20
-      y: 0
 
     position =
-      x: Math.min(tX, sX) + Math.abs( tX - sX ) / 2 + offset.x
+      x: Math.min(tX, sX) + Math.abs( tX - sX ) / 2
       y: Math.min(tY, sY) + Math.abs( tY - sY ) / 2
 
