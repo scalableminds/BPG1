@@ -20,14 +20,14 @@ ModelFunctions =
     artifacts.fetchNext().then(
       ->
         project.set("artifacts", artifacts)
-    )
+    ) 
 
   prepareGraph : (project) ->
 
     (new $.Deferred (deferred) ->
       project.get("graphs", project, (graphCollection) ->
         if graphCollection.length == 0
-          DataItem.fetch("/projects/#{project.get("id")}/graphs").then(
+          DataItem.fetch("/projects/#{project.get("id")}/graphs").then( 
             (graph) ->
               graphCollection.add(graph)
               deferred.resolve(graph)
@@ -46,7 +46,7 @@ ModelFunctions =
         graph.save = ->
 
           if isSaving
-            isSaving.done ->
+            isSaving.done -> 
               graph.isDirty = true
               graph.save()
             return
@@ -64,13 +64,13 @@ ModelFunctions =
                 method : "PATCH"
                 data : patchData
                 dataType : "json"
-              ).then(
-                ({ version }) ->
+              ).then( 
+                ({ version }) -> 
                   graph.set("version", version, silent : true)
                   graph.isDirty = false
                   return
                 ($xhr) ->
-                  if $xhr.status == 400
+                  if $xhr.status == 400 
                     alert("Sorry. We couldn't save. (400)")
                     $.Deferred().resolve()
                   else
@@ -111,11 +111,10 @@ app.addInitializer (options, callback) ->
 
   model =
     projects : new DataItem.Collection("/projects")
-    tags : new DataItem.Collection("/tags")
     project : null
 
 
-  model.projects.fetchNext().then(
+  model.projects.fetchNext().then( 
     ->
 
       model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
@@ -134,6 +133,6 @@ app.addInitializer (options, callback) ->
       callback()
   )
 
-
+    
 
   return
