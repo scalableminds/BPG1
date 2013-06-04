@@ -14,6 +14,7 @@ class ProjectGraph
 
     @selectedTags = []
     @clusters = []
+    @scale_value = 1.0
 
     EventMixin.extend(this)
     @initLayouter()
@@ -26,8 +27,9 @@ class ProjectGraph
     @currentBehavior.activate()
 
 
-  drawProjects : (projects = @projects) ->
+  drawProjects : (scale_value = @scale_value, projects = @projects) ->
 
+    @scale_value = scale_value
     names = []
     layouter = @layouter
     @projectNodes = @projectNodes.data(projects, (data) -> data.id)
@@ -36,7 +38,7 @@ class ProjectGraph
     margin_x = 30
     margin_y = 70
     nodeWidth = 100
-    svgWidth = parseInt @svg.attr("width")
+    svgWidth = parseInt @svg.attr("width") / scale_value
     next_line = parseInt(svgWidth / (margin_x + nodeWidth))
 
     g = @projectNodes.enter().append("svg:g")
@@ -149,9 +151,11 @@ class ProjectGraph
         if _.intersection(p.tags, @selectedTags).length isnt 0
           tagged.push p
 
-      @drawProjects []
-      @drawProjects tagged
-    else @drawProjects()
+      @drawProjects(@scale_value, [])
+      @drawProjects(@scale_value, tagged)
+    else
+      @drawProjects(@scale_value, [])
+      @drawProjects()
 
 
   arrangeProjectsInVenn : () ->

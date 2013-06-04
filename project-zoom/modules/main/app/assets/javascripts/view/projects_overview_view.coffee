@@ -99,6 +99,8 @@ class ProjectsOverviewView
 
     @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
     @trigger("view:zooming")
+    @graph.drawProjects(scaleValue, [])
+    @graph.drawProjects(scaleValue)
 
 
   changeZoomSlider : (delta) ->
@@ -130,6 +132,7 @@ class ProjectsOverviewView
         width:        "100px"
         height:       "100px"
         tags:         [project.get("season")]    # to be set to "year"!
+                # tags:         project.get("tags") # .concat [project.get("season")]
 
       @projects.push p
     )
