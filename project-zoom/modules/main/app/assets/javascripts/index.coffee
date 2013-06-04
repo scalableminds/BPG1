@@ -17,5 +17,6 @@ define [
     "view/toasts"
     "sample"
     "model"
+    "view"
   ], -> app.start( test : 123 )
 

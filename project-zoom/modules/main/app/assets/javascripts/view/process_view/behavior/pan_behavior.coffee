@@ -1,20 +1,21 @@
 ### define
 ./behavior : Behavior
 hammer : Hammer
+app : app
 ###
 
 class PanBehavior extends Behavior
 
-  constructor : (@graph) ->
+  constructor : (@$el, @graph) ->
 
     @active = false
 
   activate : ->
 
     unless @active
-      @hammerContext = Hammer($("#process-graph")[0])
-      .on("dragstart", @panStart)
-      .on("drag", @pan)
+      @hammerContext = Hammer(@graph.svgEl)
+        .on("dragstart", @panStart)
+        .on("drag", @pan)
 
       @active = true
 
@@ -31,8 +32,8 @@ class PanBehavior extends Behavior
 
   panStart : (event) =>
 
-    @offset = $("#process-graph").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    @offset = @graph.$svgEl.offset()
+    @scaleValue = app.view.zoom.level
 
     @startPoint = @mousePosition(event)
 

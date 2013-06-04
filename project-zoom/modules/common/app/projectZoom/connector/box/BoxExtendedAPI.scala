@@ -37,19 +37,30 @@ class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayAc
     loop(streamPos, JsArray())
   }
   
-  def fetchCollaborators(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Future[List[BoxMiniUser]] = 
-    fetchCollaboratorsList(file.parent)
+  def fetchCollaborators(file: BoxFile)(implicit accessTokens: BoxAccessTokens): List[BoxMiniUser] = 
+    collaborations().get(file.parent.id).getOrElse(Nil)
   
-  def fetchCollaborators(folder: BoxBaseFolder)(implicit accessTokens: BoxAccessTokens): Future[List[BoxMiniUser]] = 
-    fetchCollaboratorsList(folder)
+  def fetchCollaborators(folder: BoxBaseFolder)(implicit accessTokens: BoxAccessTokens): List[BoxMiniUser] = 
+    collaborations().get(folder.id).getOrElse(Nil)
     
-  private def fetchCollaboratorsList(folder: BoxBaseFolder)(implicit accessTokens: BoxAccessTokens): Future[List[BoxMiniUser]] = {
-    collaborations.future.map{map => map(folder.id)} fallbackTo
-    fetchFolderCollaborations(folder.id).map{ json =>
+  def buildCollaboratorCache(events: List[BoxEvent])(implicit accessTokens: BoxAccessTokens) = {
+    val folderIds = events.map{event => 
+      event.source match {
+        case Some(file: BoxFile) => file.parent.id
+        case Some(folder: BoxFolder) => folder.id
+      }
+    }.distinct
+    
+    Future.traverse(folderIds)(fId => fetchCollaboratorsList(fId)).map{ collaboratorsListList =>
+      folderIds.zip(collaboratorsListList).foreach{p => collaborations.send(_ + (p._1 -> p._2))}
+    }    
+  }
+    
+  private def fetchCollaboratorsList(folderId: FolderId)(implicit accessTokens: BoxAccessTokens): Future[List[BoxMiniUser]] = {
+    fetchFolderCollaborations(folderId).map{ json =>
       (json \ "entries").validate[List[BoxCollaboration]] match {
         case JsSuccess(collaborationList, _) => 
-          val collaborators = collaborationList.flatMap(c => c.accessible_by)
-          collaborations.send(_ + (folder.id -> collaborators))
+          val collaborators = collaborationList.flatMap(c => c.accessible_by) 
           collaborators
         case JsError(err) => Logger.error(s"Error fetching collaborations:\n ${err.mkString}\njson:\n${Json.stringify(json)}")
         List()

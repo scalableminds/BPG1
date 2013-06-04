@@ -32,3 +32,37 @@ body {
 		margin: 0 auto;
 	}
 }
+
+.zoom-slider {
+
+  position: absolute;
+  right: 0px;
+  top: 50px;
+  z-index: 10;
+
+  width: 45px;
+  overflow: hidden;
+
+  button {
+    display: block;
+  }
+
+  input {
+
+    margin: 5px 0 5px 20px;
+    width: 100px;
+    margin-top: 105px;
+
+    //-webkit-appearance: slider-vertical;
+
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+
+    -webkit-transform-origin: center left;
+    -moz-transform-origin: center left;
+    -ms-transform-origin: center left;
+    transform-origin: center left;
+  }
+}
