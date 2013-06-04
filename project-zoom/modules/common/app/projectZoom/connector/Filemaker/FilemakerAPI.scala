@@ -28,14 +28,13 @@ class FilemakerAPI(con: java.sql.Connection) {
   }
 
   def createProjectName(rs: ResultSet, length: Int) = {
-    val project = rs.getString("project")
-    val className = rs.getString("class")
+    val project = Option(rs.getString("project"))
+    val className = Option(rs.getString("class"))
     if (length <= 6) {
-      if(project != "null") project else "?" + " - " +
-      (if(className != "null") className else "?")
+     className.getOrElse("?") + (if(project.isDefined) " - " + project.get)
     }
     else {
-      project
+      project.getOrElse("?")
     }
   }
   
@@ -72,17 +71,19 @@ class FilemakerAPI(con: java.sql.Connection) {
           case Some(PartialProject(_, _, _, l, t)) =>
             l.append(Participant("student", email))
             t ++ projectTags
-          case None => projects += (projectName -> PartialProject(year, season, s"{length}W", ListBuffer[Participant](Participant("student", email)), Set() ++ projectTags))
+          case None => projects += (projectName -> PartialProject(year, season, s"${length}W", ListBuffer[Participant](Participant("student", email)), Set() ++ projectTags))
         }
       }   
     }
+    //Logger.debug(projects.toString)
     projects
   }
 
   def extractProjects(): List[ProjectLike] = {
     val projects = List(3,6,12).map(length => extractProjects(length))
     projects.flatMap{projectMap => 
-      projectMap.toList.map{p => 
+      projectMap.toList.map{p =>
+        Logger.debug(p.toString)
         ProjectLike(p._1, p._2.participants.toList, p._2.season, p._2.year, p._2.length, p._2.tags.toList)
       }
     }
