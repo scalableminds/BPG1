@@ -64,13 +64,9 @@ class DrawClusterBehavior extends Behavior
 
   dragMove : (event) =>
 
-    x = event.gesture.touches[0].pageX - @offset.left
-    y = event.gesture.touches[0].pageY - @offset.top
+    mouse = @mousePosition(event)
 
-    x /= @scaleValue
-    y /= @scaleValue
-
-    @cluster.get("waypoints").add({ x, y })
+    @cluster.get("waypoints").add(mouse)
 
     @preview
       .classed("hide", false)

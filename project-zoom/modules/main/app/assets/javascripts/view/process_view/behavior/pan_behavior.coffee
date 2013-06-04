@@ -39,10 +39,6 @@ class PanBehavior extends Behavior
 
     graphContainer = @graph.graphContainer
 
-    transformation = d3.transform(graphContainer.attr("transform"))
-    # @startPoint.x -= transformation.translate[0]
-    # @startPoint.y -= transformation.translate[1]
-
 
   pan : (event) =>
 
@@ -55,18 +51,15 @@ class PanBehavior extends Behavior
     graphContainer = @graph.graphContainer
     transformation = d3.transform(graphContainer.attr("transform"))
 
-    distX = mouse.x - @startPoint.x
-    distY = mouse.y - @startPoint.y
+    deltaX = ( mouse.x - @startPoint.x ) * @scaleValue
+    deltaY = ( mouse.y - @startPoint.y ) * @scaleValue
 
-    x = distX / @scaleValue
-    y = distY / @scaleValue
-
-
-    x = transformation.translate[0] + x
-    y = transformation.translate[1] + y
+    x = transformation.translate[0] + deltaX
+    y = transformation.translate[1] + deltaY
 
 
     transformation.translate = [x, y]
 
     graphContainer.attr("transform", transformation.toString())
 
+    @startPoint = mouse

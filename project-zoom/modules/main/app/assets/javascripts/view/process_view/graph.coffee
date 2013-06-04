@@ -260,10 +260,15 @@ class Graph
     commentGroup.exit().remove()
 
 
-  # position.x/y are absolute positions
-  moveNode : (node, position, checkForCluster = false) ->
+  moveNode : (node, distance, checkForCluster = false) ->
 
-    node.set({ position })
+    #move nodes
+    node.update("position", (position) ->
+      position = position.toObject()
+      position.x += distance.x
+      position.y += distance.y
+      position
+    )
 
     if checkForCluster
       @clusters
@@ -291,11 +296,7 @@ class Graph
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
 
-      position =
-        x : node.get("position/x") + distance.x
-        y : node.get("position/y") + distance.y
-
-      @moveNode(node, position)
+      @moveNode(node, distance)
 
     #actually move the svg elements
     @drawClusters()

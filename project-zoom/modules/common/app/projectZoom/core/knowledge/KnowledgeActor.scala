@@ -17,6 +17,7 @@ import models.Profile
 import models.ProfileDAO
 import models.ProjectDAO
 import models.GlobalDBAccess
+import models.TagDAO
 
 case class ProjectFound(project: ProjectLike) extends Event
 case class ProjectAggregation(l: List[ProjectFound]) extends Event
@@ -24,7 +25,7 @@ case class ProjectAggregation(l: List[ProjectFound]) extends Event
 case class ProfileFound(profile: Profile) extends Event
 case class ProfileAggregation(l: List[ProfileFound]) extends Event
 
-class KnowledgeActor extends EventSubscriber with EventPublisher with GlobalDBAccess{
+class KnowledgeActor extends EventSubscriber with EventPublisher with GlobalDBAccess {
 
   def handleProfileAggregation(foundProfiles: List[ProfileFound]) = {
     ProfileDAO.findAll.map { dbProfiles =>
@@ -83,7 +84,9 @@ class KnowledgeActor extends EventSubscriber with EventPublisher with GlobalDBAc
   def handleProjectUpdate(project: ProjectLike) = {
     ProjectDAO.update(project).map { lastError =>
       if (lastError.updated > 0) {
-        // TODO: do something?
+        project
+          ._tags
+          .map(TagDAO.ensureTag)
       }
     }
   }
@@ -99,7 +102,7 @@ class KnowledgeActor extends EventSubscriber with EventPublisher with GlobalDBAc
 
   def receive = {
     case ProfileFound(profile)        => handleProfileFound(profile)
- 
+
     case ProfileAggregation(profiles) => handleProfileAggregation(profiles)
 
     case ProjectFound(project)        => handleProjectFound(project)
