@@ -41,10 +41,10 @@ object Global extends GlobalSettings with GlobalDBAccess {
     SettingsActor.start
     val aa = ArtifactActor.start
     KnowledgeActor.start
-    /*TextThumbnailActor.start
+    TextThumbnailActor.start
     AllThumbnailActor.start
     ImageThumbnailActor.start
-    VideoThumbnailActor.start*/
+    VideoThumbnailActor.start
     ProjectRoomEventDispatcher.start
     SupervisorActor.start
     if (app.mode == Mode.Dev) {

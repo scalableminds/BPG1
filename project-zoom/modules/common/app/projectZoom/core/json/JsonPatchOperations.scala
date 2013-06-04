@@ -42,14 +42,12 @@ case class JsonTest(path: JsonPatchPath, value: JsValue) extends JsonPatchOperat
 case class JsonRemove(path: JsonPatchPath) extends JsonPatchOperation {
   def patch = {
     val removeFromObject = path.updateWith(_.json.prune)
-    println("patch with remove")
     val removeFromArray = path.parent.updateWith(_.json.update(of[JsArray] map {
       case JsArray(l) =>
         val updated = {
           path.last.toString.toIntOpt match {
             case Some(idx) if idx >= 0 && idx < l.size =>
               val (front, back) = l.splitAt(idx)
-              println("dropping from array")
               front ++ back.drop(1)
             case _ =>
               l
