@@ -2,6 +2,7 @@
 core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
+app : app
 ###
 
 class ConnectBehavior extends Behavior
@@ -39,7 +40,7 @@ class ConnectBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = $("#process-view").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    @scaleValue = app.view.zoom.level
 
 
   dragEnd : (event) =>

@@ -4,6 +4,7 @@ hammer : Hammer
 ./behavior : Behavior
 ../cluster : Cluster
 lib/data_item : DataItem
+app : app
 ###
 
 class DrawClusterBehavior extends Behavior
@@ -11,17 +12,17 @@ class DrawClusterBehavior extends Behavior
   constructor : ( @graph, @container, @type ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
-    if $(".preview").length == 0
+    if @graph.$svgEl.find(".preview").length == 0
       @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @preview
         .attr("class", "hide preview cluster")
     else
-      @preview = d3.select(".preview")
+      @preview = @graph.d3Element.select(".preview")
 
 
   activate : ->
 
-    @hammerContext = Hammer( $("#process-graph")[0], { swipe : false} )
+    @hammerContext = Hammer( @graph.svgEl, { swipe : false} )
       .on("drag", @throttledDragMove)
       .on("dragstart", @dragStart)
       .on("dragend", @dragEnd)
@@ -45,7 +46,7 @@ class DrawClusterBehavior extends Behavior
     @preview.classed("hide", true)
 
     # switch to drag tool again (reset)
-    window.setTimeout( (->$(".btn-group a").first().trigger("click")), 100)
+    window.setTimeout( ( -> $(".btn-group a").first().trigger("click")), 100)
 
 
   dragStart : (event) =>
@@ -57,8 +58,8 @@ class DrawClusterBehavior extends Behavior
     )
     @preview.data(@cluster)
 
-    @offset = $("#process-graph").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    @offset = @graph.$svgEl.offset()
+    @scaleValue = app.view.zoom.level
 
 
   dragMove : (event) =>

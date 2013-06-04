@@ -62,7 +62,7 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
               .mapTo[Option[InputStream]]
               .map {
                 case Some(stream) =>
-                  Ok.stream(Enumerator.fromStream(stream))
+                  Ok.stream(Enumerator.fromStream(stream)).withHeaders("Content-Type" -> "")
                 case _ =>
                   NotFound("File not found on disk.")
               }

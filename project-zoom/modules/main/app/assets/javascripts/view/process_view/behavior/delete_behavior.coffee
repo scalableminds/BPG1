@@ -7,7 +7,7 @@ class DeleteBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("#process-graph")[0] )
+    @hammerContext = Hammer( @graph.svgEl )
       .on("tap", ".node", @removeNode)
       .on("tap", ".edge", @removeEdge)
       .on("tap", ".cluster", @removeCluster)

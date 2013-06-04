@@ -12,11 +12,14 @@ lib/event_mixin : EventMixin
 
 class Graph
 
-  constructor : (domElement, @graphModel, @artifactFinder) ->
+  constructor : (@el, @graphModel, @artifactFinder) ->
 
     EventMixin.extend(this)
 
-    @d3Element = d3.select(domElement).select("svg")
+    @$el = $(@el)
+    @$svgEl = @$el.find("svg")
+    @svgEl = @$svgEl[0]
+    @d3Element = d3.select(@el).select("svg")
     @graphContainer = @d3Element.append("svg:g")
 
     @initArrowMarkers()

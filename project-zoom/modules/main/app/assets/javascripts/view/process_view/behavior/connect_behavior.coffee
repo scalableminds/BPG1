@@ -2,6 +2,7 @@
 core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
+app : app
 ###
 
 class ConnectBehavior extends Behavior
@@ -9,18 +10,18 @@ class ConnectBehavior extends Behavior
   constructor : ( @graph, @container ) ->
 
     # line that is displayed when dragging a new edge between nodes
-    if $(".drag-line").length == 0
+    if @graph.$el.find(".drag-line").length == 0
       @dragLine = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
       @dragLine
         .attr("class", "hide drag-line")
         .style('marker-end', 'url(#end-arrow)')
     else
-      @dragLine = d3.select(".drag-line")
+      @dragLine = @graph.d3Element.select(".drag-line")
 
 
   activate : ->
 
-    @hammerContext = Hammer( $("#process-graph")[0] )
+    @hammerContext = Hammer( @graph.svgEl )
       .on("drag", ".node", @dragMove)
       .on("dragend", ".node", @dragEnd)
       .on("dragstart", ".node", @dragStart)
@@ -38,8 +39,8 @@ class ConnectBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @offset = $("#process-graph").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    @offset = @graph.$svgEl.offset()
+    @scaleValue = app.view.zoom.level
 
 
   dragEnd : (event) =>

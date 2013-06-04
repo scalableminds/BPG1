@@ -31,3 +31,5 @@ app.on "start", ->
   # )
   # delete app.model.project.lazyAttributes.graphs
   view = new ProcessView(app.model.project)
+
+  $(".content").append(view.el)
