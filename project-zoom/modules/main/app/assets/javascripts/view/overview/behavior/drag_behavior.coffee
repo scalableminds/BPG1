@@ -1,6 +1,7 @@
 ### define
 hammer : Hammer
 ./behavior : Behavior
+app : app
 ###
 
 class DragBehavior extends Behavior
@@ -24,8 +25,7 @@ class DragBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = $("#process-view").offset()
-    @scaleValue = $(".zoom-slider input").val()
-
+    @scaleValue = app.view.zoom.level
     @startPoint = @mousePosition(event)
 
 

@@ -1,10 +1,11 @@
 ### define
 ./behavior : Behavior
+app : app
 ###
 
 class DragAndDropBehavior extends Behavior
 
-  constructor : (@graph, @$el) ->
+  constructor : (@$el, @graph) ->
 
 
   activate : ->
@@ -43,7 +44,7 @@ class DragAndDropBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = {left: 0, top: 0}
-    @scaleValue = @$el.find(".zoom-slider input").val()
+    @scaleValue = app.view.zoom.level
 
     svgContainer = $(event.gesture.target).closest("svg").clone() #use clone for the preview, so that original stays within the artifacFinder
     mouse = @mousePosition(event)

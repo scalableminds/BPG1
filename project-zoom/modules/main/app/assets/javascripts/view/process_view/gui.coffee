@@ -38,7 +38,7 @@ class GUI
 
   appendSVG : ->
 
-    @svg = d3.select(".graph")
+    @svg = d3.select(@$el[0]).select(".graph")
       .append("svg")
       .attr(
         id: "process-graph"

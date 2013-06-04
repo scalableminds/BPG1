@@ -1,52 +1,55 @@
 ### define
 ./behavior : Behavior
 jquery.mousewheel : Mousewheel
+app : app
 ###
 
 class ZoomBehavior extends Behavior
 
-  constructor : (@graph) ->
+  constructor : (@$el, @graph) ->
 
 
   activate : ->
 
-    $(".zoom-slider")
-      .on("change", "input", @zoom)
-      .on("click", ".plus", => @changeZoomSlider(0.1) )
-      .on("click", ".minus", => @changeZoomSlider(-0.1) )
+    app.view.zoom.on(this, "change", @zoom)
 
     do =>
 
       mouseDown = false
 
-      @hammerContext = Hammer(document.body)
-        .on("touch", -> mouseDown = true; return )
-        .on("release", -> mouseDown = false; return )
-
-      $(".graph").on "mousewheel", (evt, delta, deltaX, deltaY) =>
+      @mouseDownHandler = -> mouseDown = true; return
+      @mouseUpHandler = -> mouseDown = false; return
+      @mouseWheelHandler = (evt, delta, deltaX, deltaY) ->
 
         evt.preventDefault()
         return if mouseDown
-        if deltaY > 0
-          @changeZoomSlider(0.1)
-        else
-          @changeZoomSlider(-0.1)
+        if deltaY != 0
+          app.view.zoom.changeZoom(deltaY / Math.abs(deltaY) * .1)
 
 
+      @hammerContext = Hammer(document.body)
+        .on("touch", @mouseDownHandler)
+        .on("release", @mouseUpHandler)
+
+      @$el.find(".graph").on("mousewheel", @mouseWheelHandler)
 
 
   deactivate : ->
+    
+    app.view.zoom.off(this, "change", @zoom)
 
-    $(".zoom-slider")
-      .off("change", @zoom)
-      .off("click", @changeZoomSlider)
+    @$el.find(".graph").on("mousewheel", @mouseWheelHandler)
+
+    @hammerContext
+      .off("touch", @mouseDownHandler)
+      .off("release", @mouseUpHandler)
 
 
-  zoom : (event) =>
+  zoom : =>
 
     graphContainer = @graph.graphContainer
 
-    scaleValue = $(".zoom-slider input").val()
+    scaleValue = app.view.zoom.level
 
     transformation = d3.transform(graphContainer.attr("transform"))
     transformation.scale = [scaleValue, scaleValue]
@@ -54,11 +57,3 @@ class ZoomBehavior extends Behavior
     graphContainer.attr("transform", transformation.toString())
 
     app.trigger "zooming"
-
-  changeZoomSlider : (delta) ->
-
-    $slider = $(".zoom-slider input")
-    sliderValue = parseFloat($slider.val())
-    $slider.val( sliderValue + delta )
-
-    @zoom()

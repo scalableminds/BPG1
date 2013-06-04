@@ -1,13 +1,14 @@
 ### define
 hammer : Hammer
 ./behavior : Behavior
+app : app
 ###
 
 class DragBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("#process-graph")[0] )
+    @hammerContext = Hammer( @graph.svgEl )
       .on("drag", ".node", @dragMoveNode)
       .on("drag", ".cluster", @dragMoveCluster)
       .on("dragstart", @dragStart)
@@ -23,8 +24,8 @@ class DragBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @offset = $("#process-graph").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    @offset = @graph.$svgEl.offset()
+    @scaleValue = app.view.zoom.level
 
     @startPoint = @mousePosition(event)
 

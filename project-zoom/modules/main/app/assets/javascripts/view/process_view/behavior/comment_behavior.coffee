@@ -6,7 +6,7 @@ class CommentBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("#process-graph")[0])
+    @hammerContext = Hammer( @graph.svgEl )
       .on("tap", ".node", @commentNode )
       .on("tap", ".cluster", @commentCluster )
       .on("tap", ".edge", @commentEdge )
