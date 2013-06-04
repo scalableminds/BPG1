@@ -39,7 +39,7 @@ class ProjectGraph
     margin_y = 70
     nodeWidth = 100
     svgWidth = parseInt @svg.attr("width") / scale_value
-    next_line = parseInt(svgWidth / (margin_x + nodeWidth))
+    next_line = parseInt( svgWidth / (margin_x + nodeWidth) )
 
     g = @projectNodes.enter().append("svg:g")
     g.append("svg:image")
@@ -61,7 +61,14 @@ class ProjectGraph
     g.attr(
       id: (d) -> d.id
       "data-tags": (d)-> d.tags.toString()
-      )
+    )
+    # tags = g.append("svg:text")
+    #   .attr(
+    #     class: "projectTagLabel"
+    #     x: (d, i) -> margin_x + (i % next_line) * (nodeWidth + margin_x) + 120
+    #     y: (d, i) -> start_y + parseInt(i / next_line) * (nodeWidth + margin_y)
+    #   )
+    #   .text()
 
     for h, i in headline[0]
       @layouter.textWrap(h, names[i], 120)

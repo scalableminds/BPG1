@@ -14,6 +14,8 @@ jquery : $
 
 class ProjectsOverviewView
 
+  IMAGE_FOLDER = "/assets/images/letter_images/"
+
   constructor : ->
 
     @initTagbar()
@@ -97,7 +99,7 @@ class ProjectsOverviewView
 
     scaleValue = $(".zoom-slider input").val()
 
-    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
+    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )")
     @trigger("view:zooming")
     @graph.drawProjects(scaleValue, [])
     @graph.drawProjects(scaleValue)
@@ -118,6 +120,7 @@ class ProjectsOverviewView
     @graphContainer = @domElement.append("svg:g")
 
     @projects = []
+    console.log IMAGE_FOLDER
 
     app.model.projects.forEach( (project) =>
 
@@ -128,11 +131,11 @@ class ProjectsOverviewView
         year:         project.get("year")
         length:       project.get("length")
         participants: project.get("participants")
-        image:        "http://upload.wikimedia.org/wikipedia/commons/9/96/Naso_elegans_Oceanopolis.jpg"
+        image:        IMAGE_FOLDER.concat "#{project.get("name")[0].toLowerCase()}.png"
         width:        "100px"
         height:       "100px"
         tags:         [project.get("season")]    # to be set to "year"!
-                # tags:         project.get("tags") # .concat [project.get("season")]
+      # tags:         project.get("tags") # .concat [project.get("season")]
 
       @projects.push p
     )
