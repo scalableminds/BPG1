@@ -12,10 +12,10 @@ class Zoom
 
     EventMixin.extend(this)
 
-    @el = $(ZoomSliderTemplate)
-    @$el = $(@el)
+    @$el = $(ZoomSliderTemplate)
+    @el = @$el[0]
 
-    @level = @el.val()
+    @level = +@$el.find("input").val()
 
 
   activate : ->
