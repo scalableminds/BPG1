@@ -9,9 +9,11 @@ GET    /overview                                                          contro
 GET    /processView                                                       controllers.main.Application.processView
 
 # CRUD Urls
-GET    /projects                                                          controllers.main.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
-GET    /projects/:id                                                      controllers.main.ProjectController.read(id: String)
-POST   /projects/:id/graphs                                               controllers.main.ProjectController.createGraph(id: String)
+GET    /projects                                                          controllers.main.project.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)
+GET    /projects/:id                                                      controllers.main.project.ProjectController.read(id: String)
+GET    /projects/:id/updateChannel                                        controllers.main.project.ProjectChangeController.joinChannel(id: String)
+POST   /projects/:id/graphs                                               controllers.main.project.ProjectController.createGraph(id: String)
+
 GET    /projects/:id/artifacts                                            controllers.main.ArtifactController.listForProject(id: String, offset: Int ?= 0, limit: Int ?= 50)
 
 GET    /artifacts/:id/:typ/:name                                          controllers.main.ArtifactController.download(id: String, name: String, typ: String)

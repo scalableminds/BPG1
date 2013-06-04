@@ -31,6 +31,7 @@ import models.ProjectDAO
 import projectZoom.thumbnails.all.AllThumbnailActor
 import projectZoom.thumbnails.image.ImageThumbnailActor
 import projectZoom.thumbnails.video.VideoThumbnailActor
+import controllers.main.project.ProjectRoomEventDispatcher
 
 object Global extends GlobalSettings with GlobalDBAccess {
 
@@ -40,25 +41,25 @@ object Global extends GlobalSettings with GlobalDBAccess {
     SettingsActor.start
     val aa = ArtifactActor.start
     KnowledgeActor.start
-    TextThumbnailActor.start
+    /*TextThumbnailActor.start
     AllThumbnailActor.start
     ImageThumbnailActor.start
-    VideoThumbnailActor.start
+    VideoThumbnailActor.start*/
+    ProjectRoomEventDispatcher.start
     SupervisorActor.start
     if (app.mode == Mode.Dev) {
       putSampleValuesInDB
 
-      sys.scheduler.scheduleOnce(5 seconds) {
-        //ProjectDAO.findOneByName(_project)
-        List(
-            models.Artifact("test.jpg", "null - null", "prototype", "dummy", Json.obj()) ->
-              new FileInputStream(new File("public/images/test.jpg"))
-        ).map{
+      /*sys.scheduler.scheduleOnce(5 seconds) {
+        new File("modules/common/public/testfiles").listFiles.map{f =>
+            models.Artifact(f.getName, "null - null", (scala.math.random*100000).toInt.toString, "dummy", Json.obj()) ->
+              new FileInputStream(f)
+        }.map{
           case (info, stream) =>
             Logger.debug("Inserted dummy Artifact: " + info)
             aa ! projectZoom.core.artifact.ArtifactFound(stream, info)
         }
-      }
+      }*/
     }
   }
 

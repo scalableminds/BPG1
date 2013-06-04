@@ -26,10 +26,11 @@ case class JsonPatchPath(private val path: String) {
   private def simpleUpdate(f: JsPath => Reads[JsObject])(path: JsPath): Reads[JsObject] = {
     def r(current: JsPath, remaining: JsPath): Reads[JsObject] = {
       remaining.path match {
-        case p :: IdxPathNode(i) :: tail =>
-          JsPath(current.path :+ p).json.update(
+        case IdxPathNode(i) :: tail =>
+          println("idxp")
+          JsPath(current.path).json.update(
             of[JsArray].flatMap[JsArray] {
-              case JsArray(l) if (i < l.size) =>
+              case JsArray(l) if (i >= 0 &&i < l.size) =>
                 Reads(_ =>
                   l(i) transform simpleUpdate(f)(JsPath(tail)).map { u =>
                     JsArray(l.updated(i, u))
@@ -44,8 +45,8 @@ case class JsonPatchPath(private val path: String) {
           f(current)
       }
     }
-
-    r(JsPath(), path)
+    println("reached with path: " + path)
+    r(JsPath, path)
   }
 
   def readWith[T](f: JsPath => Reads[T]) = {
