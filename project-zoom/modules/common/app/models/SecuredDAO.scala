@@ -68,12 +68,8 @@ trait DBAccessValidator {
 
 trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEyerthingDBAccessFactory with AllowEverytingDBAccessValidator { this: MongoDAO[T] =>
 
-  def withValidId(sid: String)(f: BSONObjectID => Future[LastError]) =
-    BSONObjectID
-      .parse(sid)
-      .map(f)
-      .getOrElse(Future.successful(
-        LastError(false, None, None, Some("Couldn't parse ObjectId"), None, 0, false)))
+  def withId(sid: String)(f: BSONObjectID => Future[LastError]): Future[LastError] =
+    withId(sid, LastError(false, None, None, Some("Couldn't parse ObjectId"), None, 0, false))(f)
 
   def collectionInsert(js: JsObject)(implicit ctx: DBAccessContext): Future[LastError] = {
     if (ctx.globalAccess || isAllowedToInsert) {
@@ -95,10 +91,10 @@ trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEye
     else
       collection.find(query ++ findQueryFilter)
   }
-  
+
   def logError(f: => Future[LastError]) = {
-    f.map{ r =>
-      if(!r.ok)
+    f.map { r =>
+      if (!r.ok)
         Logger.warn("DB LastError: " + r)
       r
     }
@@ -126,11 +122,11 @@ trait SecuredDAO[T] extends DBAccessValidator with DBAccessFactory with AllowEye
   }
 
   def collectionRemove(js: JsObject)(implicit ctx: DBAccessContext) = {
-    logError{
+    logError {
       if (ctx.globalAccess)
         collection.remove(js)
       else
         collection.remove(js ++ removeQueryFilter)
-      }
+    }
   }
 }

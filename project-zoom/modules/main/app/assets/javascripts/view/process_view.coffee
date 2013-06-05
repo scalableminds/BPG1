@@ -34,16 +34,15 @@ class ProcessView
 
     @$el = $(ProcessViewTemplate)
     @el = @$el[0]
-    $(".content").append(@$el)
 
     @artifactFinder = new ArtifactFinder(@projectModel.get("artifacts"))
     @gui = new GUI(@$el, @artifactFinder)
     @projectModel.get("graphs/0", this, (graphModel) =>
 
       @graph = new Graph(@$el.find(".graph")[0], graphModel, @artifactFinder)
-      @zooming = new ZoomBehavior(@graph)
-      @panning = new PanBehavior(@graph)
-      @dragAndDrop = new DragAndDropBehavior(@graph, @$el)
+      @zooming = new ZoomBehavior(@$el, @graph)
+      @panning = new PanBehavior(@$el, @graph)
+      @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
 
       @activate()
     )
@@ -54,9 +53,6 @@ class ProcessView
     @$el.find("#artifact-finder").off("dragstart")
 
     @$el.find(".toolbar a")
-      .off("click")
-    @$el.find(".zoom-slider")
-      .off("change")
       .off("click")
 
     @graph.changeBehavior(new Behavior())

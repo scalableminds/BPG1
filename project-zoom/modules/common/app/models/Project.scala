@@ -31,10 +31,14 @@ object ProjectDAO extends SecuredMongoJsonDAO[Project] {
   }
 
   def addGraphTo(projectId: String, graph: Graph)(implicit ctx: DBAccessContext) = {
-    withValidId(projectId) { id =>
+    withId(projectId) { id =>
       collectionUpdate(Json.obj("_id" -> id),
         Json.obj("$push" -> Json.obj("_graphs" -> graph.group)))
     }
+  }
+  
+  def findProject(projectName: String)(implicit ctx: DBAccessContext): Future[Option[Project]] = {
+    findOneByName(projectName).map(_.flatMap(_.asOpt[Project]))
   }
 
   def update(p: Project)(implicit ctx: DBAccessContext): Future[LastError] =

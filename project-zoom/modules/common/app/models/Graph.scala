@@ -31,6 +31,7 @@ case class Graph(
   nodes: List[Node],
   edges: List[Edge],
   clusters: List[Cluster],
+  _project: BSONObjectID,
   _id: BSONObjectID = BSONObjectID.generate)
 
 trait PayloadTransformers {
@@ -59,7 +60,7 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers {
     (__).json.update((__ \ 'version).json.copyFrom((__ \ 'version).json.pick[JsNumber].map {
       case JsNumber(n) => JsNumber(n + 1)
     }))
-    
+
   def replacePayloadIdWithContent(content: JsValue) =
     (__).json.update((__ \ 'payload).json.put(content))
 
@@ -103,13 +104,16 @@ object GraphDAO extends SecuredMongoJsonDAO[Graph] with GraphTransformers {
     (Json.toJson(graph) transform versionInfoReads).get
   }
 
-  def generateEmptyGraph = {
-    Graph(
-      group = UUID.randomUUID().toString,
-      version = 0,
-      nodes = Nil,
-      edges = Nil,
-      clusters = Nil)
+  def generateEmptyGraph(_project: String) = {
+    BSONObjectID.parse(_project).map{ id =>
+      Graph(
+        group = UUID.randomUUID().toString,
+        version = 0,
+        nodes = Nil,
+        edges = Nil,
+        clusters = Nil,
+        _project = id)
+    }
   }
 
   def findLatestForGroup(group: String)(implicit ctx: DBAccessContext) = {
