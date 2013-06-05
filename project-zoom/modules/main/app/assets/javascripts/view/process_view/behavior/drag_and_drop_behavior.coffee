@@ -44,11 +44,13 @@ class DragAndDropBehavior extends Behavior
         x: mouse.x + translation[0]
         y: mouse.y + translation[1]
 
-      @graph.addNode(mouse.x, mouse.y, artifactId)
+      @graph.addNode(position.x, position.y, artifactId)
       @$preview.remove()
 
 
   dragStart : (event) =>
+
+    return unless event.gesture
 
     @offset = {left: 0, top: 0}
     @scaleValue = 1.0
@@ -63,6 +65,7 @@ class DragAndDropBehavior extends Behavior
         top: mouse.y
         width: "64px"
         height: "64px"
+        opacity: 0.8
         "z-index": 100
       )
 
@@ -71,6 +74,8 @@ class DragAndDropBehavior extends Behavior
 
 
   dragMove : (event) =>
+
+    return unless event.gesture
 
     mouse = @mousePosition(event)
 
