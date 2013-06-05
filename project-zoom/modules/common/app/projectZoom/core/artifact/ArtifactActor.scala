@@ -100,12 +100,12 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter wi
         val hash = DigestUtils.md5Hex(FileUtils.readFileToByteArray(file))
         ArtifactDAO.findResource(artifact, resource).map {
           case None =>
-            ArtifactDAO.insertResource(artifact)(hash, resource).map(_ =>
-              publish(ResourceInserted(file, artifact, resource)))
+            ArtifactDAO.insertResource(artifact)(hash, resource).map( updated =>
+              publish(ResourceInserted(file, updated getOrElse artifact, resource)))
           case Some(r) /*if r.hash != hash*/ =>
             // TODO: remove comment
-            ArtifactDAO.updateHashOfResource(artifact)(hash, resource).map(_ =>
-              publish(ResourceUpdated(file, artifact, resource)))
+            ArtifactDAO.updateHashOfResource(artifact)(hash, resource).map(updated =>
+              publish(ResourceUpdated(file, updated getOrElse artifact, resource)))
           case _ =>
             Logger.debug(s"Resource is still the same. Resource: $resource")
         }

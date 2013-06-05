@@ -20,19 +20,19 @@ trait ArtifactLike {
   def resources: List[ResourceLike]
 }
 
-trait ArtifactLikeTransformers extends ResourceLikeTransformers{
-  
-  def toTuple(a: ArtifactLike) = 
+trait ArtifactLikeTransformers extends ResourceLikeTransformers {
+
+  def toTuple(a: ArtifactLike) =
     (a.name, a.projectName, a.path, a.source, a.metadata, a.isDeleted, a.resources)
-  
-  implicit val artifactLikeWrites = 
+
+  implicit val artifactLikeWrites =
     ((__ \ 'name).write[String] and
-    (__ \ 'projectName).write[String] and
-    (__ \ 'path).write[String] and
-    (__ \ 'source).write[String] and
-    (__ \ 'metadata).write[JsValue] and
-    (__ \ 'isDeleted).write[Boolean] and
-    (__ \ 'resources).write[List[ResourceLike]])(toTuple _)
+      (__ \ 'projectName).write[String] and
+      (__ \ 'path).write[String] and
+      (__ \ 'source).write[String] and
+      (__ \ 'metadata).write[JsValue] and
+      (__ \ 'isDeleted).write[Boolean] and
+      (__ \ 'resources).write[List[ResourceLike]])(toTuple _)
 }
 
 case class Artifact(
@@ -62,7 +62,7 @@ object ArtifactDAO
     with ResourceHelpers
     with ArtifactLikeTransformers
     with ArtifactTransformers {
-  
+
   val collectionName = "artifacts"
 
   def findByArtifactQ(artifact: ArtifactLike): JsObject =
@@ -106,14 +106,19 @@ object ArtifactDAO
       _.flatMap(_.resources.find(_.isSameAs(resource))))
 
   def insertResource(artifact: ArtifactLike)(hash: String, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
+    val hashedResource = resource.withHash(hash)
     collectionUpdate(findByArtifactQ(artifact), Json.obj(
       "$addToSet" -> Json.obj(
-        "resources" -> resource.withHash(hash))))
+        "resources" -> hashedResource))).flatMap { _ =>
+      collectionFind(findByArtifactQ(artifact)).one[Artifact]
+    }
   }
 
   def updateHashOfResource(artifact: ArtifactLike)(hash: String, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
     collectionUpdate(findByArtifactQ(artifact) ++ findByResourceQ(resource.withHash(hash)), Json.obj(
       "$set" -> Json.obj(
-        "resources.$.hash" -> hash)))
+        "resources.$.hash" -> hash))).flatMap { _ =>
+      collectionFind(findByArtifactQ(artifact)).one[Artifact]
+    }
   }
 }
