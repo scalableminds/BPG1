@@ -45,6 +45,7 @@ class ConnectBehavior extends Behavior
     @startPoint = @mousePosition(event)
     @startTranslation = d3.transform(graphContainer.attr("transform")).translate
 
+
   dragEnd : (event) =>
 
     startNode = d3.select($(event.gesture.startEvent.target).closest("foreignObject")[0]).datum()

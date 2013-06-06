@@ -25,9 +25,6 @@ class Graph
     @initArrowMarkers()
     @initCallouts()
 
-    @currentBehavior = new DragBehavior(@)
-    @currentBehavior.activate()
-
     @clusterPaths = @graphContainer.append("svg:g").selectAll("path")
     @paths = @graphContainer.append("svg:g").selectAll("path")
     @nodeGroups = @graphContainer.append("svg:g").selectAll("images")
@@ -122,6 +119,9 @@ class Graph
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
+        .attr(
+          cursor: "move"
+        )
       .select( (data, i)-> #hacky
         el[i] = @;
         return this
@@ -352,10 +352,6 @@ class Graph
         )
 
 
-  changeBehavior : (behavior) ->
 
-    @currentBehavior.deactivate()
-    @currentBehavior = behavior
-    @currentBehavior.activate()
 
 

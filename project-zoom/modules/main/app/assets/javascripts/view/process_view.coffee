@@ -5,17 +5,13 @@ hammer : Hammer
 jquery.mousewheel : Mousewheel
 ./process_view/graph : Graph
 ./process_view/gui : GUI
+./process_view/selection_handler : SelectionHandler
 
 ../component/artifact_finder : ArtifactFinder
 ../component/artifact : Artifact
 text!templates/process_view.html : ProcessViewTemplate
 
-./process_view/behavior/behavior : Behavior
-./process_view/behavior/connect_behavior : ConnectBehavior
-./process_view/behavior/drag_behavior : DragBehavior
-./process_view/behavior/delete_behavior : DeleteBehavior
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
-./process_view/behavior/comment_behavior : CommentBehavior
 ./process_view/behavior/zoom_behavior : ZoomBehavior
 ./process_view/behavior/pan_behavior : PanBehavior
 ./process_view/behavior/drag_and_drop_behavior : DragAndDropBehavior
@@ -44,9 +40,12 @@ class ProcessView
       @panning = new PanBehavior(@$el, @graph)
       @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
 
+      @selectionHandler = new SelectionHandler(@$el, @graph)
+
       @activate()
     )
 
+    app.processView = @
 
   deactivate : ->
 
@@ -56,21 +55,21 @@ class ProcessView
 
     @$el.find("image").off "dragstart"
 
-    @graph.changeBehavior(new Behavior())
     @gui.deactivate()
     @artifactFinder.deactivate()
     @zooming.deactive()
     @panning.deactive()
     @dragAndDrop.deactivate()
-
+    @selectionHandler.deactivate()
 
   activate : ->
 
     @gui.activate()
     @artifactFinder.activate()
     @zooming.activate()
-    @panning.activate()
+    #@panning.activate()
     @dragAndDrop.activate()
+    @selectionHandler.activate()
 
     # drag artifact into graph
     @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
@@ -92,28 +91,17 @@ class ProcessView
   changeBehavior : (selectedTool) =>
 
     graph = @graph
-    graphContainer = @graph.graphContainer
 
     toolBox = @$el.find(".toolbar a")
     behavior = switch selectedTool
 
-      when toolBox[0] then new DragBehavior(graph)
-      when toolBox[1] then new ConnectBehavior(graph, graphContainer)
-      when toolBox[2] then new DeleteBehavior(graph)
-      when toolBox[3] then new DrawClusterBehavior(graph, graphContainer, "standard")
-      when toolBox[4] then new DrawClusterBehavior(graph, graphContainer, "standard") #twice is right
-      when toolBox[5] then new DrawClusterBehavior(graph, graphContainer, "understand")
-      when toolBox[6] then new DrawClusterBehavior(graph, graphContainer, "observe")
-      when toolBox[7] then new DrawClusterBehavior(graph, graphContainer, "pov")
-      when toolBox[8] then new DrawClusterBehavior(graph, graphContainer, "ideate")
-      when toolBox[9] then new DrawClusterBehavior(graph, graphContainer, "prototype")
-      when toolBox[10] then new DrawClusterBehavior(graph, graphContainer, "test")
-      when toolBox[11] then new CommentBehavior(graph)
+      when toolBox[3] then new DrawClusterBehavior(graph, "standard")
+      when toolBox[4] then new DrawClusterBehavior(graph, "standard") #twice is right
+      when toolBox[5] then new DrawClusterBehavior(graph, "understand")
+      when toolBox[6] then new DrawClusterBehavior(graph, "observe")
+      when toolBox[7] then new DrawClusterBehavior(graph, "pov")
+      when toolBox[8] then new DrawClusterBehavior(graph, "ideate")
+      when toolBox[9] then new DrawClusterBehavior(graph, "prototype")
+      when toolBox[10] then new DrawClusterBehavior(graph, "test")
 
-    if behavior instanceof ConnectBehavior or behavior instanceof DrawClusterBehavior
-      @panning.deactivate()
-    else
-      @panning.activate()
-
-    graph.changeBehavior( behavior )
-
+    @selectionHandler.changeBehavior( behavior )
