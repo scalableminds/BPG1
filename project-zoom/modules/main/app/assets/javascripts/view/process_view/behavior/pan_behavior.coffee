@@ -51,7 +51,7 @@ class PanBehavior extends Behavior
     return unless event.gesture
     target = d3.select(event.gesture.target)
 
-    if target.classed("node") or target.classed("cluster")
+    if target.classed("node")
       return
 
     mouse = @mousePosition(event)
