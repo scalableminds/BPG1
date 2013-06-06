@@ -22,11 +22,16 @@ class SelectionHandler
 
     @currentBehavior = @behaviors.IDLE
 
-    app.on "behavior:done", => @changeBehavior( @behaviors.DRAG )
+    app.on "behavior:done", =>
+      if @selection
+        @changeBehavior( @behaviors.DRAG )
+      else
+        @changeBehavior( @behaviors.IDLE )
 
     app.on "behavior:delete", => @unselect()
     app.on "behavior:drag", => @positionToolbar()
     app.on "behavior:zooming", => @positionToolbar()
+    app.on "behavior:panning", => @positionToolbar()
 
 
   activate : ->

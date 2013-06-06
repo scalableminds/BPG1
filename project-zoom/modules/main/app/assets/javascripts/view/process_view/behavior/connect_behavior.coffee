@@ -18,6 +18,7 @@ class ConnectBehavior extends Behavior
     else
       @dragLine = @graph.d3Element.select(".drag-line")
 
+    super(@graph)
 
   activate : (@element) ->
 

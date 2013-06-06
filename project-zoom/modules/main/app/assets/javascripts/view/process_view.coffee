@@ -67,7 +67,7 @@ class ProcessView
     @gui.activate()
     @artifactFinder.activate()
     @zooming.activate()
-    #@panning.activate()
+    @panning.activate()
     @dragAndDrop.activate()
     @selectionHandler.activate()
 
@@ -95,13 +95,13 @@ class ProcessView
     toolBox = @$el.find(".toolbar a")
     behavior = switch selectedTool
 
-      when toolBox[3] then new DrawClusterBehavior(graph, "standard")
-      when toolBox[4] then new DrawClusterBehavior(graph, "standard") #twice is right
-      when toolBox[5] then new DrawClusterBehavior(graph, "understand")
-      when toolBox[6] then new DrawClusterBehavior(graph, "observe")
-      when toolBox[7] then new DrawClusterBehavior(graph, "pov")
-      when toolBox[8] then new DrawClusterBehavior(graph, "ideate")
-      when toolBox[9] then new DrawClusterBehavior(graph, "prototype")
-      when toolBox[10] then new DrawClusterBehavior(graph, "test")
+      when toolBox[0] then new DrawClusterBehavior(graph, "standard")
+      when toolBox[1] then new DrawClusterBehavior(graph, "standard") #twice is right
+      when toolBox[2] then new DrawClusterBehavior(graph, "understand")
+      when toolBox[3] then new DrawClusterBehavior(graph, "observe")
+      when toolBox[4] then new DrawClusterBehavior(graph, "pov")
+      when toolBox[5] then new DrawClusterBehavior(graph, "ideate")
+      when toolBox[6] then new DrawClusterBehavior(graph, "prototype")
+      when toolBox[7] then new DrawClusterBehavior(graph, "test")
 
     @selectionHandler.changeBehavior( behavior )

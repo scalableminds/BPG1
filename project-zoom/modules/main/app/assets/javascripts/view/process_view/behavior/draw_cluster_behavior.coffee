@@ -1,5 +1,4 @@
 ### define
-core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
 ../cluster : Cluster
@@ -19,6 +18,7 @@ class DrawClusterBehavior extends Behavior
     else
       @preview = @graph.d3Element.select(".preview")
 
+    super(@graph)
 
   activate : ->
 
@@ -47,8 +47,7 @@ class DrawClusterBehavior extends Behavior
     @graph.addCluster(@cluster)
     @preview.classed("hide", true)
 
-    # switch to drag tool again (reset)
-    window.setTimeout( ( -> $(".btn-group a").first().trigger("click")), 100)
+    app.trigger "behavior:done"
 
 
   dragStart : (event) =>
@@ -59,9 +58,6 @@ class DrawClusterBehavior extends Behavior
       content : []
     )
     @preview.data(@cluster)
-
-    @offset = @graph.$svgEl.offset()
-    @scaleValue = app.view.zoom.level
 
 
   dragMove : (event) =>

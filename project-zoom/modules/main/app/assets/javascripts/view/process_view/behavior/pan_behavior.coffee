@@ -13,6 +13,9 @@ class PanBehavior extends Behavior
     app.on "behavior:enable_panning", => @activate()
     app.on "behavior:disable_panning", => @deactivate()
 
+    super(@graph)
+
+
   activate : ->
 
     unless @active
@@ -67,3 +70,4 @@ class PanBehavior extends Behavior
     graphContainer.attr("transform", transformation.toString())
 
     @startPoint = mouse
+    app.trigger "behavior:panning"
