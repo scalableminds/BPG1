@@ -24,12 +24,16 @@ class DragBehavior extends Behavior
 
   dragStart : (event) =>
 
+    return unless event.gesture
+
     @offset = @graph.$svgEl.offset()
     @scaleValue = app.view.zoom.level
 
     @startPoint = @mousePosition(event)
 
   dragMoveNode : (event) =>
+
+    return unless event.gesture
 
     node = d3.select(event.gesture.target).datum()
     mouse = @mousePosition(event)

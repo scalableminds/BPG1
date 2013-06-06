@@ -52,8 +52,9 @@ class ProcessView
 
     @$el.find("#artifact-finder").off("dragstart")
 
-    @$el.find(".toolbar a")
-      .off("click")
+    @$el.find(".toolbar a").off("click")
+
+    @$el.find("image").off "dragstart"
 
     @graph.changeBehavior(new Behavior())
     @gui.deactivate()
@@ -77,6 +78,9 @@ class ProcessView
     # change tool from toolbox
     processView = this
     @$el.find(".toolbar a").on "click", (event) -> processView.changeBehavior(this)
+
+    @$el.find("image").on "dragstart", (e) ->
+      e.preventDefault() #disable Firefox's native drag API
 
     Hammer($("#process-graph")[0]).on "mouseenter", ".node", (event) ->
       node = d3.select(event.target).datum()

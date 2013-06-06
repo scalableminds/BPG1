@@ -1,5 +1,6 @@
 ### define
 jquery : $
+app : app
 ###
 
 
@@ -7,17 +8,17 @@ class Tagbar
 
   domElement : null
   taglist = [
-    {type :"project_partner", name : "SAP"},
     {type :"date", name : "2013"},
     {type :"date", name : "2012"},
     {type :"date", name : "2011"},
     {type :"date", name : "2010"},
-    {type :"branch", name : "Health"},
-    {type :"branch", name : "Energy"},
   ]
 
 
   constructor : () ->
+
+    # t = taglist.concat app.model.get("tags").items
+    # console.log t
 
     @availableTags = taglist
 

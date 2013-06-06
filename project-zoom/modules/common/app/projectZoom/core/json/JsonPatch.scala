@@ -10,8 +10,8 @@ import play.api.data.validation.ValidationError
 import play.api.Logger
 
 case class JsonPatchDocument(patches: List[JsonPatchOperation]) {
-  def patch(obj: JsObject) = {
-    def patchTillFailure(patches: Seq[JsonPatchOperation])(obj: JsObject): JsResult[JsObject] = {
+  def patch(obj: JsValue) = {
+    def patchTillFailure(patches: Seq[JsonPatchOperation])(obj: JsValue): JsResult[JsValue] = {
       patches match {
         case patchOperation :: tail =>
           patchOperation.patch.reads(obj).flatMap { o =>
@@ -70,7 +70,7 @@ object JsonPatch {
 
   def patchDocReads = (__.read(list(patchReads))).map(JsonPatchDocument)
 
-  def patch(obj: JsObject, patchObj: JsValue) = {
+  def patch(obj: JsValue, patchObj: JsValue) = {
     patchDocReads.reads(patchObj).flatMap(_.patch(obj))
   }
 }
