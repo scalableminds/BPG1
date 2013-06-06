@@ -35,7 +35,7 @@ class ArtifactFinder
     @resizeHandler = =>
       @domElement.height($(window).height() - @domElement.offset().top - 30)
 
-    app.on "zooming", @resize
+    app.on "behavior:zooming", @resize
 
   initSlider : (domElement) ->
 

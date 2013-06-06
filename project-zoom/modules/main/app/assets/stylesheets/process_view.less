@@ -107,3 +107,35 @@ a.toggles {
     color:white;
     padding:10px 20px;
 }
+
+#tool-bar {
+
+  position: absolute;
+  pointer-events: none;
+
+  a {
+    width: 17px;
+    height: 27px;
+    pointer-events: all;
+    text-align: center
+   }
+
+  &.node {
+
+    #comment {
+      position: absolute;
+      right: -40px;
+      top: 0px;
+    }
+    #connect {
+      position: absolute;
+      right: -40px;
+      top: 45px;
+    }
+    #delete {
+      position: absolute;
+      right: -40px;
+      top: 90px;
+    }
+  }
+}

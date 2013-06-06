@@ -30,8 +30,7 @@ class DragAndDropBehavior extends Behavior
     touch = event.gesture.touches[0]
 
     #is the mouse over the SVG?
-    @offset = @$el.find("#process-graph").offset()
-    @scaleValue = app.view.zoom.level
+    @offset = @graph.$svgEl.offset()
 
     if touch.pageX > @offset.left and touch.pageY > @offset.top
 
@@ -52,11 +51,8 @@ class DragAndDropBehavior extends Behavior
 
     return unless event.gesture
 
-    @offset = {left: 0, top: 0}
-    @scaleValue = 1.0
-
     svgContainer = $(event.gesture.target).closest("svg").clone() #use clone for the preview, so that original stays within the artifacFinder
-    mouse = @mousePosition(event)
+    mouse = @mousePosition(event, false)
 
     @$preview = $("<div>", {class: "drag-preview"})
       .css(

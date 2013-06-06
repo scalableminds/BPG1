@@ -13,7 +13,7 @@ class DrawClusterBehavior extends Behavior
 
     @throttledDragMove = _.throttle(@dragMove, 50)
     if @graph.$svgEl.find(".preview").length == 0
-      @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
+      @preview = @graph.graphContainer.insert("svg:path",":first-child") #prepend for proper zOrdering
       @preview
         .attr("class", "hide preview cluster")
     else
@@ -27,6 +27,7 @@ class DrawClusterBehavior extends Behavior
       .on("dragstart", @dragStart)
       .on("dragend", @dragEnd)
 
+    app.trigger "behavior:disable_panning"
 
   deactivate : ->
 
@@ -38,6 +39,7 @@ class DrawClusterBehavior extends Behavior
     @preview.attr("d", "M 0,0 L 0,0") # move it out of the way
     @preview.classed("hidden, true")
 
+    app.trigger "behavior:enable_panning"
 
   dragEnd : (event) =>
 

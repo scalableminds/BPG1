@@ -1,40 +1,43 @@
 ### define
-hammer : Hammer
 ./behavior : Behavior
+app: app
+d3: d3
 ###
 
 class DeleteBehavior extends Behavior
 
-  activate : ->
+  activate : (@element) ->
 
-    @hammerContext = Hammer( @graph.svgEl )
-      .on("tap", ".node", @removeNode)
-      .on("tap", ".edge", @removeEdge)
-      .on("tap", ".cluster", @removeCluster)
+    element = d3.select(element)
 
+    if element.classed("node")
+      @removeNode()
 
-  deactivate : ->
-
-    @hammerContext
-      .off("tap", @removeNode)
-      .off("tap", @removeEdge)
-      .off("tap", @removeCluster)
+    if element.classed("cluster")
+      @removeCluster()
 
 
-  removeNode : (event) =>
+  removeNode : ->
 
-    node = d3.select(event.target).datum()
-    @graph.removeNode(node)
+    if window.confirm("Are you sure you want to delete this document?")
+      node = d3.select(@element).datum()
+      @graph.removeNode(node)
+
+      app.trigger "behavior:delete"
 
 
   removeEdge : (event) =>
 
-    edge = d3.select(event.target).datum()
+    edge = d3.select(@element).datum()
     @graph.removeEdge(edge)
+
+
+    app.trigger "behavior:delete"
 
 
   removeCluster : (event) =>
 
-    cluster = d3.select(event.target).datum()
+    cluster = d3.select(@element).datum()
     @graph.removeCluster(cluster)
 
+    app.trigger "behavior:delete"

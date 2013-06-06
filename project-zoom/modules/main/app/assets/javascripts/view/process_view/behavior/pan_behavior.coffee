@@ -6,9 +6,12 @@ app : app
 
 class PanBehavior extends Behavior
 
-  constructor : (@$el, @graph) ->
+  constructor : (@graph) ->
 
     @active = false
+
+    app.on "behavior:enable_panning", => @activate()
+    app.on "behavior:disable_panning", => @deactivate()
 
   activate : ->
 
@@ -34,9 +37,7 @@ class PanBehavior extends Behavior
 
     return unless event.gesture
 
-    @offset = @graph.$svgEl.offset()
     @scaleValue = app.view.zoom.level
-
     @startPoint = @mousePosition(event)
 
     graphContainer = @graph.graphContainer

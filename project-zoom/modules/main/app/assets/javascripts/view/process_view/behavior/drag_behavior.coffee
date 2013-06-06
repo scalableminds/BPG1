@@ -6,12 +6,13 @@ app : app
 
 class DragBehavior extends Behavior
 
-  activate : ->
+  activate : (@element) ->
 
-    @hammerContext = Hammer( @graph.svgEl )
+    @hammerContext = Hammer( @element)
       .on("drag", ".node", @dragMoveNode)
       .on("drag", ".cluster", @dragMoveCluster)
-      .on("dragstart", @dragStart)
+
+    @startPoint = d3.select(@element).datum().get("position").toObject() #not pretty but works
 
 
   deactivate : ->
@@ -19,21 +20,9 @@ class DragBehavior extends Behavior
     @hammerContext
       .off("drag", @dragMoveNode)
       .off("drag", @dragMoveCluster)
-      .off("dragstart", @dragStart)
 
-
-  dragStart : (event) =>
-
-    return unless event.gesture
-
-    @offset = @graph.$svgEl.offset()
-    @scaleValue = app.view.zoom.level
-
-    @startPoint = @mousePosition(event)
 
   dragMoveNode : (event) =>
-
-    return unless event.gesture
 
     node = d3.select(event.gesture.target).datum()
     mouse = @mousePosition(event)
@@ -45,6 +34,8 @@ class DragBehavior extends Behavior
     @graph.moveNode(node, delta, true)
 
     @startPoint = mouse
+    app.trigger "behavior:drag"
+
 
   dragMoveCluster : (event) =>
 

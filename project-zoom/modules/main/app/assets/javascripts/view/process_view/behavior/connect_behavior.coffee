@@ -7,11 +7,11 @@ app : app
 
 class ConnectBehavior extends Behavior
 
-  constructor : ( @graph, @container ) ->
+  constructor : ( @graph ) ->
 
     # line that is displayed when dragging a new edge between nodes
     if @graph.$el.find(".drag-line").length == 0
-      @dragLine = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
+      @dragLine = @graph.graphContainer.insert("svg:path",":first-child") #prepend for proper zOrdering
       @dragLine
         .attr("class", "hide drag-line")
         .style('marker-end', 'url(#end-arrow)')
@@ -24,7 +24,8 @@ class ConnectBehavior extends Behavior
     @hammerContext = Hammer( @graph.svgEl )
       .on("drag", ".node", @dragMove)
       .on("dragend", ".node", @dragEnd)
-      .on("dragstart", ".node", @dragStart)
+
+    app.trigger "behavior:disable_panning"
 
 
   deactivate : ->
@@ -32,15 +33,10 @@ class ConnectBehavior extends Behavior
     @hammerContext
       .off("drag", @dragMove)
       .off("dragend", @dragEnd)
-      .off("dragstart", @dragStart)
 
     @dragLine.classed("hide", true)
 
-
-  dragStart : (event) =>
-
-    @offset = @graph.$svgEl.offset()
-    @scaleValue = app.view.zoom.level
+    app.trigger "behavior:enable_panning"
 
 
   dragEnd : (event) =>

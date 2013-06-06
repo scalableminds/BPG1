@@ -35,7 +35,7 @@ class ZoomBehavior extends Behavior
 
 
   deactivate : ->
-    
+
     app.view.zoom.off(this, "change", @zoom)
 
     @$el.find(".graph").on("mousewheel", @mouseWheelHandler)
@@ -56,4 +56,4 @@ class ZoomBehavior extends Behavior
 
     graphContainer.attr("transform", transformation.toString())
 
-    app.trigger "zooming"
+    app.trigger "behavior:zooming"
