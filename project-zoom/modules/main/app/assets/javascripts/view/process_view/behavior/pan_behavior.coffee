@@ -32,6 +32,8 @@ class PanBehavior extends Behavior
 
   panStart : (event) =>
 
+    return unless event.gesture
+
     @offset = @graph.$svgEl.offset()
     @scaleValue = app.view.zoom.level
 
@@ -42,6 +44,7 @@ class PanBehavior extends Behavior
 
   pan : (event) =>
 
+    return unless event.gesture
     target = d3.select(event.gesture.target)
 
     if target.classed("node") or target.classed("cluster")

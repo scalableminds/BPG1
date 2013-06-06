@@ -45,6 +45,7 @@ class ConnectBehavior extends Behavior
 
   dragEnd : (event) =>
 
+    return unless event.gesture
     startNode = d3.select(event.gesture.startEvent.target).datum()
 
     if targetElement = d3.select(event.target)
@@ -58,6 +59,7 @@ class ConnectBehavior extends Behavior
 
   dragMove : (event) =>
 
+    return unless event.gesture
     mouse = @mousePosition(event)
 
     nodeData = d3.select(event.gesture.target).datum()

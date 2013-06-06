@@ -31,6 +31,8 @@ trait DAO[T] extends BaseDAO[T] {
   def findAll(implicit ctx: DBAccessContext): Future[List[T]]
 
   def findOneById(id: String)(implicit ctx: DBAccessContext): Future[Option[T]]
+      
+  def findOneById(bid: BSONObjectID)(implicit ctx: DBAccessContext): Future[Option[T]]
 
   def removeById(id: String)(implicit ctx: DBAccessContext): Future[LastError]
 
@@ -150,7 +152,7 @@ trait MongoDAO[T] extends DAO[T] {
   def takeSome(q: GenericQueryBuilder[JsObject, Reads, Writes], offset: Int, limit: Int, orderBy: String = defaultOrderBy) = {
     val options = QueryOpts(skipN = offset, batchSizeN = limit)
     val document = Json.obj(
-      orderBy -> -1)
+      orderBy -> 1)
     q
       .options(options)
       .sort(document)
@@ -185,8 +187,12 @@ trait MongoDAO[T] extends DAO[T] {
 
   def findOneById(id: String)(implicit ctx: DBAccessContext) = {
     withId[Option[T]](id, errorValue = None) { bid =>
-      collectionFind(Json.obj("_id" -> bid)).one[T]
+      findOneById(bid)
     }
+  }
+  
+  def findOneById(bid: BSONObjectID)(implicit ctx: DBAccessContext) = {
+    collectionFind(Json.obj("_id" -> bid)).one[T]
   }
 
   def removeById(id: String)(implicit ctx: DBAccessContext) = {

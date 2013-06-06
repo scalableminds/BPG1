@@ -27,10 +27,16 @@ ModelFunctions =
 
     (new $.Deferred (deferred) ->
       project.get("graphs", project, (graphCollection) ->
+
+        unless graphCollection
+          project.set("graphs", [])
+          graphCollection = project.get("graphs")
+
         if graphCollection.length == 0
-          DataItem.fetch("/projects/#{project.get("id")}/graphs").then( 
+          DataItem.fetch("/projects/#{project.get("id")}/graphs", method : "POST").then( 
             (graph) ->
               graphCollection.add(graph)
+
               deferred.resolve(graph)
           )
 
