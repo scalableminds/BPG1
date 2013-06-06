@@ -22,6 +22,12 @@ class SelectionHandler
 
     @currentBehavior = @behaviors.IDLE
 
+    app.on "behavior:done", => @changeBehavior( @behaviors.DRAG )
+
+    app.on "behavior:delete", => @unselect()
+    app.on "behavior:drag", => @positionToolbar()
+    app.on "behavior:zooming", => @positionToolbar()
+
 
   activate : ->
 
@@ -35,12 +41,6 @@ class SelectionHandler
 
     @buttonContext = Hammer( @$tools[0] )
       .on("tap", "a", @selectBehavior)
-
-    app.on "behavior:done", => @changeBehavior( @behaviors.DRAG )
-
-    app.on "behavior:delete", => @unselect()
-    app.on "behavior:drag", => @positionToolbar()
-    app.on "behavior:zooming", => @positionToolbar()
 
 
   deactivate : ->
@@ -58,6 +58,7 @@ class SelectionHandler
   selectNode : (event) =>
 
     return unless event.gesture
+    return if @currentBehavior instanceof ConnectBehavior #unclean workaround
 
     @selection = event.gesture.target
 
@@ -75,18 +76,19 @@ class SelectionHandler
 
   createToolBar : ->
 
-    template = """
-    <div id="tool-bar">
-      <a class="btn" href="#" id="connect"><i class="icon-arrow-right"></i></a>
-      <a class="btn" href="#" id="delete"><i class="icon-trash"></i></a>
-      <a class="btn" href="#" id="comment"><i class="icon-comment"></i></a>
-    </div>
-    """
+    unless @$tools
+      template = """
+      <div id="tool-bar">
+        <a class="btn" href="#" id="connect"><i class="icon-arrow-right"></i></a>
+        <a class="btn" href="#" id="delete"><i class="icon-trash"></i></a>
+        <a class="btn" href="#" id="comment"><i class="icon-comment"></i></a>
+      </div>
+      """
 
-    @$tools = $(template)
-    @$tools.hide()
+      @$tools = $(template)
+      @$tools.hide()
 
-    @$el.append(@$tools)
+      @$el.append(@$tools)
 
   positionToolbar : ->
 

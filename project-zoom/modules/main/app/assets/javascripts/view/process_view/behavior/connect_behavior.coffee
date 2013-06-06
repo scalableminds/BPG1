@@ -19,11 +19,13 @@ class ConnectBehavior extends Behavior
       @dragLine = @graph.d3Element.select(".drag-line")
 
 
-  activate : ->
+  activate : (@element) ->
 
     @hammerContext = Hammer( @graph.svgEl )
-      .on("drag", ".node", @dragMove)
-      .on("dragend", ".node", @dragEnd)
+      .on("dragend", ".node", @addEdge)
+      .on("tap", ".node", @addEdge)
+
+    @graph.$el.on "mousemove", @move
 
     app.trigger "behavior:disable_panning"
 
@@ -31,18 +33,19 @@ class ConnectBehavior extends Behavior
   deactivate : ->
 
     @hammerContext
-      .off("drag", @dragMove)
-      .off("dragend", @dragEnd)
+      .off("dragend", @addEdge)
+      .off("tap", @addEdge)
 
+    @graph.$el.off("mousemove", @move)
     @dragLine.classed("hide", true)
 
     app.trigger "behavior:enable_panning"
 
 
-  dragEnd : (event) =>
+  addEdge : (event) =>
 
-    return unless event.gesture
-    startNode = d3.select(event.gesture.startEvent.target).datum()
+    event.stopPropagation()
+    startNode = d3.select(@element).datum()
 
     if targetElement = d3.select(event.target)
       currentNode = targetElement.datum()
@@ -51,17 +54,18 @@ class ConnectBehavior extends Behavior
         @graph.addEdge(startNode, currentNode)
 
     @dragLine.classed("hide", true)
+    app.trigger "behavior:done"
 
 
-  dragMove : (event) =>
+  move : (event) =>
 
-    return unless event.gesture
-    mouse = @mousePosition(event)
+    mouse =
+      x : event.offsetX
+      y : event.offsetY
 
-    nodeData = d3.select(event.gesture.target).datum()
-    lineStartX = nodeData.get("position/x")
-    lineStartY = nodeData.get("position/y")
+    nodeData = d3.select(@element).datum()
+    lineStart = nodeData.get("position").toObject()
 
     @dragLine
       .classed("hide", false)
-      .attr("d", "M #{lineStartX},#{lineStartY} L #{mouse.x},#{mouse.y}")
+      .attr("d", "M #{lineStart.x},#{lineStart.y} L #{mouse.x},#{mouse.y}")

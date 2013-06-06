@@ -6,7 +6,7 @@ app : app
 
 class PanBehavior extends Behavior
 
-  constructor : (@graph) ->
+  constructor : (@$el, @graph) ->
 
     @active = false
 
