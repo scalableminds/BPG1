@@ -58,8 +58,8 @@ class ProcessView
     @graph.changeBehavior(new Behavior())
     @gui.deactivate()
     @artifactFinder.deactivate()
-    @zooming.deactive()
-    @panning.deactive()
+    @zooming.deactivate()
+    @panning.deactivate()
     @dragAndDrop.deactivate()
 
 
