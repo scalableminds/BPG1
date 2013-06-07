@@ -45,7 +45,7 @@ class ProcessView
       @activate()
     )
 
-    app.processView = @
+    app.view.processView = @
 
   deactivate : ->
 

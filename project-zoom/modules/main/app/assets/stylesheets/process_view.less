@@ -90,25 +90,22 @@ a.toggles {
     width: 17px;
     height: 27px;
     pointer-events: all;
-    text-align: center
+    text-align: center;
+
+    display: block;
+    margin: 2px 0;
    }
 
-  &.node {
+   .float-container {
 
-    #comment {
-      position: absolute;
-      right: -40px;
-      top: 0px;
-    }
+    width: 50px;
+    float: right;
+   }
+
+  &.cluster {
     #connect {
-      position: absolute;
-      right: -40px;
-      top: 45px;
-    }
-    #delete {
-      position: absolute;
-      right: -40px;
-      top: 90px;
+      display: none;
     }
   }
+
 }

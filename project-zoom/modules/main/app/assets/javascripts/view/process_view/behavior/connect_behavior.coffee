@@ -45,7 +45,6 @@ class ConnectBehavior extends Behavior
 
   addEdge : (event) =>
 
-    event.stopPropagation()
     startNode = d3.select(@element).datum()
 
     if targetElement = d3.select(event.target)

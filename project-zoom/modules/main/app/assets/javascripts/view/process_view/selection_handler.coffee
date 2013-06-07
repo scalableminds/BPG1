@@ -39,13 +39,14 @@ class SelectionHandler
     @createToolBar()
 
     @hammerContext = Hammer( @graph.svgEl )
+      .on("tap", "svg", @unselect)
       .on("tap", ".node", @selectNode)
       .on("tap", ".cluster", @selectCluster)
       .on("dragstart", ".node", @selectNode)
       .on("dragstart", ".cluster", @selectCluster)
 
-    @buttonContext = Hammer( @$tools[0] )
-      .on("tap", "a", @selectBehavior)
+    $(".btn").on("tap", @selectBehavior)
+
 
 
   deactivate : ->
@@ -53,14 +54,18 @@ class SelectionHandler
     @$tools.remove()
 
     @hammerContext
+      .off("tap", @unselect)
       .off("tap", @selectNode)
       .off("tap", @selectCluster)
+      .off("dragstart", @selectNode)
+      .off("dragstart", @selectCluster)
 
-    @buttonContext
-      .off("tap", @changeBehavior)
+    $(".btn").off("tap", @changeBehavior)
 
 
   selectNode : (event) =>
+
+    event.stopPropagation()
 
     return unless event.gesture
     return if @currentBehavior instanceof ConnectBehavior #unclean workaround
@@ -78,15 +83,30 @@ class SelectionHandler
 
   selectCluster : (event) =>
 
+    return unless event.gesture
+
+    @selection = event.gesture.target
+
+    @positionToolbar()
+    @$tools
+      .removeClass("cluster")
+      .addClass("cluster") # make sure we only add the class once
+      .show()
+
+    @changeBehavior( @behaviors.DRAG )
+
 
   createToolBar : ->
 
     unless @$tools
       template = """
       <div id="tool-bar">
-        <a class="btn" href="#" id="connect"><i class="icon-arrow-right"></i></a>
-        <a class="btn" href="#" id="delete"><i class="icon-trash"></i></a>
-        <a class="btn" href="#" id="comment"><i class="icon-comment"></i></a>
+        <div class="float-container">
+          <a class="btn" href="#" id="comment"><i class="icon-comment"></i></a>
+          <a class="btn" href="#" id="connect"><i class="icon-arrow-right"></i></a>
+          <a class="btn" href="#" id="delete"><i class="icon-trash"></i></a>
+          <a class="btn" href="#" id="download"><i class="icon-download-alt"></i></a>
+        </div>
       </div>
       """
 
@@ -100,11 +120,12 @@ class SelectionHandler
     if @selection
 
       boundingBox = @selection.getBoundingClientRect()
+      buttonWidth = 50
 
       @$tools.css(
         left: boundingBox.left
         top: boundingBox.top
-        width: boundingBox.width
+        width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )
 
@@ -122,7 +143,7 @@ class SelectionHandler
     @changeBehavior( behavior )
 
 
-  unselect : ->
+  unselect : =>
 
     @selection = null
     @$tools.hide()

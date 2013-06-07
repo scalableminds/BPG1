@@ -113,6 +113,7 @@ class Graph
   drawNodes : ->
 
     el = []
+    translation = d3.transform(@graphContainer.attr("transform")).translate
 
     @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
 
@@ -138,9 +139,9 @@ class Graph
 
     #update existing ones
     @nodeGroups.selectAll("image").attr(
-      x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
-      y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
-      #"xlink:href" : (data) -> a = new Artifact(data.get("payload"), (->64), true, this); a.activate(); a.resize()
+
+      x : (data) -> data.get("position/x") - Node(data).getSize().width / 2  - translation[0] / app.view.zoom.level
+      y : (data) -> data.get("position/y") - Node(data).getSize().height / 2 - translation[1] / app.view.zoom.level
       "xlink:href" : (data) -> new Artifact(data.get("payload"), (->64), true, this).resize()
     )
 
@@ -185,7 +186,7 @@ class Graph
         .attr(
           class : "cluster"
           "data-id" : (data) -> data.get("id")
-          d : (data) -> Cluster(data).getLineSegment()
+          d : (data) => Cluster(data).getLineSegment(@)
         )
 
     @drawComment(@clusterPaths, Cluster)
@@ -193,7 +194,7 @@ class Graph
     #update existing ones
     @clusterPaths.selectAll(".cluster")
       .attr(
-        d : (data) -> Cluster(data).getLineSegment()
+        d : (data) => Cluster(data).getLineSegment(@)
       )
 
     #remove deleted edges
@@ -260,13 +261,13 @@ class Graph
     commentGroup.exit().remove()
 
 
-  moveNode : (node, distance, checkForCluster = false) ->
+  moveNode : (node, delta, checkForCluster = false) ->
 
     #move nodes
     node.update("position", (position) ->
       position = position.toObject()
-      position.x += distance.x
-      position.y += distance.y
+      position.x += delta.x
+      position.y += delta.y
       position
     )
 
@@ -279,7 +280,7 @@ class Graph
     @drawEdges()
 
 
-  moveCluster : (clusterId, distance) ->
+  moveCluster : (clusterId, delta) ->
 
     cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
 
@@ -287,8 +288,8 @@ class Graph
     cluster.update("waypoints", (waypoints) ->
 
       waypoints.toObject().map( (waypoint) ->
-        x : waypoint.x + distance.x
-        y : waypoint.y + distance.y
+        x : waypoint.x + delta.x
+        y : waypoint.y + delta.y
       )
 
     )
@@ -296,7 +297,7 @@ class Graph
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
 
-      @moveNode(node, distance)
+      @moveNode(node, delta)
 
     #actually move the svg elements
     @drawClusters()

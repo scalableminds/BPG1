@@ -4,13 +4,17 @@ underscore : _
 
 Cluster = (cluster) ->
 
-  getLineSegment : ->
+  getLineSegment : (graph) ->
+
+    translation = d3.transform(graph.graphContainer.attr("transform")).translate
+    translateX = translation[0] / app.view.zoom.level
+    translateY = translation[1] / app.view.zoom.level
 
     waypoints = cluster.get("waypoints")
 
     lineFunction = d3.svg.line(waypoints.items)
-      .x( (data) -> data.get("x") )
-      .y( (data) -> data.get("y") )
+      .x( (data) -> data.get("x") - translateX)
+      .y( (data) -> data.get("y") - translateY)
       .interpolate("basis") # smoothing bitches!!!
 
     lineFunction(waypoints.items)
