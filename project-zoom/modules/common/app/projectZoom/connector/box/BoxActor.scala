@@ -41,12 +41,12 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
       events.foreach{ event =>
         event.source match {
           case Some(file: BoxFile) => 
-            //box.downloadFile(file.id).map{ byteArray =>
+            box.downloadFile(file.id).map{ byteArray =>
                 findProjectForFile(file).foreach{project => 
                   Logger.debug(s"found ${file.fullPath} to be in project ${project.name}")
-                  //publishFoundArtifact(byteArray, Artifact(file.name, projectName, file.path, "box", Json.parse("{}")))
+                  publishFoundArtifact(byteArray, Artifact(file.name, project.name, file.path, "box", Json.parse("{}")))
                 }
-            //}
+            }
           case Some(folder: BoxFolder) =>
             Logger.debug(s"found folder being uploaded: $folder")
         }
