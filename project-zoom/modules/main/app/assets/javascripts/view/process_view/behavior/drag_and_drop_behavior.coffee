@@ -44,7 +44,8 @@ class DragAndDropBehavior extends Behavior
         y: mouse.y + translation[1]
 
       @graph.addNode(position.x, position.y, artifactId)
-      @$preview.remove()
+
+    @$preview.remove()
 
 
   dragStart : (event) =>
@@ -73,7 +74,7 @@ class DragAndDropBehavior extends Behavior
 
     return unless event.gesture
 
-    mouse = @mousePosition(event)
+    mouse = @mousePosition(event, false)
 
     @$preview.css(
       left: mouse.x
