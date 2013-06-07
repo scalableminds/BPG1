@@ -62,7 +62,7 @@ class FilemakerAPI(con: java.sql.Connection) {
     
     while (rs.next) {
       val dschoolTags = extractDschoolTags(rs)
-      val email = rs.getString("email")
+      val email = rs.getString("email").toLowerCase
       val projectTags = extractProjectTags(rs, length)
       dschoolTags.find(tag => tag.contains(s"Student_${lengthTrackMapping(length)}")).foreach{ tag => 
         val season = tag.split("_")(2)

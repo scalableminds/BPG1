@@ -30,7 +30,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
   def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Option[ProjectLike] = {
     val collaboratorsOpt = box.fetchCollaborators(file)
     collaboratorsOpt.flatMap{collaborators =>
-      val collaboratorEMails = collaborators.map(_.login).toSet
+      val collaboratorEMails = collaborators.map(_.login.toLowerCase).toSet
       FileProjectMatcher(file.path, collaboratorEMails, new DateTime(file.created_at))
     }
   }
