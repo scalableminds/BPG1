@@ -14,20 +14,33 @@ class FilemakerAPI(con: java.sql.Connection) {
 
   val dschoolTags = "dschool[1] as d1, dschool[2] as d2, dschool[3] as d3, dschool[4] as d4, dschool[5] as d5, dschool[6] as d6"
   val userHasEmail = "\"E-Mail 1\" is not null"
-  val userHasTakenClasses = "(\"3-W-Class\" is not null or \"3-W-Class\" is not null or \"6-W-Project\" is not null or \"6-W-Class\" is not null or \"12-W-Class\" is not null or \"12-W-Project\" is not null)"
-  val projectTags = "\"3-W-Tag\"[1] as tag3W1, \"3-W-Tag\"[2] as tag3W2, \"3-W-Tag\"[3] as tag3W3, \"6-W-Tag\"[1] as tag6W1, \"6-W-Tag\"[2] as tag6W2, \"6-W-Tag\"[3] as tag6W3, \"12-W-Tag\"[1] as tag12W1, \"12-W-Tag\"[2] as tag12W2, \"12-W-Tag\"[3] as tag12W3"
+  def userHasTakenClasses(length: Int) = "(\"%d-W-Class\" is not null or \"%d-W-Project\" is not null)".format(length, length)
+  def projectTags(length: Int) = "\"%d-W-Tag\"[1] as tag%dW1, \"%d-W-Tag\"[2] as tag%dW2, \"%d-W-Tag\"[3] as tag%dW3".format(length, length, length, length, length, length)
 
+  val lengthTrackMapping = Map[Int, String](3 -> "BT", 6 -> "BT", 12 -> "AT")
+  
   def extractDschoolTags(rs: ResultSet) = {
     (for (i <- 1 to 6) yield rs.getString(s"d$i")).filter(_ != null)
   }
 
-  def extractProjectTags(rs: ResultSet, nrOfWeeks: String) = {
+  def extractProjectTags(rs: ResultSet, nrOfWeeks: Int) = {
     (for (i <- 1 to 3) yield rs.getString(s"tag${nrOfWeeks}W$i")).filter(_ != null)
   }
 
+  def createProjectName(rs: ResultSet, length: Int) = {
+    val project = Option(rs.getString("project"))
+    val className = Option(rs.getString("class"))
+    if (length <= 6) {
+     val teamSuffix = if(project.isDefined) " - " + project.get
+     className.getOrElse("?") + teamSuffix
+    }
+    else {
+      project.getOrElse("?")
+    }
+  }
+  
   def extractStudents(): List[Profile] = {
-    val statement = con.createStatement()
-    val rs = statement.executeQuery("select Vorname, Name, \"E-Mail 1\" as email, %s from dmiA where %s".format(dschoolTags, userHasEmail))
+    val rs = queryDB("select Vorname, Name, \"E-Mail 1\" as email, %s from dmiA where %s".format(dschoolTags, userHasEmail))
     val l = scala.collection.mutable.ListBuffer[Profile]()
 
     while (rs.next) {
@@ -36,53 +49,44 @@ class FilemakerAPI(con: java.sql.Connection) {
     }
     l.toList
   }
-
-  def extractProjects(): List[ProjectLike] = {
+  
+  def queryDB(queryString: String) = {
     val statement = con.createStatement()
-    val rs = statement.executeQuery("select \"E-Mail 1\" as email, %s, %s, \"12-W-Project\", \"3-W-Project\", \"3-W-Class\", \"6-W-Project\", \"6-W-Class\" from dmiA where %s and %s".format(dschoolTags, projectTags, userHasEmail, userHasTakenClasses))
+    statement.executeQuery(queryString)
+  }
+  
+  def extractProjects(length: Int) = {
     val projects = scala.collection.mutable.Map[String, PartialProject]()
-
+    val lengthW = s"${length}W"
+    val rs = queryDB( "select \"E-Mail 1\" as email, %s, %s, \"%d-W-Project\" as project, \"%d-W-Class\" as class from dmiA where %s and %s".format(dschoolTags, projectTags(length), length, length, userHasEmail, userHasTakenClasses(length)))
+    
     while (rs.next) {
       val dschoolTags = extractDschoolTags(rs)
-      val email = rs.getString("email")
-      val tags3W = extractProjectTags(rs, "3")
-      val tags6W = extractProjectTags(rs, "6")
-      val tags12W = extractProjectTags(rs, "12")
-      dschoolTags.find(tag => tag.contains("Student_AT")).foreach { tag =>
+      val email = rs.getString("email").toLowerCase
+      val projectTags = extractProjectTags(rs, length)
+      dschoolTags.find(tag => tag.contains(s"Student_${lengthTrackMapping(length)}")).foreach{ tag => 
         val season = tag.split("_")(2)
         val year = tag.split("_")(3)
-        val length = "12W"
-        val projectName = rs.getString("12-W-Project")
+        val projectName = createProjectName(rs, length)
         projects.get(projectName) match {
           case Some(PartialProject(_, _, _, l, t)) =>
-            l.append(Participant("student", email));
-            t ++ tags12W
-          case None => projects += (projectName -> PartialProject(year, season, length, ListBuffer[Participant](Participant("student", email)), Set() ++ tags12W))
+            l.append(Participant("student", email))
+            t ++ projectTags
+          case None => projects += (projectName -> PartialProject(year, season, s"${length}W", ListBuffer[Participant](Participant("student", email)), Set() ++ projectTags))
         }
-      }
-      dschoolTags.find(tag => tag.contains("Student_BT")).foreach { tag =>
-        val season = tag.split("_")(2)
-        val year = tag.split("_")(3)
-        val threeWeekProject = s"${rs.getString("3-W-Class")} - ${rs.getString("3-W-Project")}"
-        val sixWeekProject = s"${rs.getString("6-W-Class")} - ${rs.getString("6-W-Project")}"
-
-        projects.get(threeWeekProject) match {
-          case Some(PartialProject(_, _, _, l, t)) =>
-            l.append(Participant("student", rs.getString("email")))
-            t ++ tags3W
-          case None => projects += (threeWeekProject -> PartialProject(year, season, "3W", ListBuffer[Participant](Participant("student", email)), Set() ++ tags3W))
-        }
-
-        projects.get(sixWeekProject) match {
-          case Some(PartialProject(_, _, _, l, t)) =>
-            l.append(Participant("student", rs.getString("email")))
-            t ++ tags6W
-          case None => projects += (sixWeekProject -> PartialProject(year, season, "6W", ListBuffer[Participant](Participant("student", email)), Set() ++ tags6W))
-        }
-      }
-
+      }   
     }
-    projects.toList.map(p => ProjectLike(p._1, p._2.participants.toList, p._2.year, p._2.season, p._2.length, p._2.tags.toList))
+    //Logger.debug(projects.toString)
+    projects
+  }
+
+  def extractProjects(): List[ProjectLike] = {
+    val projects = List(3,6,12).map(length => extractProjects(length))
+    projects.flatMap{projectMap => 
+      projectMap.toList.map{p =>
+        ProjectLike(p._1, p._2.participants.toList, p._2.season, p._2.year, p._2.length, p._2.tags.toList)
+      }
+    }
   }
 }
 

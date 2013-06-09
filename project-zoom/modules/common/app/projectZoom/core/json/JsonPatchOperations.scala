@@ -19,7 +19,7 @@ case class JsonTest(path: JsonPatchPath, value: JsValue) extends JsonPatchOperat
     Reads.filter(ValidationError("validate.error.expected.value", v)) {
       case JsArray(l) =>
         last.toIntOpt match {
-          case Some(idx) if idx < l.size =>
+          case Some(idx) if idx >= 0 && idx < l.size =>
             l(idx) == v
           case _ =>
             false
@@ -42,12 +42,11 @@ case class JsonTest(path: JsonPatchPath, value: JsValue) extends JsonPatchOperat
 case class JsonRemove(path: JsonPatchPath) extends JsonPatchOperation {
   def patch = {
     val removeFromObject = path.updateWith(_.json.prune)
-
     val removeFromArray = path.parent.updateWith(_.json.update(of[JsArray] map {
       case JsArray(l) =>
         val updated = {
           path.last.toString.toIntOpt match {
-            case Some(idx) if idx < l.size =>
+            case Some(idx) if idx >= 0 && idx < l.size =>
               val (front, back) = l.splitAt(idx)
               front ++ back.drop(1)
             case _ =>
@@ -58,7 +57,7 @@ case class JsonRemove(path: JsonPatchPath) extends JsonPatchOperation {
     }))
 
     path.readWith(_.json.pick) andKeep
-      (removeFromObject orElse removeFromArray)
+      (removeFromArray orElse removeFromObject)
   }
 }
 
@@ -82,14 +81,14 @@ case class JsonAdd(path: JsonPatchPath, value: JsValue) extends JsonPatchOperati
   def patch = {
 
     val updateObject = __.json.pick[JsObject] andThen (__ \ path.last.toString).json.put(value)
-
+        
     val updateArray = Reads.apply {
       case JsArray(l) =>
         if (path.last.toString == "-")
           JsSuccess(JsArray(l :+ value))
         else {
           path.last.toString.toIntOpt match {
-            case Some(idx) if idx <= l.size =>
+            case Some(idx) if idx >= 0 && idx <= l.size =>
               val (pre, post) = l.splitAt(idx)
               JsSuccess(JsArray((pre :+ value) ++ post))
             case _ =>

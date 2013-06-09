@@ -9,8 +9,13 @@ import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import play.api.Logger
+import org.joda.time.DateTime
 
-case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[String] = Nil)
+case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[String] = Nil){
+  val canonicalName = name.replace("-", " ").toLowerCase()
+  val emails = participants.map(_._user).toSet
+  val startDate = new DateTime(year.toInt, if(season=="ST") 4 else 10, 1, 0, 0)
+}
 
 case class Participant(duty: String, _user: String)
 
@@ -29,10 +34,14 @@ object ProjectDAO extends SecuredMongoJsonDAO[Project] {
   }
 
   def addGraphTo(projectId: String, graph: Graph)(implicit ctx: DBAccessContext) = {
-    withValidId(projectId) { id =>
+    withId(projectId) { id =>
       collectionUpdate(Json.obj("_id" -> id),
         Json.obj("$push" -> Json.obj("_graphs" -> graph.group)))
     }
+  }
+  
+  def findProject(projectName: String)(implicit ctx: DBAccessContext): Future[Option[Project]] = {
+    findOneByName(projectName).map(_.flatMap(_.asOpt[Project]))
   }
 
   def update(p: Project)(implicit ctx: DBAccessContext): Future[LastError] =

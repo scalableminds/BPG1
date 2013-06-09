@@ -2,6 +2,7 @@
 core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
+app : app
 ###
 
 class ConnectBehavior extends Behavior
@@ -39,8 +40,10 @@ class ConnectBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = $("#process-view").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    @scaleValue = app.view.zoom.level
 
+    @startPoint = @mousePosition(event)
+    @startTranslation = d3.transform(graphContainer.attr("transform")).translate
 
   dragEnd : (event) =>
 
@@ -62,9 +65,14 @@ class ConnectBehavior extends Behavior
     mouse = @mousePosition(event)
 
     nodeData = d3.select(svgContainer).datum()
-    lineStartX = nodeData.get("position/x")
-    lineStartY = nodeData.get("position/y")
+    lineStart =
+      x: nodeData.get("position/x")
+      y: nodeData.get("position/y")
+
+    lineEnd =
+      x: mouse.x - @startPoint.x - @startTranslation[0]
+      y: mouse.y - @startPoint.y - @startTranslation[1]
 
     @dragLine
       .classed("hide", false)
-      .attr("d", "M #{lineStartX},#{lineStartY} L #{mouse.x},#{mouse.y}")
+      .attr("d", "M #{lineStart.x},#{lineStart.y} L #{lineEnd.x},#{lineEnd.y}")

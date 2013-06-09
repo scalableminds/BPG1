@@ -16,11 +16,12 @@ class Artifact
 
     unless image
       image = document.createElementNS("http://www.w3.org/2000/svg", "image")
-      image.setAttributeNS('http://www.w3.org/1999/xlink','href', @getNearestPrimary(0))
-      image.setAttribute('x','0')
-      image.setAttribute('y','0')
-      image.setAttribute('data-id', @dataItem.get("id"))
-      image.setAttribute('class', "node")
+      image.setAttributeNS("http://www.w3.org/1999/xlink","href", @getNearestPrimary(0))
+      image.setAttribute("x","0")
+      image.setAttribute("y","0")
+      image.setAttribute("data-id", @dataItem.get("id"))
+      image.setAttribute("class", "node")
+      image.setAttribute("draggable", "false")
 
     unless bare
       @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")

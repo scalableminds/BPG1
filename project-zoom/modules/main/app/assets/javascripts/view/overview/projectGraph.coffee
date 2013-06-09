@@ -14,6 +14,7 @@ class ProjectGraph
 
     @selectedTags = []
     @clusters = []
+    @scale_value = 1.0
 
     EventMixin.extend(this)
     @initLayouter()
@@ -26,18 +27,26 @@ class ProjectGraph
     @currentBehavior.activate()
 
 
-  drawProjects : (projects = @projects) ->
+  drawProjects : (scale_value = @scale_value, projects = @projects) ->
 
+    @scale_value = scale_value
     names = []
     layouter = @layouter
     @projectNodes = @projectNodes.data(projects, (data) -> data.id)
+
+    start_x = start_y = x = y = 20
+    margin_x = 30
+    margin_y = 70
+    nodeWidth = 100
+    svgWidth = parseInt @svg.attr("width") / scale_value
+    next_line = parseInt( svgWidth / (margin_x + nodeWidth) )
 
     g = @projectNodes.enter().append("svg:g")
     g.append("svg:image")
       .attr(
         class: "projectImage"
-        x: (d) -> d.x
-        y: (d) -> d.y
+        x: (d, i) -> margin_x + (i % next_line) * (nodeWidth + margin_x)
+        y: (d, i) -> start_y + parseInt(i / next_line) * (nodeWidth + margin_y)
         width: (d) -> d.width
         height: (d) -> d.height
         "xlink:href": (d) -> d.image
@@ -45,14 +54,21 @@ class ProjectGraph
     headline = g.append("svg:text")
       .attr(
         class: "projectHeadline"
-        x: (d) -> parseInt(d.x)
-        y: (d) -> parseInt(d.y) + 120
+        x: (d, i) -> margin_x + (i % next_line) * (nodeWidth + margin_x)
+        y: (d, i) -> start_y + parseInt(i / next_line) * (nodeWidth + margin_y) + 120
         workaround: (d) -> names.push d.name; return ""
       )
     g.attr(
       id: (d) -> d.id
       "data-tags": (d)-> d.tags.toString()
-      )
+    )
+    # tags = g.append("svg:text")
+    #   .attr(
+    #     class: "projectTagLabel"
+    #     x: (d, i) -> margin_x + (i % next_line) * (nodeWidth + margin_x) + 120
+    #     y: (d, i) -> start_y + parseInt(i / next_line) * (nodeWidth + margin_y)
+    #   )
+    #   .text()
 
     for h, i in headline[0]
       @layouter.textWrap(h, names[i], 120)
@@ -129,9 +145,9 @@ class ProjectGraph
 
         @clusters.push cluster
 
-    @drawVennCircles()
+    # @drawVennCircles()
     @onlyShowTagged()
-    @arrangeProjectsInVenn() # tagged = @projectNodes!!!!
+    # @arrangeProjectsInVenn() # tagged = @projectNodes!!!!
 
 
   onlyShowTagged : ->
@@ -142,8 +158,11 @@ class ProjectGraph
         if _.intersection(p.tags, @selectedTags).length isnt 0
           tagged.push p
 
-      @drawProjects tagged
-    else @drawProjects()
+      @drawProjects(@scale_value, [])
+      @drawProjects(@scale_value, tagged)
+    else
+      @drawProjects(@scale_value, [])
+      @drawProjects()
 
 
   arrangeProjectsInVenn : () ->

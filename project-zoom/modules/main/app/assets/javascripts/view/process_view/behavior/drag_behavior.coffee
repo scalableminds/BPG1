@@ -1,13 +1,14 @@
 ### define
 hammer : Hammer
 ./behavior : Behavior
+app : app
 ###
 
 class DragBehavior extends Behavior
 
   activate : ->
 
-    @hammerContext = Hammer( $("#process-graph")[0] )
+    @hammerContext = Hammer( @graph.svgEl )
       .on("drag", ".node", @dragMoveNode)
       .on("drag", ".cluster", @dragMoveCluster)
       .on("dragstart", @dragStart)
@@ -23,33 +24,39 @@ class DragBehavior extends Behavior
 
   dragStart : (event) =>
 
-    @offset = $("#process-graph").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    return unless event.gesture
 
-    @startX = @mousePosition(event).x
-    @startY = @mousePosition(event).y
+    @offset = @graph.$svgEl.offset()
+    @scaleValue = app.view.zoom.level
 
+    @startPoint = @mousePosition(event)
 
   dragMoveNode : (event) =>
+
+    return unless event.gesture
 
     node = d3.select(event.gesture.target).datum()
     mouse = @mousePosition(event)
 
-    @graph.moveNode(node, mouse, true)
+    delta =
+      x : mouse.x - @startPoint.x
+      y : mouse.y - @startPoint.y
 
+    @graph.moveNode(node, delta, true)
+
+    @startPoint = mouse
 
   dragMoveCluster : (event) =>
 
     clusterId = $(event.gesture.target).data("id")
     mouse = @mousePosition(event)
 
-    distance =
-      x : mouse.x - @startX
-      y : mouse.y - @startY
+    delta =
+      x : mouse.x - @startPoint.x
+      y : mouse.y - @startPoint.y
 
-    @graph.moveCluster(clusterId, distance)
+    @graph.moveCluster(clusterId, delta)
 
-    @startX = mouse.x
-    @startY = mouse.y
+    @startPoint = mouse
 
 

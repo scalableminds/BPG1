@@ -14,6 +14,7 @@ SAVE_RETRY_TIMEOUT = 10000
 SAVE_RETRY_COUNT = 20
 
 ModelFunctions =
+
   prepareArtifacts : (project) ->
 
     artifacts = new DataItem.Collection("/projects/#{project.get("id")}/artifacts")
@@ -26,10 +27,16 @@ ModelFunctions =
 
     (new $.Deferred (deferred) ->
       project.get("graphs", project, (graphCollection) ->
+
+        unless graphCollection
+          project.set("graphs", [])
+          graphCollection = project.get("graphs")
+
         if graphCollection.length == 0
-          DataItem.fetch("/projects/#{project.get("id")}/graphs").then( 
+          DataItem.fetch("/projects/#{project.get("id")}/graphs", method : "POST").then( 
             (graph) ->
               graphCollection.add(graph)
+
               deferred.resolve(graph)
           )
 
@@ -111,19 +118,26 @@ app.addInitializer (options, callback) ->
 
   model =
     projects : new DataItem.Collection("/projects")
+    tags : new DataItem.Collection("/tags")
     project : null
 
 
-  model.projects.fetchNext().then( 
-    ->
+  $.when(
 
-      model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
-      model.project = model.projects.at(0)
+    model.projects.fetchNext().then( 
+      ->
 
-      $.when(
-        ModelFunctions.prepareGraph(model.project)
-        ModelFunctions.prepareArtifacts(model.project)
-      )
+        model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
+        model.project = model.projects.at(0)
+
+        $.when(
+          ModelFunctions.prepareGraph(model.project)
+          ModelFunctions.prepareArtifacts(model.project)
+        )
+
+    )
+
+    model.tags.fetchNext()
 
   ).then(
     ->

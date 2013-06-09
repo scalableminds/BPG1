@@ -34,16 +34,15 @@ class ProcessView
 
     @$el = $(ProcessViewTemplate)
     @el = @$el[0]
-    $(".content").append(@$el)
 
     @artifactFinder = new ArtifactFinder(@projectModel.get("artifacts"))
     @gui = new GUI(@$el, @artifactFinder)
     @projectModel.get("graphs/0", this, (graphModel) =>
 
       @graph = new Graph(@$el.find(".graph")[0], graphModel, @artifactFinder)
-      @zooming = new ZoomBehavior(@graph)
-      @panning = new PanBehavior(@graph)
-      @dragAndDrop = new DragAndDropBehavior(@graph, @$el)
+      @zooming = new ZoomBehavior(@$el, @graph)
+      @panning = new PanBehavior(@$el, @graph)
+      @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
 
       @activate()
     )
@@ -53,17 +52,15 @@ class ProcessView
 
     @$el.find("#artifact-finder").off("dragstart")
 
-    @$el.find(".toolbar a")
-      .off("click")
-    @$el.find(".zoom-slider")
-      .off("change")
-      .off("click")
+    @$el.find(".toolbar a").off("click")
+
+    @$el.find("image").off "dragstart"
 
     @graph.changeBehavior(new Behavior())
     @gui.deactivate()
     @artifactFinder.deactivate()
-    @zooming.deactive()
-    @panning.deactive()
+    @zooming.deactivate()
+    @panning.deactivate()
     @dragAndDrop.deactivate()
 
 
@@ -81,6 +78,9 @@ class ProcessView
     # change tool from toolbox
     processView = this
     @$el.find(".toolbar a").on "click", (event) -> processView.changeBehavior(this)
+
+    @$el.find("image").on "dragstart", (e) ->
+      e.preventDefault() #disable Firefox's native drag API
 
     Hammer($("#process-graph")[0]).on "mouseenter", ".node", (event) ->
       node = d3.select(event.target).datum()

@@ -1,10 +1,11 @@
 ### define
 ./behavior : Behavior
+app : app
 ###
 
 class DragAndDropBehavior extends Behavior
 
-  constructor : (@graph, @$el) ->
+  constructor : (@$el, @graph) ->
 
 
   activate : ->
@@ -30,20 +31,29 @@ class DragAndDropBehavior extends Behavior
 
     #is the mouse over the SVG?
     @offset = @$el.find("#process-graph").offset()
+    @scaleValue = app.view.zoom.level
 
     if touch.pageX > @offset.left and touch.pageY > @offset.top
 
       mouse = @mousePosition(event)
       artifactId = imageElement.data("id")
 
-      @graph.addNode(mouse.x, mouse.y, artifactId)
+      translation = d3.transform(@graph.graphContainer.attr("transform")).translate
+
+      position =
+        x: mouse.x + translation[0]
+        y: mouse.y + translation[1]
+
+      @graph.addNode(position.x, position.y, artifactId)
       @$preview.remove()
 
 
   dragStart : (event) =>
 
+    return unless event.gesture
+
     @offset = {left: 0, top: 0}
-    @scaleValue = @$el.find(".zoom-slider input").val()
+    @scaleValue = 1.0
 
     svgContainer = $(event.gesture.target).closest("svg").clone() #use clone for the preview, so that original stays within the artifacFinder
     mouse = @mousePosition(event)
@@ -51,10 +61,11 @@ class DragAndDropBehavior extends Behavior
     @$preview = $("<div>", {class: "drag-preview"})
       .css(
         position : "absolute"
-        left: mouse.x #better use css transform, once its prefix free
+        left: mouse.x #better use css transform, once it is prefix-free
         top: mouse.y
         width: "64px"
         height: "64px"
+        opacity: 0.8
         "z-index": 100
       )
 
@@ -63,6 +74,8 @@ class DragAndDropBehavior extends Behavior
 
 
   dragMove : (event) =>
+
+    return unless event.gesture
 
     mouse = @mousePosition(event)
 

@@ -258,12 +258,15 @@ class DataItem
       value
 
 
-  @fetch : (url) ->
+  @fetch : (url, options = {}) ->
 
     Request.send(
-      url : url
-      method : "POST"
-      dataType : "json"
+      _.extend(
+        url : url
+        method : "GET"
+        dataType : "json"
+        options
+      )
     ).then(
       (json) ->
         new DataItem(json)

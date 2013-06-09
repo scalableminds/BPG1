@@ -1,20 +1,21 @@
 ### define
 ./behavior : Behavior
 hammer : Hammer
+app : app
 ###
 
 class PanBehavior extends Behavior
 
-  constructor : (@graph) ->
+  constructor : (@$el, @graph) ->
 
     @active = false
 
   activate : ->
 
     unless @active
-      @hammerContext = Hammer($("#process-graph")[0])
-      .on("dragstart", @panStart)
-      .on("drag", @pan)
+      @hammerContext = Hammer(@graph.svgEl)
+        .on("dragstart", @panStart)
+        .on("drag", @pan)
 
       @active = true
 
@@ -31,20 +32,19 @@ class PanBehavior extends Behavior
 
   panStart : (event) =>
 
-    @offset = $("#process-graph").offset()
-    @scaleValue = $(".zoom-slider input").val()
+    return unless event.gesture
+
+    @offset = @graph.$svgEl.offset()
+    @scaleValue = app.view.zoom.level
 
     @startPoint = @mousePosition(event)
 
     graphContainer = @graph.graphContainer
 
-    transformation = d3.transform(graphContainer.attr("transform"))
-    # @startPoint.x -= transformation.translate[0]
-    # @startPoint.y -= transformation.translate[1]
-
 
   pan : (event) =>
 
+    return unless event.gesture
     target = d3.select(event.gesture.target)
 
     if target.classed("node") or target.classed("cluster")
@@ -54,18 +54,15 @@ class PanBehavior extends Behavior
     graphContainer = @graph.graphContainer
     transformation = d3.transform(graphContainer.attr("transform"))
 
-    distX = mouse.x - @startPoint.x
-    distY = mouse.y - @startPoint.y
+    deltaX = ( mouse.x - @startPoint.x ) * @scaleValue
+    deltaY = ( mouse.y - @startPoint.y ) * @scaleValue
 
-    x = distX / @scaleValue
-    y = distY / @scaleValue
-
-
-    x = transformation.translate[0] + x
-    y = transformation.translate[1] + y
+    x = transformation.translate[0] + deltaX
+    y = transformation.translate[1] + deltaY
 
 
     transformation.translate = [x, y]
 
     graphContainer.attr("transform", transformation.toString())
 
+    @startPoint = mouse

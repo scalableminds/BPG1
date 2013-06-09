@@ -12,11 +12,14 @@ lib/event_mixin : EventMixin
 
 class Graph
 
-  constructor : (domElement, @graphModel, @artifactFinder) ->
+  constructor : (@el, @graphModel, @artifactFinder) ->
 
     EventMixin.extend(this)
 
-    @d3Element = d3.select(domElement).select("svg")
+    @$el = $(@el)
+    @$svgEl = @$el.find("svg")
+    @svgEl = @$svgEl[0]
+    @d3Element = d3.select(@el).select("svg")
     @graphContainer = @d3Element.append("svg:g")
 
     @initArrowMarkers()
@@ -257,10 +260,15 @@ class Graph
     commentGroup.exit().remove()
 
 
-  # position.x/y are absolute positions
-  moveNode : (node, position, checkForCluster = false) ->
+  moveNode : (node, distance, checkForCluster = false) ->
 
-    node.set({ position })
+    #move nodes
+    node.update("position", (position) ->
+      position = position.toObject()
+      position.x += distance.x
+      position.y += distance.y
+      position
+    )
 
     if checkForCluster
       @clusters
@@ -288,11 +296,7 @@ class Graph
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
 
-      position =
-        x : node.get("position/x") + distance.x
-        y : node.get("position/y") + distance.y
-
-      @moveNode(node, position)
+      @moveNode(node, distance)
 
     #actually move the svg elements
     @drawClusters()

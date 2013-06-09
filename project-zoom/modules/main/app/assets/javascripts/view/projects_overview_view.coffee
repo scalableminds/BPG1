@@ -14,6 +14,8 @@ jquery : $
 
 class ProjectsOverviewView
 
+  IMAGE_FOLDER = "/assets/images/letter_images/"
+
   constructor : ->
 
     @initTagbar()
@@ -97,8 +99,10 @@ class ProjectsOverviewView
 
     scaleValue = $(".zoom-slider input").val()
 
-    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )") #"translate(" + d3.event.translate + ")
+    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )")
     @trigger("view:zooming")
+    @graph.drawProjects(scaleValue, [])
+    @graph.drawProjects(scaleValue)
 
 
   changeZoomSlider : (delta) ->
@@ -116,12 +120,7 @@ class ProjectsOverviewView
     @graphContainer = @domElement.append("svg:g")
 
     @projects = []
-
-    start_x = start_y = x = y = 20
-    margin_x = 30
-    margin_y = 70
-    nodeWidth = 100
-    svgWidth = @domElement[0][0].width.baseVal.value
+    console.log IMAGE_FOLDER
 
     app.model.projects.forEach( (project) =>
 
@@ -132,20 +131,13 @@ class ProjectsOverviewView
         year:         project.get("year")
         length:       project.get("length")
         participants: project.get("participants")
-        x:            x
-        y:            y
-        image:        "http://upload.wikimedia.org/wikipedia/commons/9/96/Naso_elegans_Oceanopolis.jpg"
+        image:        IMAGE_FOLDER.concat "#{project.get("name")[0].toLowerCase()}.png"
         width:        "100px"
         height:       "100px"
         tags:         [project.get("season")]    # to be set to "year"!
+      # tags:         project.get("tags") # .concat [project.get("season")]
 
       @projects.push p
-
-      if x < (svgWidth - 2 * nodeWidth)
-        x += nodeWidth + margin_x
-      else
-        x = start_x
-        y += nodeWidth + margin_y
     )
 
     @graph = new ProjectGraph(@graphContainer, @domElement, @projects)

@@ -14,11 +14,18 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits._
 import box.{ UpdateBoxAccessTokens, BoxAccessTokens }
 
+case object UpdateProjects
+
 class CreatingTunnelFailed extends RuntimeException
 
 class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConfig {
 
   val BoxActor = Agent[Option[ActorRef]](None)
+  Future(updateProjects).onSuccess{
+    case _ => 
+      FilemakerConnector.startAggregating(context)
+      startBoxActor
+  }
 
   def startBoxActor = {
     for {accessTokenOpt <-  DBProxy.getBoxTokens
@@ -37,19 +44,19 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
   
   override def preStart {
     super.preStart
-    FilemakerConnector.startAggregating(context)
-    startBoxActor
   }
 
   override def receive = {
     case UpdateBoxAccessTokens(tokens: BoxAccessTokens) => DBProxy.setBoxToken(tokens)
+    case UpdateProjects => updateProjects
   }
 
   val connectors = List[ActorRef]()
 
-  def updateProjects = {
-
-  }
+  def updateProjects =
+    DBProxy.getProjects.map{projects =>
+      ProjectCache.setProjects(projects)
+    }
 
   def updateUsers = {
 
