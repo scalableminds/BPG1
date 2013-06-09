@@ -22,7 +22,7 @@ class VideoThumbnailActor extends ThumbnailActor {
       val tempFiles = thumbnailPlugin.onResourceFound(file, resource)
       tempFiles.map { tempFile =>
         val iconResource = Resource(
-        name = tempFile.getName(),
+        name = resource.name + "_" + tempFile.getName(),
         typ = tempFile.getType())
         publish(ResourceFound(tempFile.getStream(), artifact, iconResource))
       }
