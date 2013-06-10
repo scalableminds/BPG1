@@ -128,8 +128,7 @@ app.addInitializer (options, callback) ->
       ->
 
         model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
-        model.project = model.projects.at(0)
-
+        model.project = model.projects.find( (a) -> a.get("name") == "Project-Zoom" )
         $.when(
           ModelFunctions.prepareGraph(model.project)
           ModelFunctions.prepareArtifacts(model.project)
