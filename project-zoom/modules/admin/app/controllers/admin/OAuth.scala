@@ -12,9 +12,11 @@ import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import models.PermanentValueService
-import projectZoom.connector.box.BoxAccessTokens.boxExpirationReader
+import projectZoom.connector.box.BoxAccessTokens
+import projectZoom.connector.BoxUpdated
+import projectZoom.core.event._
 
-object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with PlayConfig {
+object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with PlayConfig with EventPublisher {
 
   def beginBoxOAuth = SecuredAction { implicit request =>
     (for{client_id <- config.getString("box.client_id")
@@ -33,9 +35,13 @@ object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with 
               "code" -> Seq(code), 
               "client_id" -> Seq(client_id),
               "client_secret" -> Seq(client_secret))).map{ response =>
-              Json.parse(response.body).transform(boxExpirationReader) match {
+              Json.parse(response.body).transform(BoxAccessTokens.boxExpirationReader) match {
                 case JsSuccess(boxAccessTokens, _) => 
                   PermanentValueService.put("box.tokens", boxAccessTokens)
+                  boxAccessTokens.validate[BoxAccessTokens] match {
+                    case JsSuccess(accessTokens, _) => publish(BoxUpdated(accessTokens))
+                    case JsError(errors) => Logger.error(errors.mkString)
+                  }
                   Ok(views.html.admin.dataSources())
                 case JsError(errors) => Logger.error(errors.mkString)
                   Ok(errors.mkString)

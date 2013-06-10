@@ -32,6 +32,8 @@ object DBProxy {
  
   def setBoxEventStreamPos(eventStreamPos: Long) = PermanentValueService.put("box.eventStreamPos", JsNumber(eventStreamPos)) 
 
+  def deleteBoxEventStreamPos() = PermanentValueService.del("box.eventStreamPos")
+  
   def getProjects = ProjectDAO.findAll.map{jsonList =>
     jsonList.flatMap{ json => 
       json.validate[ProjectLike] match {
