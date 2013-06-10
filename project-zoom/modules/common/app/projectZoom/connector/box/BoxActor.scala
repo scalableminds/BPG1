@@ -71,6 +71,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
       }
       .onSuccess{
         case eventList => 
+          Logger.debug(s"got ${eventList.size} events")
           val eventMap = eventList.groupBy{ event => event.event_type}
           handleITEM_UPLOAD(eventMap.get("ITEM_UPLOAD").map(_.toList) getOrElse Nil)
       }
