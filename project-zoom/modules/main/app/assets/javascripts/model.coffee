@@ -126,8 +126,7 @@ app.addInitializer (options, callback) ->
 
     model.projects.fetchNext().then( 
       ->
-        model.project = model.projects.at(0)
-
+        model.project = model.projects.find( (a) -> a.get("name") == "Project-Zoom" )
         $.when(
           ModelFunctions.prepareGraph(model.project)
           ModelFunctions.prepareArtifacts(model.project)
