@@ -5,6 +5,7 @@
 ./behavior/delete_behavior : DeleteBehavior
 ./behavior/comment_behavior : CommentBehavior
 app: App
+d3: d3
 ###
 
 class SelectionHandler extends Behavior
@@ -74,7 +75,12 @@ class SelectionHandler extends Behavior
     @selection = event.gesture.target
     @selection.position = @mousePosition(event)
 
+    node = d3.select(@selection).datum()
+    artifact = node.get("payload/resources").find((a) -> a.get("typ") == "default")
+    downloadURL = "/artifacts/#{node.get("payload/id")}/default/#{artifact.get("name")}"
+
     @positionToolbar()
+    @$tools.find("#download").attr("href", downloadURL)
     @$tools
       .removeClass("node")
       .addClass("node") # make sure we only add the class once
