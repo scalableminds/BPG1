@@ -14,35 +14,35 @@ jquery : $
 
   list_of_nodes = [
     {
-      x: 5,
-      y: 3
+      x: 50,
+      y: 30
     }, {
-      x: 10,
-      y: 2
+      x: 100,
+      y: 50
     }, {
-      x: 12,
-      y: 3
+      x: 120,
+      y: 30
     }, {
-      x: 1,
-      y: 20
+      x: 600,
+      y: 200
     }, {
-      x: 5,
-      y: 9
+      x: 200,
+      y: 90
     }, {
-      x: 10,
-      y: 1
+      x: 100,
+      y: 90
     }, {
-      x: 5,
-      y: 5
+      x: 500,
+      y: 50
     }, {
-      x: 1,
-      y: 2
+      x: 400,
+      y: 200
     }, {
-      x: 2,
-      y: 3
+      x: 200,
+      y: 30
     }, {
-      x: 13,
-      y: 4
+      x: 130,
+      y: 40
     }
   ];
 
@@ -61,20 +61,41 @@ jquery : $
 
 
   try_this = function() {
-    var colls, node, svg;
+    var colls, node, node_image, svg;
 
     svg = d3.select("body").append("svg").attr("width", 1000).attr("height", 1000).attr("id", "svg").append("g");
     draw_nodes(svg);
     node = {
-      x: 5,
-      y: 3
+      x: 10,
+      y: 20
     };
+    node_image = svg.append("rect").attr({
+      x: node.x,
+      y: node.y,
+      width: NODE_SIZE,
+      height: NODE_SIZE,
+      rx: 20,
+      ry: 20,
+      opacity: .5
+    }).style({
+      fill: "forestgreen",
+      stroke: "red",
+      "stroke-width": 5
+    });
     colls = get_collisions(node, list_of_nodes);
     return console.log(colls);
   };
 
   collides_with = function(node, other_node) {
-    return !((Math.abs(node.x - other_node.x) < NODE_SIZE) || (Math.abs(node.y - other_node.y) < NODE_SIZE));
+    console.log(Math.abs(node.x - other_node.x));
+    console.log(Math.abs(node.y - other_node.y));
+    if (!((Math.abs(node.x - other_node.x) > NODE_SIZE) || (Math.abs(node.y - other_node.y) > NODE_SIZE))) {
+      console.log("true");
+    } else {
+      console.log("false");
+    }
+    console.log("################################");
+    return !((Math.abs(node.x - other_node.x) > NODE_SIZE) || (Math.abs(node.y - other_node.y) > NODE_SIZE));
   };
 
   distance_vector = function(node, other_node) {
@@ -89,13 +110,13 @@ jquery : $
   };
 
   get_collisions = function(curr_node, other_nodes) {
-    var collisions, node, _i, _len;
+    var collisions, i, node, _i, _len;
 
     collisions = [];
     console.log(curr_node);
-    for (_i = 0, _len = other_nodes.length; _i < _len; _i++) {
-      node = other_nodes[_i];
-      console.log(node);
+    for (i = _i = 0, _len = other_nodes.length; _i < _len; i = ++_i) {
+      node = other_nodes[i];
+      console.log(i, node);
       if (collides_with(curr_node, node)) {
         console.log("coll!!!!");
         collisions.push(node);
@@ -134,10 +155,8 @@ jquery : $
 
     console.log("drawing");
     console.log(list_of_nodes);
-    node = svg.selectAll(".node").data(list_of_nodes).enter().append("g").attr("class", "node").call(node_drag).attr("transform", function(d) {
-      return "translate(" + d.x * 10 + "," + d.y * 10 + ")";
-    });
-    return node.append("rect").attr({
+    node = svg.selectAll(".node").data(list_of_nodes).enter().append("g").attr("class", "node");
+    node.append("rect").attr({
       x: function(d) {
         return d.x;
       },
@@ -150,6 +169,17 @@ jquery : $
       ry: 20
     }).style("fill", function(d, i) {
       return color(i % 10);
+    });
+    return node.append("text").attr({
+      "font-size": 80,
+      x: function(d) {
+        return d.x + NODE_SIZE / 2;
+      },
+      y: function(d) {
+        return d.y + NODE_SIZE / 2;
+      }
+    }).text(function(d, i) {
+      return i;
     });
   };
 

@@ -8,16 +8,16 @@ $ = jQuery
 NODE_SIZE = 64
 
 list_of_nodes = [
-  {x: 5, y: 3},
-  {x: 10, y: 2},
-  {x: 12, y: 3},
-  {x: 1, y: 20},
-  {x: 5, y: 9},
-  {x: 10, y: 1},
-  {x: 5, y: 5},
-  {x: 1, y: 2},
-  {x: 2, y: 3},
-  {x: 13, y: 4}
+  {x: 50, y: 30},
+  {x: 100, y: 50},
+  {x: 120, y: 30},
+  {x: 600, y: 200},
+  {x: 200, y: 90},
+  {x: 100, y: 90},
+  {x: 500, y: 50},
+  {x: 400, y: 200},
+  {x: 200, y: 30},
+  {x: 130, y: 40}
 ]
 
 color = d3.scale.category10()
@@ -46,17 +46,40 @@ try_this = ->
   draw_nodes(svg)
 
   node =
-    x: 5
-    y: 3
+    x: 10
+    y: 20
+
+  node_image = svg.append("rect")
+  .attr(
+    x: node.x
+    y: node.y
+    width: NODE_SIZE
+    height: NODE_SIZE
+    rx: 20
+    ry: 20
+    opacity: .5
+    )
+  .style(
+    fill: "forestgreen"
+    stroke: "red"
+    "stroke-width": 5
+    )
 
   colls = get_collisions(node, list_of_nodes)
   console.log colls
 
 
 collides_with = (node, other_node) ->
+  console.log Math.abs(node.x - other_node.x)
+  console.log Math.abs(node.y - other_node.y)
 
-  not ((Math.abs(node.x - other_node.x) < NODE_SIZE) or
-    (Math.abs(node.y - other_node.y) < NODE_SIZE))
+  if (not ((Math.abs(node.x - other_node.x) > NODE_SIZE) or (Math.abs(node.y - other_node.y) > NODE_SIZE)))
+    console.log "true"
+  else
+    console.log "false"
+
+  console.log "################################"
+  not ((Math.abs(node.x - other_node.x) > NODE_SIZE) or (Math.abs(node.y - other_node.y) > NODE_SIZE))
 
 
 distance_vector = (node, other_node) ->
@@ -74,8 +97,8 @@ get_collisions = (curr_node, other_nodes) ->
 
   console.log curr_node
 
-  for node in other_nodes
-    console.log node
+  for node, i in other_nodes
+    console.log i, node
     if collides_with(curr_node, node)
       console.log "coll!!!!"
       collisions.push node
@@ -89,9 +112,8 @@ move_current_node = (curr_node, new_x, new_y) ->
   curr_node.y = new_y
 
 
-
 move = ->
-  # @parentNode.appendChild this
+
   dragTarget = d3.select(this)
   dragTarget.attr("cx", ->
     d3.event.dx + parseInt(dragTarget.attr("cx"))
@@ -118,10 +140,10 @@ draw_nodes = (svg) ->
   .data(list_of_nodes)
   .enter().append("g")
   .attr("class", "node")
-  .call(node_drag)
-  .attr("transform", (d) ->
-    "translate(" + d.x*10 + "," + d.y*10 + ")"
-  )
+  # .call(node_drag)
+  # .attr("transform", (d) ->
+  #   "translate(" + d.x + "," + d.y + ")"
+  # )
   node.append("rect")
   .attr(
     x: (d) -> d.x
@@ -133,6 +155,13 @@ draw_nodes = (svg) ->
   )
   .style "fill", (d, i) ->
     color i % 10
+  node.append("text")
+  .attr(
+    "font-size": 80
+    x: (d) -> d.x + NODE_SIZE/2
+    y: (d) -> d.y + NODE_SIZE/2
+    )
+  .text((d, i) -> i)
 
 
 
