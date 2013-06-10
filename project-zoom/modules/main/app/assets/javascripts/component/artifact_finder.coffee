@@ -85,9 +85,11 @@ class ArtifactFinder
 
       artifactC = new Artifact(artifact, getSliderValue)
       @artifactComponents.push artifactC
-      #domElement.append(artifactC.getSvgElement())
+      parent.append(artifactC.getContainerElement())
 
-      parent.append(artifactC.getSvgElement())
+      artifactC = new Artifact(artifact, getSliderValue)
+      @artifactComponents.push artifactC
+      parent.append(artifactC.getContainerElement())
 
 
   setResized : (func) ->
