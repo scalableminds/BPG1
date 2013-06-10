@@ -6,7 +6,7 @@ jquery : $
 
 
 (function() {
-  var $, NODE_SIZE, collides_with, color, distance_vector, dragmove, draw_nodes, get_collisions, list_of_nodes, move, move_current_node, node_drag, try_this;
+  var $, NODE_SIZE, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_current_node, try_this;
 
   $ = jQuery;
 
@@ -18,10 +18,10 @@ jquery : $
       y: 30
     }, {
       x: 100,
-      y: 50
+      y: 500
     }, {
       x: 120,
-      y: 30
+      y: 300
     }, {
       x: 600,
       y: 200
@@ -39,16 +39,14 @@ jquery : $
       y: 200
     }, {
       x: 200,
-      y: 30
+      y: 600
     }, {
       x: 130,
-      y: 40
+      y: 400
     }
   ];
 
   color = d3.scale.category10();
-
-  node_drag = d3.behavior.drag().on("drag", dragmove);
 
   $(document).ready(function() {
     return try_this();
@@ -87,14 +85,6 @@ jquery : $
   };
 
   collides_with = function(node, other_node) {
-    console.log(Math.abs(node.x - other_node.x));
-    console.log(Math.abs(node.y - other_node.y));
-    if (!((Math.abs(node.x - other_node.x) > NODE_SIZE) || (Math.abs(node.y - other_node.y) > NODE_SIZE))) {
-      console.log("true");
-    } else {
-      console.log("false");
-    }
-    console.log("################################");
     return !((Math.abs(node.x - other_node.x) > NODE_SIZE) || (Math.abs(node.y - other_node.y) > NODE_SIZE));
   };
 
@@ -130,39 +120,39 @@ jquery : $
     return curr_node.y = new_y;
   };
 
-  move = function() {
-    var dragTarget;
+  /*
+  
+  # drag.on(type, listener)
+  
+  Registers the specified listener to receive events of the specified type from the drag behavior. The following events are supported:
+  
+  "dragstart": fired when a drag gesture is started.
+  "drag": fired when the element is dragged. d3.event will contain "x" and "y" properties representing the current absolute drag coordinates of the element. It will also contain "dx" and "dy" properties representing the element's coordinates relative to its position at the beginning of the gesture.
+  "dragend": fired when the drag gesture has finished.
+  # drag.origin([origin])
+  
+  If origin is specified, sets the origin accessor to the specified function. If origin is not specified, returns the current origin accessor which defaults to null.
+  */
 
-    dragTarget = d3.select(this);
-    return dragTarget.attr("cx", function() {
-      return d3.event.dx + parseInt(dragTarget.attr("cx"));
-    }).attr("cy", function() {
-      return d3.event.dy + parseInt(dragTarget.attr("cy"));
-    });
-  };
 
-  dragmove = function(d, i) {
-    console.log("dragging");
-    d.x = d3.event.x;
-    d.y = d3.event.y;
-    return d3.select(this).attr("transform", function(d) {
-      return "translate(" + d.x + "," + d.y + ")";
+  drag = d3.behavior.drag().on("drag", function(d, i) {
+    console.log(d, i);
+    d.x += d3.event.dx;
+    d.y += d3.event.dy;
+    return d3.select(this).attr("transform", function(d, i) {
+      return "translate(" + [d.x, d.y] + ")";
     });
-  };
+  });
 
   draw_nodes = function(svg) {
     var node;
 
     console.log("drawing");
     console.log(list_of_nodes);
-    node = svg.selectAll(".node").data(list_of_nodes).enter().append("g").attr("class", "node");
+    node = svg.selectAll(".node").data(list_of_nodes).enter().append("g").attr("class", "node").call(drag).attr("transform", function(d) {
+      return "translate(" + d.x + "," + d.y + ")";
+    });
     node.append("rect").attr({
-      x: function(d) {
-        return d.x;
-      },
-      y: function(d) {
-        return d.y;
-      },
       width: NODE_SIZE,
       height: NODE_SIZE,
       rx: 20,
@@ -171,13 +161,9 @@ jquery : $
       return color(i % 10);
     });
     return node.append("text").attr({
-      "font-size": 80,
-      x: function(d) {
-        return d.x + NODE_SIZE / 2;
-      },
-      y: function(d) {
-        return d.y + NODE_SIZE / 2;
-      }
+      "font-size": 80
+    }).attr("transform", function(d) {
+      return "translate(" + d.x - NODE_SIZE + "," + d.y - NODE_SIZE + ")";
     }).text(function(d, i) {
       return i;
     });
