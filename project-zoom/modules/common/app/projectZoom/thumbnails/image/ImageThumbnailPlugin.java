@@ -21,6 +21,7 @@ public class ImageThumbnailPlugin extends ThumbnailPlugin {
 		
 		readers = new ArrayList<ImageReader>();
 		readers.add(new DefaultReader());
+		//readers.add(new VisualAttentionReader());
 
 	}
 	
