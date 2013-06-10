@@ -126,8 +126,6 @@ app.addInitializer (options, callback) ->
 
     model.projects.fetchNext().then( 
       ->
-
-        model.projects.get("0/participants/0/user", this, (item) -> console.log(item))
         model.project = model.projects.at(0)
 
         $.when(
