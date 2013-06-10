@@ -14,6 +14,9 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits._
 import box.{ UpdateBoxAccessTokens, BoxAccessTokens }
 import projectZoom.core.event._
+import akka.pattern.gracefulStop
+import scala.concurrent._
+import scala.util.{Try, Success, Failure}
 
 case object UpdateProjects
 
@@ -41,14 +44,40 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
         accessTokens <- accessTokenOpt
         streamPos <- streamPosOpt orElse Some(0.toLong)
       } {
-        val newBoxActor = context.actorOf(Props(new BoxActor(BoxAppKeyPair(client_id, client_secret), accessTokens, streamPos)))
+        val newBoxActor = context.actorOf(Props(new BoxActor(BoxAppKeyPair(client_id, client_secret), accessTokens, streamPos)), "BoxActor")
         BoxActor.send(Some(newBoxActor))
+        context.watch(newBoxActor)
       }
     }
   }
   
-  def restartBoxActor(accessTokens: BoxAccessTokens) {
-    
+  def stopActor(actorOpt: Option[ActorRef]): Unit = actorOpt.foreach{actor => stopActor(actor)}
+  
+  def stopActor(actor: ActorRef) {
+    val actorName = actor.path.name
+    actorName match {
+      case "BoxActor" => DBProxy.deleteBoxEventStreamPos
+      case _ => 
+    }
+    Try{
+      val stopped = gracefulStop(actor, 10 seconds)
+      Await.result(stopped, 10 seconds)
+      } match {
+        case Success(_) => Logger.debug(s"${actor.path.name} stopped gracefully")
+        case Failure(err) => 
+          Logger.error(s"Failed to stop ${actor.path.name}:\n${err}")
+          //maybe restart self instead
+          actor ! PoisonPill
+      } 
+  }
+  
+  def restartActor(actor: ActorRef) = {
+    val actorName = actor.path.name
+    Logger.debug(s"restarting actor $actorName")
+    actorName match {
+      case "BoxActor" => startBoxActor 
+      case _ => 
+    }
   }
   
   override def preStart {
@@ -58,8 +87,8 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
   override def receive = {
     case UpdateBoxAccessTokens(tokens: BoxAccessTokens) => DBProxy.setBoxToken(tokens)
     case UpdateProjects => updateProjects
-    case BoxUpdated(accessTokens) => restartBoxActor(accessTokens)
-
+    case BoxUpdated(accessTokens) => stopActor(BoxActor())
+    case Terminated(actor) => restartActor(actor)  
   }
 
   val connectors = List[ActorRef]()
