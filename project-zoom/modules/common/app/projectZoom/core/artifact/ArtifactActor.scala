@@ -103,7 +103,6 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter wi
             ArtifactDAO.insertResource(artifact)(hash, resource).map( updated =>
               publish(ResourceInserted(file, updated getOrElse artifact, resource)))
           case Some(r) if r.hash != hash =>
-            // TODO: remove comment
             ArtifactDAO.updateHashOfResource(artifact)(hash, resource).map(updated =>
               publish(ResourceUpdated(file, updated getOrElse artifact, resource)))
           case _ =>
