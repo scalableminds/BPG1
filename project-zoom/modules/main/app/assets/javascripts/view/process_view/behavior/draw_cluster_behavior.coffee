@@ -8,7 +8,7 @@ app : app
 
 class DrawClusterBehavior extends Behavior
 
-  constructor : ( @graph, @container, @type ) ->
+  constructor : ( @graph, @$el, @type ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
     if @graph.$svgEl.find(".preview").length == 0
@@ -27,6 +27,7 @@ class DrawClusterBehavior extends Behavior
       .on("dragstart", @dragStart)
       .on("dragend", @dragEnd)
 
+    @$el.find(".btn.dropdown-toggle").addClass("active")
     app.trigger "behavior:disable_panning"
 
   deactivate : ->
@@ -39,6 +40,7 @@ class DrawClusterBehavior extends Behavior
     @preview.attr("d", "M 0,0 L 0,0") # move it out of the way
     @preview.classed("hidden, true")
 
+    @$el.find(".btn.dropdown-toggle").removeClass("active")
     app.trigger "behavior:enable_panning"
 
   dragEnd : (event) =>

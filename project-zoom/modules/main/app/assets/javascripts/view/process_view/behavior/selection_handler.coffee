@@ -86,7 +86,7 @@ class SelectionHandler extends Behavior
     @positionToolbar()
     @$tools.find("#download").attr("href", downloadURL)
     @$tools
-      .removeClass("node")
+      .removeClass("node cluster")
       .addClass("node") # make sure we only add the class once
       .show()
 
@@ -102,7 +102,7 @@ class SelectionHandler extends Behavior
 
     @positionToolbar()
     @$tools
-      .removeClass("cluster")
+      .removeClass("cluster node")
       .addClass("cluster") # make sure we only add the class once
       .show()
 
@@ -133,11 +133,11 @@ class SelectionHandler extends Behavior
     if @selection
 
       boundingBox = @selection.getBoundingClientRect()
-      buttonWidth = 50
+      buttonWidth = 48
 
       @$tools.css(
         left: boundingBox.left
-        top: boundingBox.top
+        top: boundingBox.top - buttonWidth
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )
