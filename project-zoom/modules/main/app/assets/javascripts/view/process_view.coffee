@@ -57,8 +57,8 @@ class ProcessView
 
     @gui.deactivate()
     @artifactFinder.deactivate()
-    @zooming.deactive()
-    @panning.deactive()
+    @zooming.deactivate()
+    @panning.deactivate()
     @dragAndDrop.deactivate()
     @selectionHandler.deactivate()
 

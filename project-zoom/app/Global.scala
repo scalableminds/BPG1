@@ -50,6 +50,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
     if (app.mode == Mode.Dev) {
       putSampleValuesInDB
 
+
       /*sys.scheduler.scheduleOnce(5 seconds) {
         new File("modules/common/public/testfiles").listFiles.map{f =>
             models.Artifact(f.getName, "null - null", (scala.math.random*100000).toInt.toString, "dummy", Json.obj()) ->

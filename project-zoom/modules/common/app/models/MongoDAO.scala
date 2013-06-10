@@ -152,7 +152,7 @@ trait MongoDAO[T] extends DAO[T] {
   def takeSome(q: GenericQueryBuilder[JsObject, Reads, Writes], offset: Int, limit: Int, orderBy: String = defaultOrderBy) = {
     val options = QueryOpts(skipN = offset, batchSizeN = limit)
     val document = Json.obj(
-      orderBy -> -1)
+      orderBy -> 1)
     q
       .options(options)
       .sort(document)
