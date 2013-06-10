@@ -19,6 +19,7 @@ class DataItem
     EventMixin.extend(this)
 
     @trackPatches = _.memoize(@trackPatches)
+    @requestLazy = _.memoize(@requestLazy)
 
     @attributes = {}
     @lazyAttributes = options.lazy ? {}

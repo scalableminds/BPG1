@@ -1,10 +1,11 @@
 ### define
-./behavior/behavior : Behavior
-./behavior/connect_behavior : ConnectBehavior
-./behavior/drag_behavior : DragBehavior
-./behavior/delete_behavior : DeleteBehavior
-./behavior/comment_behavior : CommentBehavior
-app: App
+./behavior : Behavior
+./connect_behavior : ConnectBehavior
+./drag_behavior : DragBehavior
+./delete_behavior : DeleteBehavior
+./comment_behavior : CommentBehavior
+app : app
+lib/event_mixin : EventMixin
 ###
 
 class SelectionHandler extends Behavior
@@ -24,17 +25,6 @@ class SelectionHandler extends Behavior
 
     @currentBehavior = @behaviors.IDLE
 
-    app.on "behavior:done", =>
-      if @selection
-        @changeBehavior( @behaviors.DRAG )
-      else
-        @changeBehavior( @behaviors.IDLE )
-
-    app.on "behavior:delete", => @unselect()
-    app.on "behavior:drag", => @positionToolbar()
-    app.on "behavior:zooming", => @positionToolbar()
-    app.on "behavior:panning", => @positionToolbar()
-
 
   activate : ->
 
@@ -49,6 +39,17 @@ class SelectionHandler extends Behavior
 
     @$tools.find(".btn").on("tap", @selectBehavior)
 
+    app.on this,
+      "behavior:done" : =>
+        if @selection
+          @changeBehavior( @behaviors.DRAG )
+        else
+          @changeBehavior( @behaviors.IDLE )
+      "behavior:delete" : => @unselect()
+      "behavior:drag" : => @positionToolbar()
+      "behavior:zooming" : => @positionToolbar()
+      "behavior:panning" : => @positionToolbar()
+
 
   deactivate : ->
 
@@ -62,6 +63,8 @@ class SelectionHandler extends Behavior
       .off("dragstart", @selectCluster)
 
     @$tools.find(".btn").off("tap", @changeBehavior)
+
+    @dispatcher.unregisterAll(this)
 
 
   selectNode : (event) =>

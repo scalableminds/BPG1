@@ -2,6 +2,10 @@
 @import "projects_overview_view.less";
 @import "process_view.less";
 
+html {
+  height: 100%;
+} 
+
 body {
 
   -webkit-touch-callout: none;
@@ -9,6 +13,9 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+
+  height: 100%;
+  overflow: hidden;
 
 } 
 
@@ -65,4 +72,8 @@ body {
     -ms-transform-origin: center left;
     transform-origin: center left;
   }
+}
+
+.zoom-view {
+  transition: -webkit-transform .2s ease;
 }

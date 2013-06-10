@@ -16,6 +16,7 @@ class Zoom
     @el = @$el[0]
 
     @level = +@$el.find("input").val()
+    @step = +@$el.find("input").attr("step")
 
 
   activate : ->
@@ -40,9 +41,9 @@ class Zoom
     return
 
 
-  changeZoom : (delta) ->
+  changeZoom : (delta, position) ->
 
     $input = @$el.find("input")
-    @level = +$input.val() + delta
+    @level = Math.round((+$input.val() + delta) / @step) * @step
     $input.val(@level)
-    @trigger("change", @level)
+    @trigger("change", @level, position)

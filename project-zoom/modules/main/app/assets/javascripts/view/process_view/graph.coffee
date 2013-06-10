@@ -32,6 +32,9 @@ class Graph
     @edges = @graphModel.get("edges")
     @clusters = @graphModel.get("clusters")
 
+    @nodes.on(this, "change", => @drawNodes(); @drawEdges())
+    @clusters.on(this, "change", => @drawClusters())
+
     @drawNodes()
     @drawEdges()
     @drawClusters()
@@ -54,7 +57,7 @@ class Graph
     @graphModel.get("clusters").each (cluster) ->
       Cluster(cluster).ensureNode(node)
 
-    @drawNodes()
+    # @drawNodes()
 
 
   addEdge : (source, target) ->
@@ -72,7 +75,7 @@ class Graph
     cluster.set("id", @nextId(), silent : true)
     Cluster(cluster).ensureNodes(@nodes)
     @clusters.add(cluster)
-    @drawClusters()
+    # @drawClusters()
 
 
   removeNode : (node) ->
@@ -274,8 +277,8 @@ class Graph
         .filter( (cluster) -> not Cluster(cluster).ensureNode(node) )
         .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
 
-    @drawNodes()
-    @drawEdges()
+    # @drawNodes()
+    # @drawEdges()
 
 
   moveCluster : (cluster, delta) ->
@@ -298,8 +301,8 @@ class Graph
       @moveNode(node, delta)
 
     #actually move the svg elements
-    @drawClusters()
-    @drawNodes()
+    # @drawClusters()
+    # @drawNodes()
 
 
   nextId : ->
