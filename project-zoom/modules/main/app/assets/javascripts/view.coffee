@@ -2,70 +2,135 @@
 jquery : $
 underscore : _
 app : app
+hammer : Hammer
 ./view/zoom : Zoom
 ./view/process_view : ProcessView
 lib/exec_queue : ExecQueue
 ###
 
+class ViewHandler
+
+  constructor : (@maker) ->
+
+  view : null
+
+  make : (args...) ->
+
+    unless @view
+      @view = @maker(args...)
+      $(".content").append(@view.el)
+
+
+  kill : ->
+
+    if @view
+      @deactivate()
+      @view.$el.remove()
+      @view = null
+
+
+  activate : ->
+
+    @make()
+    unless @view.isActivated
+      @view.activate()
+    @view.$el.removeClass("inactive")
+
+
+  deactivate : ->
+
+    @make()
+    if @view.isActivated
+      @view.deactivate()
+    @view.$el.addClass("inactive")
+
+
 app.addInitializer ->
 
   app.view = 
     zoom : new Zoom()
+    process : _.extend(
+      new ViewHandler(-> new ProcessView(app.model.project))
+      setZoom : (scale, position) ->
+
+        @make()
+        @view.$el.css(
+          "transform" : "scale(#{scale})"
+          "transformOrigin" : if position then "#{position[0]}px #{position[1]}px" else ""
+        )
+
+      resetZoom : ->
+
+        @make()
+        @view.$el.css(
+          "transform" : ""
+          "transformOrigin" : ""
+        )
+    )
+
+    wheel :
+      isActivated : false
+
+      activate : ->
+
+        unless @isActivated
+          $(document.body).on("mousewheel", mouseWheelHandler)
+          @isActivated = true
 
 
-activeView = null
-ensureProcessView = ->
+      deactivate : ->
 
-  if not (activeView instanceof ProcessView)
-    activeView = new ProcessView(app.model.project)
-    $(".content").append(activeView.el)
+        if @isActivated
+          $(document.body).off("mousewheel", mouseWheelHandler)
+          @isActivated = false
 
-  return
+
+
+
 
 stateMachine =
 
-  "[0,.6]->[.2,.5]" : (level, position) ->
+  "0 <= x < .2" : ->
+
+    app.view.process.kill()
+
+    app.view.wheel.activate()
+
+
+  ".2 <= x < .5" : (level, position) ->
 
     normalizedLevel = (level - .2) / .3
 
-    ensureProcessView()
-    activeView.$el.css(
-      "transform" : "scale(#{normalizedLevel})"
-      "transformOrigin" : if position then "#{position[0]}px #{position[1]}px" else ""
-    )
+    app.view.process.deactivate()
+    app.view.process.setZoom(normalizedLevel, position)
+
+    app.view.wheel.activate()
 
 
-  "[.2,.5]->[.5,3]" : (level) ->
+  ".5 <= x <= 3" : (level) ->
 
-    activeView.activate()
-    $(document.body).off("mousewheel", mouseWheelHandler)
+    app.view.process.resetZoom()
+    app.view.process.activate()
 
-
-  "[.6,3]->[.2,.5]" : ->
-
-    activeView.deactivate()
-    $(document.body).on("mousewheel", mouseWheelHandler)
+    app.view.wheel.deactivate()
+   
 
 
-  "[.2,.5]->[0,.1]" : ->
-
-    activeView?.$el.remove()
-    activeView = null
+execQueue = ExecQueue (next) -> -> _.defer(next)
 
 
-execQueue = ExecQueue()
-
-
-execStateMachine = (newValue, oldValue, rules, otherArgs...) ->
+execStateMachine = (rules, value, otherArgs...) ->
 
   _.forOwn(rules, (funcs, rule) ->
 
-    [x, a0, b0, a1, b1] = rule.match(/\[([\d.]+),([\d.]+)\]->\[([\d.]+),([\d.]+)\]/)
+    [x, a0, cmp0, cmp1, a1] = rule.match(/^([\d\.]+)\s*([<>=]+)\s*x\s*([<>=]+)\s*([\d\.]+)$/)
 
-    if +a0 <= oldValue <= +b0 and +a1 <= newValue <= +b1
+    comparator = new Function("value", "return #{a0} #{cmp0} value && value #{cmp0} #{a1};")
+
+    if comparator(value)
       funcs = [ funcs ] unless _.isArray(funcs)
       funcs.forEach( (func) -> 
-        execQueue -> func(newValue, otherArgs...)
+        execQueue -> func(value, otherArgs...)
       )
 
     return
@@ -92,23 +157,13 @@ mouseWheelHandler = do ->
   mouseWheelHandler
 
 
-oldZoomLevel = 0
-
-setActiveView = (zoomLevel, position) ->
-
-  execStateMachine(zoomLevel, oldZoomLevel, stateMachine, position)
-  oldZoomLevel = app.view.zoom.level
-
-
+setActiveView = _.partial(execStateMachine, stateMachine)
 
 app.on "start", ->
 
   $(".content").append(app.view.zoom.el)
   app.view.zoom.activate()
 
-  oldZoomLevel = app.view.zoom.level
-
   setActiveView(app.view.zoom.level)
-  $(document.body).on("mousewheel", mouseWheelHandler)
 
   app.view.zoom.on(this, "change", setActiveView)
