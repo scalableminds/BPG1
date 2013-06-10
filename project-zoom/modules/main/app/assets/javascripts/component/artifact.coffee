@@ -68,7 +68,7 @@ class Artifact
   getResourceResolution : (resource) ->
 
     name = resource.get("name")
-    +name.substring(0, name.lastIndexOf("."))
+    +name.substring(name.lastIndexOf("_"), name.lastIndexOf("."))
 
 
   getNearest : (width, typ) ->
