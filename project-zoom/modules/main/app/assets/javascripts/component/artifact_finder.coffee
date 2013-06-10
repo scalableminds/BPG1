@@ -31,11 +31,13 @@ class ArtifactFinder
     @initSlider(domElement)
 
     app.model.project.get("artifacts", @, (a) => @addArtifacts(a.items))
+    @windowResize()
 
-    @resizeHandler = =>
-      @domElement.height($(window).height() - @domElement.offset().top - 30)
 
-    app.on "behavior:zooming", @resize
+  windowResize : ->
+
+    @domElement.height($(window).height() - @domElement.offset().top - 30)
+
 
   initSlider : (domElement) ->
 
@@ -87,12 +89,9 @@ class ArtifactFinder
 
   activate : ->
 
-    $(window).on("resize", @resizeHandler)
-    @slider.on(
-      "change"
-      @onResize
-    )
-    @resizeHandler()
+    @slider.on("change", @onResize)
+    app.on(this, "behavior:zooming", @resize)
+    @windowResize()
 
     for artifact in @artifactComponents
       artifact.activate()
@@ -100,11 +99,8 @@ class ArtifactFinder
 
   deactivate : ->
 
-    $(window).off("resize", @resizeHandler)
-    @slider.off(
-      "change"
-      @onResize
-    )
+    @slider.off("change", @onResize)
+    app.off(this, "behavior:zooming", @resize)
 
     for artifact in @artifactComponents
       artifact.deactivate()
@@ -121,6 +117,7 @@ class ArtifactFinder
     @artifactComponents.push artifact
 
     artifact
+    
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">

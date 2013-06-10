@@ -1,11 +1,15 @@
 ### define
+lib/event_mixin : EventMixin
 ###
 
 class Behavior
 
   constructor : (@graph) ->
 
+    EventMixin.extend(this)
+
     @offset = @graph.$svgEl.offset()
+    
 
   mousePosition : (event, relativeToGraph = true) =>
 
