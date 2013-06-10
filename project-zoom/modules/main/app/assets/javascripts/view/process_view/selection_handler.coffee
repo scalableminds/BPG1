@@ -7,9 +7,11 @@
 app: App
 ###
 
-class SelectionHandler
+class SelectionHandler extends Behavior
 
   constructor : (@$el, @graph) ->
+
+    super(@graph)
 
     @behaviors =
       DRAG : new DragBehavior(@graph)
@@ -45,8 +47,7 @@ class SelectionHandler
       .on("dragstart", ".node", @selectNode)
       .on("dragstart", ".cluster", @selectCluster)
 
-    $(".btn").on("tap", @selectBehavior)
-
+    @$tools.find(".btn").on("tap", @selectBehavior)
 
 
   deactivate : ->
@@ -60,7 +61,7 @@ class SelectionHandler
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)
 
-    $(".btn").off("tap", @changeBehavior)
+    @$tools.find(".btn").off("tap", @changeBehavior)
 
 
   selectNode : (event) =>
@@ -71,6 +72,7 @@ class SelectionHandler
     return if @currentBehavior instanceof ConnectBehavior #unclean workaround
 
     @selection = event.gesture.target
+    @selection.position = @mousePosition(event)
 
     @positionToolbar()
     @$tools
@@ -86,6 +88,7 @@ class SelectionHandler
     return unless event.gesture
 
     @selection = event.gesture.target
+    @selection.position = @mousePosition(event)
 
     @positionToolbar()
     @$tools

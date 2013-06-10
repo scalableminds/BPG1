@@ -31,7 +31,6 @@ class DeleteBehavior extends Behavior
     edge = d3.select(@element).datum()
     @graph.removeEdge(edge)
 
-
     app.trigger "behavior:delete"
 
 

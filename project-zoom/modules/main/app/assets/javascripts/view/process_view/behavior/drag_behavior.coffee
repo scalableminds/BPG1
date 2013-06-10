@@ -1,6 +1,7 @@
 ### define
 hammer : Hammer
 ./behavior : Behavior
+../cluster : Cluster
 app : app
 ###
 
@@ -12,8 +13,8 @@ class DragBehavior extends Behavior
       .on("drag", ".node", @dragMoveNode)
       .on("drag", ".cluster", @dragMoveCluster)
 
-    @startPoint = d3.select(@element).datum().get("position").toObject() #not pretty but works
-
+    @startPoint = @element.position
+    app.trigger "behavior:disable_panning"
 
   deactivate : ->
 
@@ -21,10 +22,12 @@ class DragBehavior extends Behavior
       .off("drag", @dragMoveNode)
       .off("drag", @dragMoveCluster)
 
+    app.trigger "behavior:enable_panning"
+
 
   dragMoveNode : (event) =>
 
-    node = d3.select(event.gesture.target).datum()
+    node = d3.select(@element).datum()
     mouse = @mousePosition(event)
 
     delta =
@@ -39,15 +42,16 @@ class DragBehavior extends Behavior
 
   dragMoveCluster : (event) =>
 
-    clusterId = $(event.gesture.target).data("id")
+    cluster = d3.select(@element).datum()
     mouse = @mousePosition(event)
 
     delta =
       x : mouse.x - @startPoint.x
       y : mouse.y - @startPoint.y
 
-    @graph.moveCluster(clusterId, delta)
+    @graph.moveCluster(cluster, delta)
 
     @startPoint = mouse
+    app.trigger "behavior:drag"
 
 

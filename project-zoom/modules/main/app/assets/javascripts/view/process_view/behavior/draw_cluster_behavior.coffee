@@ -59,14 +59,21 @@ class DrawClusterBehavior extends Behavior
     )
     @preview.data(@cluster)
 
+    translation = d3.transform(@graph.graphContainer.attr("transform")).translate
+    @translateX = translation[0] / app.view.zoom.level
+    @translateY = translation[1] / app.view.zoom.level
 
   dragMove : (event) =>
 
     mouse = @mousePosition(event)
 
-    @cluster.get("waypoints").add(mouse)
+    position =
+      x: mouse.x - @translateX
+      y: mouse.y - @translateY
+
+    @cluster.get("waypoints").add(position)
 
     @preview
       .classed("hide", false)
-      .attr("d", Cluster(@cluster).getLineSegment())
+      .attr("d", Cluster(@cluster).getLineSegment(@graph))
 

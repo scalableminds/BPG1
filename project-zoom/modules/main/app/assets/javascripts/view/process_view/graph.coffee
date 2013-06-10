@@ -23,7 +23,6 @@ class Graph
     @graphContainer = @d3Element.append("svg:g")
 
     @initArrowMarkers()
-    @initCallouts()
 
     @clusterPaths = @graphContainer.append("svg:g").selectAll("path")
     @paths = @graphContainer.append("svg:g").selectAll("path")
@@ -113,7 +112,6 @@ class Graph
   drawNodes : ->
 
     el = []
-    translation = d3.transform(@graphContainer.attr("transform")).translate
 
     @nodeGroups = @nodeGroups.data(@nodes.items, (data) -> data.get("id"))
 
@@ -140,8 +138,8 @@ class Graph
     #update existing ones
     @nodeGroups.selectAll("image").attr(
 
-      x : (data) -> data.get("position/x") - Node(data).getSize().width / 2  - translation[0] / app.view.zoom.level
-      y : (data) -> data.get("position/y") - Node(data).getSize().height / 2 - translation[1] / app.view.zoom.level
+      x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
+      y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
       "xlink:href" : (data) -> new Artifact(data.get("payload"), (->64), true, this).resize()
     )
 
@@ -280,9 +278,9 @@ class Graph
     @drawEdges()
 
 
-  moveCluster : (clusterId, delta) ->
+  moveCluster : (cluster, delta) ->
 
-    cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
+    #cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
 
     #move waypoints
     cluster.update("waypoints", (waypoints) ->
@@ -341,18 +339,3 @@ class Graph
       .append("svg:path")
         .attr("d", "M10,-5L0,0L10,5")
         .attr("fill", "#000")
-
-
-  initCallouts : ->
-
-    @d3Element.append("svg:defs")
-      .append("svg:g")
-        .attr(
-          id: "comment-callout"
-          class: "comment-callout"
-        )
-
-
-
-
-
