@@ -18,6 +18,9 @@ object ProfileDAO extends SecuredMongoJsonDAO[Profile] with UserHelpers {
   val collectionName = "profiles"
 
   implicit val profileFormat = Json.format[Profile]
+  
+  val removeSensitiveInformation = 
+    (__ \ 'user).json.prune
 
   def allowRegistration(profile: Profile) = {
     //TODO: send email with registration information

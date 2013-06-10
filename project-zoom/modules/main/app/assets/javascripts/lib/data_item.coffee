@@ -287,7 +287,7 @@ class DataItem
 
 class DataItem.Collection
 
-  DEFAULT_LIMIT : 200
+  DEFAULT_LIMIT : 1000
 
   constructor : (items = []) ->
 
