@@ -11,8 +11,7 @@ class GUI
     @appendSVG()
     @appendToolbar()
 
-    @resizeHandler = =>
-      @svg.attr("height", $(window).height() - @$el.find(".graph").offset().top - 30)
+    @windowResize()
 
 
   activate : ->
@@ -20,15 +19,16 @@ class GUI
     @initToggleHandler()
     @initToolbarHandler()
 
-    $(window).on("resize", @resizeHandler)
-    @resizeHandler()
-
 
   deactivate : ->
 
     @$el.find(".toolbar .btn").off("click")
     @$el.find("a.toggles").off("click")
-    $(window).off("resize", @resizeHandler)
+
+
+  windowResize : ->
+
+    @svg.attr("height", $(window).height() - @$el.find(".graph").offset().top - 30)
 
 
   appendToolbar : ->

@@ -8,6 +8,8 @@ class ZoomBehavior extends Behavior
 
   constructor : (@$el, @graph) ->
 
+    @zoom(.5)
+
 
   activate : ->
 
@@ -24,7 +26,7 @@ class ZoomBehavior extends Behavior
         evt.preventDefault()
         return if mouseDown
         if deltaY != 0
-          app.view.zoom.changeZoom(deltaY / Math.abs(deltaY) * .1)
+          app.view.zoom.changeZoom(deltaY / Math.abs(deltaY) * .1, [ evt.pageX, evt.pageY ])
 
 
       @hammerContext = Hammer(document.body)
@@ -33,23 +35,24 @@ class ZoomBehavior extends Behavior
 
       @$el.find(".graph").on("mousewheel", @mouseWheelHandler)
 
+    @zoom()
+
+
 
   deactivate : ->
 
     app.view.zoom.off(this, "change", @zoom)
 
-    @$el.find(".graph").on("mousewheel", @mouseWheelHandler)
+    @$el.find(".graph").off("mousewheel", @mouseWheelHandler)
 
     @hammerContext
       .off("touch", @mouseDownHandler)
       .off("release", @mouseUpHandler)
 
 
-  zoom : =>
+  zoom : (scaleValue = app.view.zoom.level) =>
 
     graphContainer = @graph.graphContainer
-
-    scaleValue = app.view.zoom.level
 
     transformation = d3.transform(graphContainer.attr("transform"))
     transformation.scale = [scaleValue, scaleValue]

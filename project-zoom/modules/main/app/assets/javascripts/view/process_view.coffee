@@ -5,12 +5,12 @@ hammer : Hammer
 jquery.mousewheel : Mousewheel
 ./process_view/graph : Graph
 ./process_view/gui : GUI
-./process_view/selection_handler : SelectionHandler
 
 ../component/artifact_finder : ArtifactFinder
 ../component/artifact : Artifact
 text!templates/process_view.html : ProcessViewTemplate
 
+./process_view/behavior/selection_handler : SelectionHandler
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
 ./process_view/behavior/zoom_behavior : ZoomBehavior
 ./process_view/behavior/pan_behavior : PanBehavior
@@ -39,21 +39,24 @@ class ProcessView
       @zooming = new ZoomBehavior(@$el, @graph)
       @panning = new PanBehavior(@$el, @graph)
       @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
-
       @selectionHandler = new SelectionHandler(@$el, @graph)
-
-      @activate()
     )
 
-    app.view.processView = @
+    @isActivated = false
+
 
   deactivate : ->
 
+    return unless @isActivated
+
     @$el.find("#artifact-finder").off("dragstart")
 
-    @$el.find(".toolbar a").off("click")
+    @$el.find(".toolbar a").off("click", @changeBehavior)
 
-    @$el.find("image").off "dragstart"
+    @$el.find("image").off("dragstart")
+
+    @$el.off("transitionend", @windowResize)
+    $(window).off("resize", @windowResize)
 
     @gui.deactivate()
     @artifactFinder.deactivate()
@@ -62,33 +65,51 @@ class ProcessView
     @dragAndDrop.deactivate()
     @selectionHandler.deactivate()
 
+
   activate : ->
 
-    @gui.activate()
-    @artifactFinder.activate()
-    @zooming.activate()
-    @panning.activate()
-    @dragAndDrop.activate()
-    @selectionHandler.activate()
+    return if @isActivated
 
-    # drag artifact into graph
-    @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
+    @projectModel.get("graphs/0", this, =>
 
-    # change tool from toolbox
-    processView = this
-    @$el.find(".toolbar a").on "click", (event) -> processView.changeBehavior(this)
+      @$el.on("transitionend", @windowResize)
+      $(window).on("resize", @windowResize)
 
-    @$el.find("image").on "dragstart", (e) ->
-      e.preventDefault() #disable Firefox's native drag API
+      @gui.activate()
+      @artifactFinder.activate()
+      @zooming.activate()
+      @panning.activate()
+      @dragAndDrop.activate()
+      @selectionHandler.activate()
 
-    Hammer($("#process-graph")[0]).on "mouseenter", ".node", (event) ->
-      node = d3.select(event.target).datum()
-      artifact = node.get("payload")
-      wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
-      wrappedArtifact.onMouseEnter()
+      # drag artifact into graph
+      @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
+
+      # change tool from toolbox
+      @$el.find(".toolbar a").on("click", @changeBehavior)
+
+      @$el.find("image").on "dragstart", (e) ->
+        e.preventDefault() #disable Firefox's native drag API
+
+      Hammer($("#process-graph")[0]).on "mouseenter", ".node", (event) ->
+        node = d3.select(event.target).datum()
+        artifact = node.get("payload")
+        wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
+        wrappedArtifact.onMouseEnter()
+
+      @isActivated = true
+
+    )
 
 
-  changeBehavior : (selectedTool) =>
+  windowResize : =>
+
+    @artifactFinder.windowResize()
+    @gui.windowResize()
+    return
+
+
+  changeBehavior : ({ target : selectedTool}) =>
 
     graph = @graph
 
