@@ -40,8 +40,8 @@ class DragAndDropBehavior extends Behavior
       translation = d3.transform(@graph.graphContainer.attr("transform")).translate
 
       position =
-        x: mouse.x + translation[0]
-        y: mouse.y + translation[1]
+        x: mouse.x - translation[0] / app.view.zoom.level
+        y: mouse.y - translation[1] / app.view.zoom.level
 
       @graph.addNode(position.x, position.y, artifactId)
 
