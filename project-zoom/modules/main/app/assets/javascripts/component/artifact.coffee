@@ -31,7 +31,7 @@ class Artifact
       $(@svg).append(image)
       @svg.setAttribute("class", "artifact")
       @container.append(@svg)
-      @container.append("<div class=\"subcontainer-text\">bla blk sdf .pngs</div>")
+      @container.append("<div class=\"subcontainer-text\">#{dataItem.get("name")}</div>")
     
     @image = image
 
@@ -74,7 +74,7 @@ class Artifact
   getResourceResolution : (resource) ->
 
     name = resource.get("name")
-    +name.substring(name.lastIndexOf("_"), name.lastIndexOf("."))
+    +name.match(/(\d+)\.(png|gif)$/)[1]
 
 
   getNearest : (width, typ) ->

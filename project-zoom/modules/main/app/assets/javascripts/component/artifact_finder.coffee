@@ -62,9 +62,7 @@ class ArtifactFinder
 
     { group, getSliderValue, domElement } = @
 
-    paths = _.map(artifacts, (a) -> a.get("path"))
-    _.uniq(paths)
-    paths.sort()
+    paths = _.uniq(_.map(artifacts, (a) -> a.get("path"))).sort()
 
     group = @groups[0]
 
@@ -73,7 +71,7 @@ class ArtifactFinder
     folder = []
     for path in paths         
       group.div.append(
-          @accordionDocTemplate { path, bodyId : "collapseBody#{path}" }
+        @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
       )
     group.div.append("</div>")
     
@@ -81,11 +79,7 @@ class ArtifactFinder
     for artifact in artifacts
 
       path = artifact.get("path")
-      parent = $("#collapseBody#{path}").find(".accordion-inner")
-
-      artifactC = new Artifact(artifact, getSliderValue)
-      @artifactComponents.push artifactC
-      parent.append(artifactC.getContainerElement())
+      parent = $("#collapseBody#{path.replace(/\//g,"_")}").find(".accordion-inner")
 
       artifactC = new Artifact(artifact, getSliderValue)
       @artifactComponents.push artifactC
@@ -138,7 +132,7 @@ class ArtifactFinder
     @artifactComponents.push artifact
 
     artifact
-    
+
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
