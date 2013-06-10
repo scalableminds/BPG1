@@ -89,9 +89,10 @@ get_collisions = (curr_node, other_nodes) ->
 
   for node, i in other_nodes
     console.log i, node
-    if collides_with(curr_node, node)
-      console.log "coll!!!!"
-      collisions.push node
+    if node isnt curr_node
+      if collides_with(curr_node, node)
+        console.log "coll!!!!"
+        collisions.push node
 
   collisions
 
@@ -118,12 +119,18 @@ If origin is specified, sets the origin accessor to the specified function. If o
 
 drag = d3.behavior.drag()
 .on("drag", (d, i) ->
-  console.log d, i
   d.x += d3.event.dx
   d.y += d3.event.dy
   d3.select(this).attr "transform", (d, i) ->
     "translate(" + [d.x, d.y] + ")"
 )
+.on("dragend", (d, i) ->
+  console.log d, i
+  colls = get_collisions(d, list_of_nodes)
+  console.log "--------------------"
+  console.log colls
+  console.log "--------------------"
+  )
 
 
 draw_nodes = (svg) ->

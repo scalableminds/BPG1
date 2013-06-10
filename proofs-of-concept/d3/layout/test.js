@@ -107,9 +107,11 @@ jquery : $
     for (i = _i = 0, _len = other_nodes.length; _i < _len; i = ++_i) {
       node = other_nodes[i];
       console.log(i, node);
-      if (collides_with(curr_node, node)) {
-        console.log("coll!!!!");
-        collisions.push(node);
+      if (node !== curr_node) {
+        if (collides_with(curr_node, node)) {
+          console.log("coll!!!!");
+          collisions.push(node);
+        }
       }
     }
     return collisions;
@@ -136,12 +138,19 @@ jquery : $
 
 
   drag = d3.behavior.drag().on("drag", function(d, i) {
-    console.log(d, i);
     d.x += d3.event.dx;
     d.y += d3.event.dy;
     return d3.select(this).attr("transform", function(d, i) {
       return "translate(" + [d.x, d.y] + ")";
     });
+  }).on("dragend", function(d, i) {
+    var colls;
+
+    console.log(d, i);
+    colls = get_collisions(d, list_of_nodes);
+    console.log("--------------------");
+    console.log(colls);
+    return console.log("--------------------");
   });
 
   draw_nodes = function(svg) {
