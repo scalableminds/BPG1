@@ -37,4 +37,8 @@ object PermanentValueService extends GlobalDBAccess{
       value
     })
   }
+  
+  def del(key: String) = {
+    PermanentValueDAO.remove("key", key)
+  }
 }
