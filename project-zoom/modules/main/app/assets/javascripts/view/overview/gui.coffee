@@ -17,7 +17,6 @@ class GUI
 
     @initSideBar()
     @initToggleHandler()
-    @initToolbarHandler()
 
     $(window).on("resize", @resizeHandler)
     @resizeHandler()
@@ -40,18 +39,6 @@ class GUI
     $(window).resize(
       => @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
     ).resize()
-
-
-  initToolbarHandler : ->
-
-    $(".btn-group .btn").on "click", (event) ->
-      $(".btn-group .btn").removeClass('active')
-
-      $this = $(@)
-      unless $this.hasClass('active')
-        $this.addClass('active')
-
-      event.preventDefault()
 
 
   initSideBar : ->
