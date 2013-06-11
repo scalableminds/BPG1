@@ -6,7 +6,7 @@ hammer : Hammer
 lib/event_mixin : EventMixin
 ###
 
-BUFFER_THRESHOLD = 10
+BUFFER_THRESHOLD = 20
 
 Wheel = (el) ->
 
