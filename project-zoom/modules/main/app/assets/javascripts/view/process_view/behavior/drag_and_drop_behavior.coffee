@@ -67,7 +67,7 @@ class DragAndDropBehavior extends Behavior
       )
 
     @$preview.append(svgContainer)
-    @$el.append(@$preview)
+    $("body").append(@$preview)
 
 
   dragMove : (event) =>

@@ -137,7 +137,7 @@ class SelectionHandler extends Behavior
 
       @$tools.css(
         left: boundingBox.left
-        top: boundingBox.top - buttonWidth
+        top: boundingBox.top - buttonWidth # offset due to parents relative position
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )
