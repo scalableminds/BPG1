@@ -9,7 +9,7 @@ class ZoomBehavior extends Behavior
 
   constructor : (@$el, @graph) ->
 
-    @zoom(.5)
+    @zoom(.2)
     @wheel = new Wheel(@$el.find(".graph"))
 
 
@@ -33,6 +33,8 @@ class ZoomBehavior extends Behavior
 
 
   zoom : (scaleValue = app.view.process.zoom) =>
+
+    console.log scaleValue
 
     graphContainer = @graph.graphContainer
 

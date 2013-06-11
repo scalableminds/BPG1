@@ -64,6 +64,7 @@ class ViewWrapper
       "transformOrigin" : if position then "#{position[0]}px #{position[1]}px" else ""
     )
 
+
   resetZoom : ->
 
     @make()
@@ -81,7 +82,7 @@ class ViewWrapper
   onGlobalZoom : (level, position) =>
 
     @zoom = Math.max(@zoomConverter(level), 0)
-    @trigger("zoom", @level, position)
+    @trigger("zoom", @zoom, position)
     
 
 

@@ -20,7 +20,7 @@ app.addInitializer ->
   app.view.zoom = new Zoom()
   app.view.process = new ViewWrapper(
       -> new ProcessView(app.model.project)
-      (level) -> level - 1
+      (level) -> Math.max(level - .8, .1)
     )
 
   app.view.wheel = new Wheel(document.body)
@@ -35,16 +35,12 @@ switchView = RangeSwitch(
 
   "0 <= x < .1" : ->
 
-    console.log "0-.1", arguments[0]
-
     app.view.process.kill()
 
     app.view.wheel.activate()
 
 
   ".1 <= x < 1" : (level, position) ->
-
-    console.log ".1-1", arguments[0]
 
     normalizedLevel = (level - .1) / .9
 
@@ -55,8 +51,6 @@ switchView = RangeSwitch(
 
 
   "1 <= x <= 10" : (level) ->
-
-    console.log "1-10", arguments[0]
 
     app.view.process.resetZoom()
     app.view.process.activate()
