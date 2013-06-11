@@ -2,6 +2,7 @@
 ./behavior : Behavior
 jquery.mousewheel : Mousewheel
 app : app
+view/wheel : Wheel
 ###
 
 class ZoomBehavior extends Behavior
@@ -9,31 +10,15 @@ class ZoomBehavior extends Behavior
   constructor : (@$el, @graph) ->
 
     @zoom(.5)
+    @wheel = new Wheel(@$el.find(".graph"))
 
 
   activate : ->
 
-    app.view.zoom.on(this, "change", @zoom)
+    app.view.process.on(this, "zoom", @zoom)
 
-    do =>
-
-      mouseDown = false
-
-      @mouseDownHandler = -> mouseDown = true; return
-      @mouseUpHandler = -> mouseDown = false; return
-      @mouseWheelHandler = (evt, delta, deltaX, deltaY) ->
-
-        evt.preventDefault()
-        return if mouseDown
-        if deltaY != 0
-          app.view.zoom.changeZoom(deltaY / Math.abs(deltaY) * .1, [ evt.pageX, evt.pageY ])
-
-
-      @hammerContext = Hammer(document.body)
-        .on("touch", @mouseDownHandler)
-        .on("release", @mouseUpHandler)
-
-      @$el.find(".graph").on("mousewheel", @mouseWheelHandler)
+    @wheel.activate()
+    @wheel.on("delta", app.view.process.changeZoom)
 
     @zoom()
 
@@ -41,16 +26,13 @@ class ZoomBehavior extends Behavior
 
   deactivate : ->
 
-    app.view.zoom.off(this, "change", @zoom)
-
-    @$el.find(".graph").off("mousewheel", @mouseWheelHandler)
-
-    @hammerContext
-      .off("touch", @mouseDownHandler)
-      .off("release", @mouseUpHandler)
+    app.view.process.off(this, "zoom", @zoom)
+    @wheel.deactivate()
+    @wheel.off("delta", app.view.process.changeZoom)
 
 
-  zoom : (scaleValue = app.view.zoom.level) =>
+
+  zoom : (scaleValue = app.view.process.zoom) =>
 
     graphContainer = @graph.graphContainer
 

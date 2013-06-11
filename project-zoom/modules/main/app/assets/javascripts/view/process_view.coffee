@@ -40,14 +40,21 @@ class ProcessView
       @panning = new PanBehavior(@$el, @graph)
       @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
       @selectionHandler = new SelectionHandler(@$el, @graph)
+
+      @activate() if @pleaseActivate
     )
 
     @isActivated = false
+    @pleaseActivate = false
 
 
   deactivate : ->
 
+    @pleaseActivate = false
+    
     return unless @isActivated
+
+    @isActivated = false
 
     @$el.find("#artifact-finder").off("dragstart")
 
@@ -65,12 +72,17 @@ class ProcessView
     @dragAndDrop.deactivate()
     @selectionHandler.deactivate()
 
+    @dispatcher.unregisterAll(this)
+
 
   activate : ->
 
     return if @isActivated
 
-    @projectModel.get("graphs/0", this, =>
+    if @graph
+
+      @isActivated = true
+      @pleaseActivate = false
 
       @$el.on("transitionend", @windowResize)
       $(window).on("resize", @windowResize)
@@ -97,9 +109,9 @@ class ProcessView
         wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
         wrappedArtifact.onMouseEnter()
 
-      @isActivated = true
+    else
 
-    )
+      @pleaseActivate = true
 
 
   windowResize : =>

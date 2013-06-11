@@ -5,7 +5,6 @@
 ./delete_behavior : DeleteBehavior
 ./comment_behavior : CommentBehavior
 app : app
-lib/event_mixin : EventMixin
 ###
 
 class SelectionHandler extends Behavior
