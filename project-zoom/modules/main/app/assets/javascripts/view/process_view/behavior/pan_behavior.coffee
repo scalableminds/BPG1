@@ -46,7 +46,7 @@ class PanBehavior extends Behavior
 
     return unless event.gesture
 
-    @scaleValue = app.view.zoom.level
+    @scaleValue = app.view.process.zoom
     @startPoint = @mousePosition(event)
 
     graphContainer = @graph.graphContainer

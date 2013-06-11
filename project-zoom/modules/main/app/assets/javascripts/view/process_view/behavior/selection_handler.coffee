@@ -1,5 +1,4 @@
 ### define
-
 ./behavior : Behavior
 ./connect_behavior : ConnectBehavior
 ./drag_behavior : DragBehavior
@@ -7,7 +6,6 @@
 ./comment_behavior : CommentBehavior
 app : app
 d3 : d3
-lib/event_mixin : EventMixin
 ###
 
 class SelectionHandler extends Behavior

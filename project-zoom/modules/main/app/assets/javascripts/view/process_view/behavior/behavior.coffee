@@ -15,7 +15,7 @@ class Behavior
 
   mousePosition : (event, relativeToGraph = true) =>
 
-    @scaleValue = app.view.zoom.level
+    @scaleValue = app.view.process.zoom
 
     unless relativeToGraph
       @scaleValue = 1.0
