@@ -85,6 +85,10 @@ class ArtifactFinder
       @artifactComponents.push artifactC
       parent.append(artifactC.getContainerElement())
 
+    $('#sortTabs a[href="#tabdate"]').tab('show')
+    $('#sortTabs a[href="#tabfolder"]').tab('show')
+
+
 
   setResized : (func) ->
 
@@ -136,7 +140,7 @@ class ArtifactFinder
 
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
-      <ul class="nav nav-tabs">
+      <ul id="sortTabs" class="nav nav-tabs">
         <% groupNames.forEach(function (group) { %>
           <li>
             <a data-toggle="tab"
