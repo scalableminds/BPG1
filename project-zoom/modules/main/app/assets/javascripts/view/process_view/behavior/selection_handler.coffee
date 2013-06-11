@@ -1,5 +1,4 @@
 ### define
-
 ./behavior : Behavior
 ./connect_behavior : ConnectBehavior
 ./drag_behavior : DragBehavior
@@ -7,7 +6,6 @@
 ./comment_behavior : CommentBehavior
 app : app
 d3 : d3
-lib/event_mixin : EventMixin
 ###
 
 class SelectionHandler extends Behavior
@@ -137,7 +135,7 @@ class SelectionHandler extends Behavior
 
       @$tools.css(
         left: boundingBox.left
-        top: boundingBox.top - buttonWidth
+        top: boundingBox.top - buttonWidth # offset due to parents relative position
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )

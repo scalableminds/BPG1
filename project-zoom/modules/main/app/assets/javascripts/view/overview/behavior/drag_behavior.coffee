@@ -25,7 +25,7 @@ class DragBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = $("#process-view").offset()
-    @scaleValue = app.view.zoom.level
+    @scaleValue = app.view.process.zoom
     @startPoint = @mousePosition(event)
 
 

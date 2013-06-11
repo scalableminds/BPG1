@@ -62,8 +62,8 @@ class DrawClusterBehavior extends Behavior
     @preview.data(@cluster)
 
     translation = d3.transform(@graph.graphContainer.attr("transform")).translate
-    @translateX = translation[0] / app.view.zoom.level
-    @translateY = translation[1] / app.view.zoom.level
+    @translateX = translation[0] / app.view.process.zoom
+    @translateY = translation[1] / app.view.process.zoom
 
   dragMove : (event) =>
 

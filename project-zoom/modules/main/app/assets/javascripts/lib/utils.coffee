@@ -5,6 +5,11 @@ underscore : _
 
 Utils =
 
+  clamp : (a, x, b) ->
+
+    Math.max(a, Math.min(x, b))
+    
+
   retryDeferred : (func, retryCount = -1, retryTimeout = -1) ->
 
     deferred = new $.Deferred()
