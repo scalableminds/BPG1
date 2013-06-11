@@ -54,6 +54,8 @@ class SelectionHandler extends Behavior
   deactivate : ->
 
     @$tools.remove()
+    @$tools.find(".btn").off("tap", @changeBehavior)
+    @$tools = null
 
     @hammerContext
       .off("tap", @unselect)
@@ -61,8 +63,6 @@ class SelectionHandler extends Behavior
       .off("tap", @selectCluster)
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)
-
-    @$tools.find(".btn").off("tap", @changeBehavior)
 
     @dispatcher.unregisterAll(this)
 
