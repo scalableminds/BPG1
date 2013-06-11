@@ -20,7 +20,7 @@ app.addInitializer ->
   app.view.zoom = new Zoom()
   app.view.process = new ViewWrapper(
       -> new ProcessView(app.model.project)
-      (level) -> level - .5
+      (level) -> level - 1
     )
 
   app.view.wheel = new Wheel(document.body)
