@@ -133,7 +133,7 @@ overlap_vector = (node, other_node, overlap_position) ->
   {x: x, y: y}
 
 
-move_if_collision = (curr_node_position, curr_node_selector, origin) ->
+move_if_collision = (curr_node_position, origin) ->
 
   console.log "origin: ", origin
   no_collisions = false
@@ -150,6 +150,7 @@ move_if_collision = (curr_node_position, curr_node_selector, origin) ->
       destination_vector = reverse_vector overlap_vector(curr_node_position, coll_node, overlap_pos)
       destination_vector.x += MARGIN
       destination_vector.y += MARGIN
+      console.log "destination_vector: ", destination_vector
       curr_node_position = add_vectors(curr_node_position, destination_vector)
     else if collisions.length is 2
       coll_node_1 = collisions[0]
@@ -183,7 +184,7 @@ move_if_collision = (curr_node_position, curr_node_selector, origin) ->
       console.log "too many colls"
       no_collisions = true
 
-  move_node(curr_node_selector, curr_node_position)
+  curr_node_position
 
 
 get_collisions = (curr_node, other_nodes) ->
@@ -198,10 +199,14 @@ get_collisions = (curr_node, other_nodes) ->
   collisions
 
 
-move_node = (node_selector, destination) ->
+move_node = (node, node_selector, destination) ->
 
-  # $(node_selector).translate()
   console.log "moving node to: ", destination.x, destination.y
+  node.x = destination.x
+  node.y = destination.y
+  d3.select(node_selector).attr(
+    "transform" : "translate(" + [destination.x, destination.y] + ")"
+  )
 
 ###
 
@@ -246,7 +251,9 @@ drag = d3.behavior.drag()
 .on("dragend", (d, i) ->
   node_selector = "#node_#{i}"
 
-  move_if_collision(d, node_selector, drag.origin())
+  destination = move_if_collision(d, drag.origin())
+  move_node(d, node_selector, destination)
+
   console.log d
 
   # console.log d, i

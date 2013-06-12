@@ -158,7 +158,7 @@ jquery : $
     };
   };
 
-  move_if_collision = function(curr_node_position, curr_node_selector, origin) {
+  move_if_collision = function(curr_node_position, origin) {
     var coll_node, coll_node_1, coll_node_2, coll_node_3, collisions, destination_vector, no_collisions, overlap_pos, overlap_pos_1, overlap_pos_2, overlap_pos_3, overlap_vector_1, overlap_vector_2, overlap_vector_3, temp_1, temp_2;
 
     console.log("origin: ", origin);
@@ -178,6 +178,7 @@ jquery : $
         destination_vector = reverse_vector(overlap_vector(curr_node_position, coll_node, overlap_pos));
         destination_vector.x += MARGIN;
         destination_vector.y += MARGIN;
+        console.log("destination_vector: ", destination_vector);
         curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else if (collisions.length === 2) {
         coll_node_1 = collisions[0];
@@ -211,7 +212,7 @@ jquery : $
         no_collisions = true;
       }
     }
-    return move_node(curr_node_selector, curr_node_position);
+    return curr_node_position;
   };
 
   get_collisions = function(curr_node, other_nodes) {
@@ -229,8 +230,13 @@ jquery : $
     return collisions;
   };
 
-  move_node = function(node_selector, destination) {
-    return console.log("moving node to: ", destination.x, destination.y);
+  move_node = function(node, node_selector, destination) {
+    console.log("moving node to: ", destination.x, destination.y);
+    node.x = destination.x;
+    node.y = destination.y;
+    return d3.select(node_selector).attr({
+      "transform": "translate(" + [destination.x, destination.y] + ")"
+    });
   };
 
   /*
@@ -255,10 +261,11 @@ jquery : $
       return "translate(" + [d.x, d.y] + ")";
     });
   }).on("dragend", function(d, i) {
-    var node_selector;
+    var destination, node_selector;
 
     node_selector = "#node_" + i;
-    move_if_collision(d, node_selector, drag.origin());
+    destination = move_if_collision(d, drag.origin());
+    move_node(d, node_selector, destination);
     return console.log(d);
   });
 
