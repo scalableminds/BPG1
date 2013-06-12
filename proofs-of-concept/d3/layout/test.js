@@ -125,11 +125,11 @@
     return result;
   };
 
-  overlap_vector = function(node, other_node, overlap_position) {
+  overlap_vector = function(node, other_node, overlap_pos) {
     var x, y;
 
     x = y = null;
-    switch (overlap_position) {
+    switch (overlap_pos) {
       case 0:
         x = -(other_node.x + NODE_SIZE - node.x);
         y = -(other_node.y + NODE_SIZE - node.y);
@@ -153,7 +153,7 @@
   };
 
   move_if_collision = function(curr_node_position, origin) {
-    var collisions, destination_vector, dragged_node, no_collisions, overlap_pos, overlap_pos_1, overlap_pos_2, overlap_pos_3, overlap_vector_1, overlap_vector_2, overlap_vector_3, temp_1, temp_2;
+    var coll_node, collisions, destination_vector, dragged_node, no_collisions, overlap_pos, overlap_vec, reversed_dest_vector, _i, _len;
 
     no_collisions = false;
     destination_vector = {
@@ -165,36 +165,23 @@
       collisions = get_collisions(curr_node_position, list_of_nodes, dragged_node);
       if (collisions.length === 0) {
         no_collisions = true;
-      } else if (collisions.length === 1) {
-        overlap_pos = overlap_position(curr_node_position, collisions[0]);
-        destination_vector = reverse_vector(overlap_vector(curr_node_position, collisions[0], overlap_pos));
-        destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
-        destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
-        curr_node_position = add_vectors(curr_node_position, destination_vector);
-      } else if (collisions.length === 2) {
-        overlap_pos_1 = overlap_position(curr_node_position, collisions[0]);
-        overlap_pos_2 = overlap_position(curr_node_position, collisions[1]);
-        overlap_vector_1 = overlap_vector(curr_node_position, collisions[0], overlap_pos_1);
-        overlap_vector_2 = overlap_vector(curr_node_position, collisions[1], overlap_pos_2);
-        destination_vector = reverse_vector(add_vectors(overlap_vector_1, overlap_vector_2));
-        destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
-        destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
-        curr_node_position = add_vectors(curr_node_position, destination_vector);
-      } else if (collisions.length === 3) {
-        overlap_pos_1 = overlap_position(curr_node_position, collisions[0]);
-        overlap_pos_2 = overlap_position(curr_node_position, collisions[1]);
-        overlap_pos_3 = overlap_position(curr_node_position, collisions[2]);
-        overlap_vector_1 = overlap_vector(curr_node_position, collisions[0], overlap_pos_1);
-        overlap_vector_2 = overlap_vector(curr_node_position, collisions[1], overlap_pos_2);
-        overlap_vector_3 = overlap_vector(curr_node_position, collisions[2], overlap_pos_3);
-        temp_1 = add_vectors(overlap_vector_1, overlap_vector_2);
-        temp_2 = add_vectors(overlap_vector_2, overlap_vector_3);
-        destination_vector = reverse_vector(add_vectors(temp_1, temp_2));
-        destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
-        destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
-        curr_node_position = add_vectors(curr_node_position, destination_vector);
-      } else {
+      } else if (collisions.length >= 4) {
         no_collisions = true;
+      } else {
+        reversed_dest_vector = {
+          x: 0,
+          y: 0
+        };
+        for (_i = 0, _len = collisions.length; _i < _len; _i++) {
+          coll_node = collisions[_i];
+          overlap_pos = overlap_position(curr_node_position, coll_node);
+          overlap_vec = overlap_vector(curr_node_position, coll_node, overlap_pos);
+          reversed_dest_vector = add_vectors(reversed_dest_vector, overlap_vec);
+        }
+        destination_vector = reverse_vector(reversed_dest_vector);
+        destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
+        destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
+        curr_node_position = add_vectors(curr_node_position, destination_vector);
       }
     }
     return curr_node_position;
