@@ -470,6 +470,8 @@ public class MyWordle
 				);
 			
 			Graphics2D g=(Graphics2D)img.getGraphics();
+			g.setColor(Color.WHITE);  
+			g.fillRect(0, 0, img.getWidth(), img.getHeight());  			
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g.setTransform(scale);
 			for(Word w:this.words)

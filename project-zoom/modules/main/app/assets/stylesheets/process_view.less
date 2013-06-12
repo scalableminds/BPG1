@@ -11,6 +11,18 @@
   .artifact-container {
     height: 100%;
   }
+  .subcontainer {
+    margin: 10px;
+    height: 100%;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .subcontainer-text {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 
   .artifact-slider {
     position: absolute;
@@ -37,33 +49,6 @@
   }
 
 }
-
-#main {
-
-  .toolbar {
-
-    margin-bottom: 20px;
-
-    i {
-
-      margin-right: 5px;
-    }
-
-    .cluster-tool {
-
-      //overwrite bootstrap to fix design
-      a {
-        margin-left: -1px !important;
-        margin-right: -1px !important;
-        border-radius: 0 !important;
-      }
-    }
-
-  }
-
-}
-
-
 
 .graph {
 
@@ -106,4 +91,36 @@ a.toggles {
     background-color:black;
     color:white;
     padding:10px 20px;
+}
+
+#tool-bar {
+
+  position: absolute;
+  pointer-events: none;
+
+  a {
+    width: 17px;
+    height: 27px;
+    pointer-events: all;
+    text-align: center;
+
+    display: block;
+    margin: 2px 0;
+   }
+
+   .float-container {
+
+    width: 50px;
+    float: right;
+   }
+
+  &.cluster {
+    #connect {
+      display: none;
+    }
+    #download {
+      display: none;
+    }
+  }
+
 }

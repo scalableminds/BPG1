@@ -10,6 +10,12 @@ class PanBehavior extends Behavior
 
     @active = false
 
+    app.on "behavior:enable_panning", => @activate()
+    app.on "behavior:disable_panning", => @deactivate()
+
+    super(@graph)
+
+
   activate : ->
 
     unless @active
@@ -34,9 +40,7 @@ class PanBehavior extends Behavior
 
     return unless event.gesture
 
-    @offset = @graph.$svgEl.offset()
-    @scaleValue = app.view.zoom.level
-
+    @scaleValue = app.view.process.zoom
     @startPoint = @mousePosition(event)
 
     graphContainer = @graph.graphContainer
@@ -47,7 +51,7 @@ class PanBehavior extends Behavior
     return unless event.gesture
     target = d3.select(event.gesture.target)
 
-    if target.classed("node") or target.classed("cluster")
+    if target.classed("node")
       return
 
     mouse = @mousePosition(event)
@@ -66,3 +70,4 @@ class PanBehavior extends Behavior
     graphContainer.attr("transform", transformation.toString())
 
     @startPoint = mouse
+    app.trigger "behavior:panning"

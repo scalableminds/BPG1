@@ -109,7 +109,7 @@ class EventMixin
   trigger : (type, args...) ->
 
     if @__callbacks[type]?
-      for callback in @__callbacks[type]
+      for callback in @__callbacks[type].slice(0)
         callback.apply(this, args)
 
     if _.contains(type, ":")

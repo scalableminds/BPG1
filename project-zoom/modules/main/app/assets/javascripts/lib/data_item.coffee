@@ -19,6 +19,7 @@ class DataItem
     EventMixin.extend(this)
 
     @trackPatches = _.memoize(@trackPatches)
+    @requestLazy = _.memoize(@requestLazy)
 
     @attributes = {}
     @lazyAttributes = options.lazy ? {}
@@ -286,7 +287,7 @@ class DataItem
 
 class DataItem.Collection
 
-  DEFAULT_LIMIT : 200
+  DEFAULT_LIMIT : 1000
 
   constructor : (items = []) ->
 

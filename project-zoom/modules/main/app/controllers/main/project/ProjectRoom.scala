@@ -143,7 +143,6 @@ class ProjectRoomEventDispatcher1 extends Actor with EventSubscriber with Global
       handleArtifactUpdate(e.artifact)
 
     case e: GraphUpdated =>
-      println("reached! project: " + e.graph._project.toString)
       forwardToProject(
         e.graph._project.stringify,
         ProjectUpdate("graphs", "patch", e.patch, Some(e.graph._id.stringify)))

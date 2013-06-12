@@ -37,11 +37,11 @@ class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayAc
     loop(streamPos, JsArray())
   }
   
-  def fetchCollaborators(file: BoxFile)(implicit accessTokens: BoxAccessTokens): List[BoxMiniUser] = 
-    collaborations().get(file.parent.id).getOrElse(Nil)
+  def fetchCollaborators(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Option[List[BoxMiniUser]] = 
+    collaborations().get(file.parent.id)
   
-  def fetchCollaborators(folder: BoxBaseFolder)(implicit accessTokens: BoxAccessTokens): List[BoxMiniUser] = 
-    collaborations().get(folder.id).getOrElse(Nil)
+  def fetchCollaborators(folder: BoxBaseFolder)(implicit accessTokens: BoxAccessTokens): Option[List[BoxMiniUser]] = 
+    collaborations().get(folder.id)
     
   def buildCollaboratorCache(events: List[BoxEvent])(implicit accessTokens: BoxAccessTokens) = {
     val folderIds = events.map{event => 
@@ -51,19 +51,23 @@ class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayAc
       }
     }.distinct
     
-    Future.traverse(folderIds)(fId => fetchCollaboratorsList(fId)).map{ collaboratorsListList =>
-      folderIds.zip(collaboratorsListList).foreach{p => collaborations.send(_ + (p._1 -> p._2))}
-    }    
+    Future.traverse(folderIds)(fId => fetchCollaboratorsList(fId)).map{ collaboratorsListOpts =>
+      folderIds.zip(collaboratorsListOpts).foreach{p => 
+        p._2.foreach{collaborators =>
+          collaborations.send(_ + (p._1 -> collaborators))
+        }
+      }
+    }
   }
     
-  private def fetchCollaboratorsList(folderId: FolderId)(implicit accessTokens: BoxAccessTokens): Future[List[BoxMiniUser]] = {
+  private def fetchCollaboratorsList(folderId: FolderId)(implicit accessTokens: BoxAccessTokens): Future[Option[List[BoxMiniUser]]] = {
     fetchFolderCollaborations(folderId).map{ json =>
       (json \ "entries").validate[List[BoxCollaboration]] match {
         case JsSuccess(collaborationList, _) => 
           val collaborators = collaborationList.flatMap(c => c.accessible_by) 
-          collaborators
+          Some(collaborators)
         case JsError(err) => Logger.error(s"Error fetching collaborations:\n ${err.mkString}\njson:\n${Json.stringify(json)}")
-        List()
+        None
       }
     }
   }

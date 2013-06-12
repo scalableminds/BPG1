@@ -9,7 +9,6 @@ object BoxMiniSource {
   implicit val BoxMiniSourceReads = BoxMiniFile.BoxMiniFileAsSourceReads or BoxMiniFolder.BoxMiniFolderAsSourceReads
 }
 
-
 trait BoxSource
 
 object BoxSource {

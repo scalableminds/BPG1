@@ -2,11 +2,15 @@
 jquery : $
 underscore : _
 app : app
+lib/utils : Utils
 lib/event_mixin : EventMixin
 text!templates/zoom_slider.html : ZoomSliderTemplate
 ###
 
 class Zoom
+
+  min : 0
+  max : 10
 
   constructor : ->
 
@@ -15,7 +19,12 @@ class Zoom
     @$el = $(ZoomSliderTemplate)
     @el = @$el[0]
 
-    @level = +@$el.find("input").val()
+    @$input = @$el.find("input")
+
+    @$input.attr({ @max, @min })
+
+    @level = +@$input.val()
+    @step = +@$input.attr("step")
 
 
   activate : ->
@@ -40,9 +49,9 @@ class Zoom
     return
 
 
-  changeZoom : (delta) ->
+  changeZoom : (delta, position) =>
 
     $input = @$el.find("input")
-    @level = +$input.val() + delta
+    @level = Utils.clamp(@min, Math.round((+$input.val() + delta) / @step) * @step, @max)
     $input.val(@level)
-    @trigger("change", @level)
+    @trigger("change", @level, position)

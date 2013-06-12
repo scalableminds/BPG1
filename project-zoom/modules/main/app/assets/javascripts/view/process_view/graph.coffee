@@ -23,10 +23,6 @@ class Graph
     @graphContainer = @d3Element.append("svg:g")
 
     @initArrowMarkers()
-    @initCallouts()
-
-    @currentBehavior = new DragBehavior(@)
-    @currentBehavior.activate()
 
     @clusterPaths = @graphContainer.append("svg:g").selectAll("path")
     @paths = @graphContainer.append("svg:g").selectAll("path")
@@ -35,6 +31,9 @@ class Graph
     @nodes = @graphModel.get("nodes")
     @edges = @graphModel.get("edges")
     @clusters = @graphModel.get("clusters")
+
+    @nodes.on(this, "change", => @drawNodes(); @drawEdges())
+    @clusters.on(this, "change", => @drawClusters())
 
     @drawNodes()
     @drawEdges()
@@ -58,7 +57,7 @@ class Graph
     @graphModel.get("clusters").each (cluster) ->
       Cluster(cluster).ensureNode(node)
 
-    @drawNodes()
+    # @drawNodes()
 
 
   addEdge : (source, target) ->
@@ -76,7 +75,7 @@ class Graph
     cluster.set("id", @nextId(), silent : true)
     Cluster(cluster).ensureNodes(@nodes)
     @clusters.add(cluster)
-    @drawClusters()
+    # @drawClusters()
 
 
   removeNode : (node) ->
@@ -122,6 +121,9 @@ class Graph
     #add new nodes
     @nodeGroups.enter()
       .append("svg:g")
+        .attr(
+          cursor: "move"
+        )
       .select( (data, i)-> #hacky
         el[i] = @;
         return this
@@ -138,9 +140,9 @@ class Graph
 
     #update existing ones
     @nodeGroups.selectAll("image").attr(
+
       x : (data) -> data.get("position/x") - Node(data).getSize().width / 2
       y : (data) -> data.get("position/y") - Node(data).getSize().height / 2
-      #"xlink:href" : (data) -> a = new Artifact(data.get("payload"), (->64), true, this); a.activate(); a.resize()
       "xlink:href" : (data) -> new Artifact(data.get("payload"), (->64), true, this).resize()
     )
 
@@ -185,7 +187,7 @@ class Graph
         .attr(
           class : "cluster"
           "data-id" : (data) -> data.get("id")
-          d : (data) -> Cluster(data).getLineSegment()
+          d : (data) => Cluster(data).getLineSegment(@)
         )
 
     @drawComment(@clusterPaths, Cluster)
@@ -193,7 +195,7 @@ class Graph
     #update existing ones
     @clusterPaths.selectAll(".cluster")
       .attr(
-        d : (data) -> Cluster(data).getLineSegment()
+        d : (data) => Cluster(data).getLineSegment(@)
       )
 
     #remove deleted edges
@@ -260,13 +262,13 @@ class Graph
     commentGroup.exit().remove()
 
 
-  moveNode : (node, distance, checkForCluster = false) ->
+  moveNode : (node, delta, checkForCluster = false) ->
 
     #move nodes
     node.update("position", (position) ->
       position = position.toObject()
-      position.x += distance.x
-      position.y += distance.y
+      position.x += delta.x
+      position.y += delta.y
       position
     )
 
@@ -275,20 +277,20 @@ class Graph
         .filter( (cluster) -> not Cluster(cluster).ensureNode(node) )
         .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
 
-    @drawNodes()
-    @drawEdges()
+    # @drawNodes()
+    # @drawEdges()
 
 
-  moveCluster : (clusterId, distance) ->
+  moveCluster : (cluster, delta) ->
 
-    cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
+    #cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
 
     #move waypoints
     cluster.update("waypoints", (waypoints) ->
 
       waypoints.toObject().map( (waypoint) ->
-        x : waypoint.x + distance.x
-        y : waypoint.y + distance.y
+        x : waypoint.x + delta.x
+        y : waypoint.y + delta.y
       )
 
     )
@@ -296,11 +298,11 @@ class Graph
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
 
-      @moveNode(node, distance)
+      @moveNode(node, delta)
 
     #actually move the svg elements
-    @drawClusters()
-    @drawNodes()
+    # @drawClusters()
+    # @drawNodes()
 
 
   nextId : ->
@@ -340,22 +342,3 @@ class Graph
       .append("svg:path")
         .attr("d", "M10,-5L0,0L10,5")
         .attr("fill", "#000")
-
-
-  initCallouts : ->
-
-    @d3Element.append("svg:defs")
-      .append("svg:g")
-        .attr(
-          id: "comment-callout"
-          class: "comment-callout"
-        )
-
-
-  changeBehavior : (behavior) ->
-
-    @currentBehavior.deactivate()
-    @currentBehavior = behavior
-    @currentBehavior.activate()
-
-

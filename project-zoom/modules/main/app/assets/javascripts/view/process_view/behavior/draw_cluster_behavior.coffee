@@ -1,5 +1,4 @@
 ### define
-core_ext : CoreExt
 hammer : Hammer
 ./behavior : Behavior
 ../cluster : Cluster
@@ -9,16 +8,17 @@ app : app
 
 class DrawClusterBehavior extends Behavior
 
-  constructor : ( @graph, @container, @type ) ->
+  constructor : ( @graph, @$el, @type ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
     if @graph.$svgEl.find(".preview").length == 0
-      @preview = @container.insert("svg:path",":first-child") #prepend for proper zOrdering
+      @preview = @graph.graphContainer.insert("svg:path",":first-child") #prepend for proper zOrdering
       @preview
         .attr("class", "hide preview cluster")
     else
       @preview = @graph.d3Element.select(".preview")
 
+    super(@graph)
 
   activate : ->
 
@@ -27,6 +27,8 @@ class DrawClusterBehavior extends Behavior
       .on("dragstart", @dragStart)
       .on("dragend", @dragEnd)
 
+    @$el.find(".btn.dropdown-toggle").addClass("active")
+    app.trigger "behavior:disable_panning"
 
   deactivate : ->
 
@@ -38,6 +40,8 @@ class DrawClusterBehavior extends Behavior
     @preview.attr("d", "M 0,0 L 0,0") # move it out of the way
     @preview.classed("hidden, true")
 
+    @$el.find(".btn.dropdown-toggle").removeClass("active")
+    app.trigger "behavior:enable_panning"
 
   dragEnd : (event) =>
 
@@ -45,8 +49,7 @@ class DrawClusterBehavior extends Behavior
     @graph.addCluster(@cluster)
     @preview.classed("hide", true)
 
-    # switch to drag tool again (reset)
-    window.setTimeout( ( -> $(".btn-group a").first().trigger("click")), 100)
+    app.trigger "behavior:done"
 
 
   dragStart : (event) =>
@@ -58,17 +61,21 @@ class DrawClusterBehavior extends Behavior
     )
     @preview.data(@cluster)
 
-    @offset = @graph.$svgEl.offset()
-    @scaleValue = app.view.zoom.level
-
+    translation = d3.transform(@graph.graphContainer.attr("transform")).translate
+    @translateX = translation[0] / app.view.process.zoom
+    @translateY = translation[1] / app.view.process.zoom
 
   dragMove : (event) =>
 
     mouse = @mousePosition(event)
 
-    @cluster.get("waypoints").add(mouse)
+    position =
+      x: mouse.x - @translateX
+      y: mouse.y - @translateY
+
+    @cluster.get("waypoints").add(position)
 
     @preview
       .classed("hide", false)
-      .attr("d", Cluster(@cluster).getLineSegment())
+      .attr("d", Cluster(@cluster).getLineSegment(@graph))
 

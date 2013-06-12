@@ -1,56 +1,56 @@
 ### define
 ./behavior : Behavior
+app: app
+d3 : d3
 ###
 
 class CommentBehavior extends Behavior
 
-  activate : ->
+  activate : (@element) ->
 
-    @hammerContext = Hammer( @graph.svgEl )
-      .on("tap", ".node", @commentNode )
-      .on("tap", ".cluster", @commentCluster )
-      .on("tap", ".edge", @commentEdge )
+    element = d3.select(@element)
 
+    if element.classed("node")
+      @commentNode()
 
-  deactivate : ->
-
-    @hammerContext
-      .off("tap", @commentNode)
-      .off("tap", @commentCluster)
-      .off("tap", @commentEdge)
+    if element.classed("cluster")
+      @commentCluster()
 
 
   commentNode : (event) =>
 
-    node = d3.select(event.gesture.target).datum()
+    node = d3.select(@element).datum()
 
     text = node.get("comment") ? ""
     @showModal text, (text) =>
 
       node.set(comment: text)
       @graph.drawNodes()
+      app.trigger "behavior:done"
 
 
   commentCluster : (event) =>
 
-    cluster = d3.select(event.gesture.target).datum()
+    cluster = d3.select(@element).datum()
 
     text = cluster.get("comment") ? ""
     @showModal text, (text) =>
 
       cluster.set(comment: text)
       @graph.drawClusters()
+      app.trigger "behavior:done"
 
 
   commentEdge : (event) =>
 
-    edge = d3.select(event.gesture.target).datum()
+    edge = d3.select(@element).datum()
 
     text = edge.get("comment") ? ""
     @showModal text, (text) =>
 
       edge.set(comment: text)
       @graph.drawEdges()
+      app.trigger "behavior:done"
 
 
   showModal : (text, callback) ->

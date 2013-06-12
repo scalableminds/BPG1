@@ -10,12 +10,8 @@ jquery.mousewheel : Mousewheel
 ../component/artifact : Artifact
 text!templates/process_view.html : ProcessViewTemplate
 
-./process_view/behavior/behavior : Behavior
-./process_view/behavior/connect_behavior : ConnectBehavior
-./process_view/behavior/drag_behavior : DragBehavior
-./process_view/behavior/delete_behavior : DeleteBehavior
+./process_view/behavior/selection_handler : SelectionHandler
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
-./process_view/behavior/comment_behavior : CommentBehavior
 ./process_view/behavior/zoom_behavior : ZoomBehavior
 ./process_view/behavior/pan_behavior : PanBehavior
 ./process_view/behavior/drag_and_drop_behavior : DragAndDropBehavior
@@ -43,77 +39,101 @@ class ProcessView
       @zooming = new ZoomBehavior(@$el, @graph)
       @panning = new PanBehavior(@$el, @graph)
       @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
+      @selectionHandler = new SelectionHandler(@$el, @graph)
 
-      @activate()
+      @activate() if @pleaseActivate
     )
+
+    @isActivated = false
+    @pleaseActivate = false
 
 
   deactivate : ->
 
+    @pleaseActivate = false
+    
+    return unless @isActivated
+
+    @isActivated = false
+
     @$el.find("#artifact-finder").off("dragstart")
 
-    @$el.find(".toolbar a").off("click")
+    @$el.find(".toolbar .dropdown-menu a").off("click", @changeBehavior)
 
-    @$el.find("image").off "dragstart"
+    @$el.find("image").off("dragstart")
 
-    @graph.changeBehavior(new Behavior())
+    @$el.off("transitionend", @windowResize)
+    $(window).off("resize", @windowResize)
+
     @gui.deactivate()
     @artifactFinder.deactivate()
     @zooming.deactivate()
     @panning.deactivate()
     @dragAndDrop.deactivate()
+    @selectionHandler.deactivate()
+
+    @dispatcher.unregisterAll(this)
 
 
   activate : ->
 
-    @gui.activate()
-    @artifactFinder.activate()
-    @zooming.activate()
-    @panning.activate()
-    @dragAndDrop.activate()
+    return if @isActivated
 
-    # drag artifact into graph
-    @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
+    if @graph
 
-    # change tool from toolbox
-    processView = this
-    @$el.find(".toolbar a").on "click", (event) -> processView.changeBehavior(this)
+      @isActivated = true
+      @pleaseActivate = false
 
-    @$el.find("image").on "dragstart", (e) ->
-      e.preventDefault() #disable Firefox's native drag API
+      @$el.on("transitionend", @windowResize)
+      $(window).on("resize", @windowResize)
 
-    Hammer($("#process-graph")[0]).on "mouseenter", ".node", (event) ->
-      node = d3.select(event.target).datum()
-      artifact = node.get("payload")
-      wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
-      wrappedArtifact.onMouseEnter()
+      @gui.activate()
+      @artifactFinder.activate()
+      @zooming.activate()
+      @panning.activate()
+      @dragAndDrop.activate()
+      @selectionHandler.activate()
+
+      # drag artifact into graph
+      @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
+
+      # change tool from toolbox
+      @$el.find(".toolbar .dropdown-menu a").on("click", @changeBehavior)
+
+      @$el.find("image").on "dragstart", (e) ->
+        e.preventDefault() #disable Firefox's native drag API
+
+      Hammer($("#process-graph")[0]).on "mouseenter", ".node", (event) ->
+        node = d3.select(event.target).datum()
+        artifact = node.get("payload")
+        wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
+        wrappedArtifact.onMouseEnter()
+
+    else
+
+      @pleaseActivate = true
 
 
-  changeBehavior : (selectedTool) =>
+  windowResize : =>
 
-    graph = @graph
-    graphContainer = @graph.graphContainer
+    @artifactFinder.windowResize()
+    @gui.windowResize()
+    return
 
-    toolBox = @$el.find(".toolbar a")
+
+  changeBehavior : ({ target : selectedTool}) =>
+
+    { graph, $el:element } = @
+
+    toolBox = @$el.find(".toolbar .dropdown-menu a")
     behavior = switch selectedTool
 
-      when toolBox[0] then new DragBehavior(graph)
-      when toolBox[1] then new ConnectBehavior(graph, graphContainer)
-      when toolBox[2] then new DeleteBehavior(graph)
-      when toolBox[3] then new DrawClusterBehavior(graph, graphContainer, "standard")
-      when toolBox[4] then new DrawClusterBehavior(graph, graphContainer, "standard") #twice is right
-      when toolBox[5] then new DrawClusterBehavior(graph, graphContainer, "understand")
-      when toolBox[6] then new DrawClusterBehavior(graph, graphContainer, "observe")
-      when toolBox[7] then new DrawClusterBehavior(graph, graphContainer, "pov")
-      when toolBox[8] then new DrawClusterBehavior(graph, graphContainer, "ideate")
-      when toolBox[9] then new DrawClusterBehavior(graph, graphContainer, "prototype")
-      when toolBox[10] then new DrawClusterBehavior(graph, graphContainer, "test")
-      when toolBox[11] then new CommentBehavior(graph)
+      when toolBox[0] then new DrawClusterBehavior(graph, element, "standard")
+      when toolBox[1] then new DrawClusterBehavior(graph, element, "understand")
+      when toolBox[2] then new DrawClusterBehavior(graph, element, "observe")
+      when toolBox[3] then new DrawClusterBehavior(graph, element, "pov")
+      when toolBox[4] then new DrawClusterBehavior(graph, element, "ideate")
+      when toolBox[5] then new DrawClusterBehavior(graph, element, "prototype")
+      when toolBox[6] then new DrawClusterBehavior(graph, element, "test")
 
-    if behavior instanceof ConnectBehavior or behavior instanceof DrawClusterBehavior
-      @panning.deactivate()
-    else
-      @panning.activate()
-
-    graph.changeBehavior( behavior )
-
+    @selectionHandler.changeBehavior( behavior )

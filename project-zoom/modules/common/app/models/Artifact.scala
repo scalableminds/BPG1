@@ -15,24 +15,24 @@ trait ArtifactLike {
   def projectName: String
   def path: String
   def source: String
+  def createdAt: Long
   def metadata: JsValue
   def isDeleted: Boolean
-  def resources: List[ResourceLike]
 }
 
 trait ArtifactLikeTransformers extends ResourceLikeTransformers {
 
   def toTuple(a: ArtifactLike) =
-    (a.name, a.projectName, a.path, a.source, a.metadata, a.isDeleted, a.resources)
+    (a.name, a.projectName, a.path, a.source, a.createdAt, a.metadata, a.isDeleted)
 
   implicit val artifactLikeWrites =
     ((__ \ 'name).write[String] and
       (__ \ 'projectName).write[String] and
       (__ \ 'path).write[String] and
       (__ \ 'source).write[String] and
+      (__ \ 'createdAt).write[Long] and
       (__ \ 'metadata).write[JsValue] and
-      (__ \ 'isDeleted).write[Boolean] and
-      (__ \ 'resources).write[List[ResourceLike]])(toTuple _)
+      (__ \ 'isDeleted).write[Boolean])(toTuple _)
 }
 
 case class Artifact(
@@ -40,6 +40,7 @@ case class Artifact(
   projectName: String,
   path: String,
   source: String,
+  createdAt: Long,
   metadata: JsValue,
   isDeleted: Boolean = false,
   resources: List[Resource] = Nil,
@@ -84,7 +85,7 @@ object ArtifactDAO
 
   def update(artifact: ArtifactLike)(implicit ctx: DBAccessContext): Future[LastError] =
     collectionUpdate(findByArtifactQ(artifact),
-      Json.obj("$set" -> artifact), upsert = true)
+      Json.obj("$set" -> artifact, "$setOnInsert" -> Json.obj("resources" -> Json.arr())), upsert = true)
 
   def markAsDeleted(artifact: ArtifactLike)(implicit ctx: DBAccessContext) =
     collectionUpdate(findByArtifactQ(artifact),
@@ -101,9 +102,17 @@ object ArtifactDAO
     collectionFind(Json.obj(
       "projectName" -> projectName))
 
-  def findResource(artifact: ArtifactLike, resource: ResourceLike)(implicit ctx: DBAccessContext) =
+  def findAllForSource(_source: String)(implicit ctx: DBAccessContext) = 
+    findForSource(_source).cursor[JsObject].toList
+    
+  def findForSource(source: String)(implicit ctx: DBAccessContext) = 
+    collectionFind(Json.obj(
+        "source" -> source))
+     
+  def findResource(artifact: ArtifactLike, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
     collectionFind(findByArtifactQ(artifact) ++ findByResourceQ(resource)).one[Artifact].map(
       _.flatMap(_.resources.find(_.isSameAs(resource))))
+  }
 
   def insertResource(artifact: ArtifactLike)(hash: String, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
     val hashedResource = resource.withHash(hash)

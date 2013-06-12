@@ -8,7 +8,8 @@ underscore : _
 
 class ArtifactFinder
 
-  GROUP_NAMES : ["Box", "Dropbox", "dummy"]
+  GROUP_NAMES : ["folder", "date"]
+
   TAB_PREFIX : "tab"
 
   domElement : null
@@ -31,11 +32,13 @@ class ArtifactFinder
     @initSlider(domElement)
 
     app.model.project.get("artifacts", @, (a) => @addArtifacts(a.items))
+    @windowResize()
 
-    @resizeHandler = =>
-      @domElement.height($(window).height() - @domElement.offset().top - 30)
 
-    app.on "zooming", @resize
+  windowResize : ->
+
+    @domElement.height($(window).height() - @domElement.offset().top - 30)
+
 
   initSlider : (domElement) ->
 
@@ -59,14 +62,32 @@ class ArtifactFinder
 
     { group, getSliderValue, domElement } = @
 
+    paths = _.uniq(_.map(artifacts, (a) -> a.get("path"))).sort()
+
+    group = @groups[0]
+
+    
+    group.div.append("<div class=\"accordion\">")
+    folder = []
+    for path in paths         
+      group.div.append(
+        @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
+      )
+    group.div.append("</div>")
+    
+
     for artifact in artifacts
+
+      path = artifact.get("path")
+      parent = $("#collapseBody#{path.replace(/\//g,"_")}").find(".accordion-inner")
 
       artifactC = new Artifact(artifact, getSliderValue)
       @artifactComponents.push artifactC
-      domElement.append(artifactC.getSvgElement())
+      parent.append(artifactC.getContainerElement())
 
-      group = _.find(@groups, (g) => g.name is artifact.get("source"))
-      group.div.append(artifactC.getSvgElement())
+    $('#sortTabs a[href="#tabdate"]').tab('show')
+    $('#sortTabs a[href="#tabfolder"]').tab('show')
+
 
 
   setResized : (func) ->
@@ -87,12 +108,9 @@ class ArtifactFinder
 
   activate : ->
 
-    $(window).on("resize", @resizeHandler)
-    @slider.on(
-      "change"
-      @onResize
-    )
-    @resizeHandler()
+    @slider.on("change", @onResize)
+    app.on(this, "behavior:zooming", @resize)
+    @windowResize()
 
     for artifact in @artifactComponents
       artifact.activate()
@@ -100,11 +118,8 @@ class ArtifactFinder
 
   deactivate : ->
 
-    $(window).off("resize", @resizeHandler)
-    @slider.off(
-      "change"
-      @onResize
-    )
+    @slider.off("change", @onResize)
+    app.off(this, "behavior:zooming", @resize)
 
     for artifact in @artifactComponents
       artifact.deactivate()
@@ -122,9 +137,10 @@ class ArtifactFinder
 
     artifact
 
+
   pluginDocTemplate : _.template """
     <div class="tabbable tabs-top">
-      <ul class="nav nav-tabs">
+      <ul id="sortTabs" class="nav nav-tabs">
         <% groupNames.forEach(function (group) { %>
           <li>
             <a data-toggle="tab"
@@ -153,3 +169,20 @@ class ArtifactFinder
     for name in groupNames
       groups.push { name: name, div: parent.find("#tab#{name}")}
 
+
+  accordionDocTemplate : _.template """
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle"
+          data-toggle="collapse"
+          data-target="#<%= bodyId %>"
+          href="#">
+          <%= path %>
+        </a>
+      </div>
+      <div id="<%= bodyId %>" class="accordion-body collapse in">
+        <div class="accordion-inner">
+        </div>
+      </div>
+    </div>
+  """

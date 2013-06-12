@@ -100,8 +100,10 @@ class EventDispatcher
   unregisterAll : (self) ->
 
     objectsEntries = @boundObjects[self.__uid]
+
+    return unless objectsEntries
     
-    for entry in objectsEntries
+    for entry in objectsEntries.slice(0)
 
       if entry.sender == self
         self.off(entry.target, entry.type, entry.callback)

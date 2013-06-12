@@ -31,7 +31,8 @@ class FilemakerAPI(con: java.sql.Connection) {
     val project = Option(rs.getString("project"))
     val className = Option(rs.getString("class"))
     if (length <= 6) {
-     className.getOrElse("?") + (if(project.isDefined) " - " + project.get)
+     val teamSuffix = if(project.isDefined) " - " + project.get
+     className.getOrElse("?") + teamSuffix
     }
     else {
       project.getOrElse("?")
@@ -61,7 +62,7 @@ class FilemakerAPI(con: java.sql.Connection) {
     
     while (rs.next) {
       val dschoolTags = extractDschoolTags(rs)
-      val email = rs.getString("email")
+      val email = rs.getString("email").toLowerCase
       val projectTags = extractProjectTags(rs, length)
       dschoolTags.find(tag => tag.contains(s"Student_${lengthTrackMapping(length)}")).foreach{ tag => 
         val season = tag.split("_")(2)
@@ -83,7 +84,6 @@ class FilemakerAPI(con: java.sql.Connection) {
     val projects = List(3,6,12).map(length => extractProjects(length))
     projects.flatMap{projectMap => 
       projectMap.toList.map{p =>
-        Logger.debug(p.toString)
         ProjectLike(p._1, p._2.participants.toList, p._2.season, p._2.year, p._2.length, p._2.tags.toList)
       }
     }

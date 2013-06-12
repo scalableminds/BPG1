@@ -9,14 +9,17 @@ import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent.Future
 import reactivemongo.core.commands.LastError
 import play.api.Logger
+import org.joda.time.DateTime
 
-case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[String] = Nil){
+case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String]){
   val canonicalName = name.replace("-", " ").toLowerCase()
+  val emails = participants.map(_._user).toSet
+  val startDate = new DateTime(year.toInt, if(season=="ST") 4 else 10, 1, 0, 0)
 }
 
 case class Participant(duty: String, _user: String)
 
-case class Project(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: List[String], _id: BSONObjectID = BSONObjectID.generate)
+case class Project(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: Option[List[String]], _id: BSONObjectID = BSONObjectID.generate)
 
 object ProjectDAO extends SecuredMongoJsonDAO[Project] {
   override val collectionName = "projects"

@@ -40,10 +40,11 @@ class ConnectBehavior extends Behavior
   dragStart : (event) =>
 
     @offset = $("#process-view").offset()
-    @scaleValue = app.view.zoom.level
+    @scaleValue = app.view.process.zoom
 
     @startPoint = @mousePosition(event)
     @startTranslation = d3.transform(graphContainer.attr("transform")).translate
+
 
   dragEnd : (event) =>
 

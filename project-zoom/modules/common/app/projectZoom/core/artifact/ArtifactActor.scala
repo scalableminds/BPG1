@@ -40,7 +40,8 @@ case class UpdateInfo(origin: String, projectName: String)
 case class ArtifactFound(originalStream: InputStream, artifact: ArtifactLike) extends ArtifactUpdate
 case class ArtifactDeleted(artifact: ArtifactLike) extends ArtifactUpdate
 case class ArtifactAggregation(_project: String, l: List[ArtifactFound]) extends ArtifactUpdate
-
+case class ArtifactRenamed(artifact: ArtifactLike, name: String) extends ArtifactUpdate
+case class ArtifactMoved(artifact: ArtifactLike, path: String) extends ArtifactUpdate
 case class ResourceFound(inputStream: InputStream, artifact: ArtifactLike, resource: ResourceLike) extends Event
 
 /*
@@ -102,8 +103,7 @@ class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter wi
           case None =>
             ArtifactDAO.insertResource(artifact)(hash, resource).map( updated =>
               publish(ResourceInserted(file, updated getOrElse artifact, resource)))
-          case Some(r) /*if r.hash != hash*/ =>
-            // TODO: remove comment
+          case Some(r) if r.hash.map(_ != hash) getOrElse true =>
             ArtifactDAO.updateHashOfResource(artifact)(hash, resource).map(updated =>
               publish(ResourceUpdated(file, updated getOrElse artifact, resource)))
           case _ =>

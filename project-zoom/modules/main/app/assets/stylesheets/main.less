@@ -2,6 +2,10 @@
 @import "projects_overview_view.less";
 @import "process_view.less";
 
+html {
+  height: 100%;
+}
+
 body {
 
   -webkit-touch-callout: none;
@@ -9,6 +13,9 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+
+  height: 100%;
+  overflow: hidden;
 
 } 
 
@@ -64,5 +71,29 @@ body {
     -moz-transform-origin: center left;
     -ms-transform-origin: center left;
     transform-origin: center left;
+  }
+}
+
+.zoom-view {
+
+  -webkit-transition: -webkit-transform .2s ease;
+  transition: -webkit-transform .2s ease;
+  -moz-transition: -moz-transform .2s ease;
+  transition: transform .2s ease;
+
+  position: relative;
+
+  .inactive-blocker {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 1000;
+  }
+
+  &.inactive .inactive-blocker {
+    display: block;
   }
 }

@@ -24,10 +24,15 @@ class Artifact
       image.setAttribute("draggable", "false")
 
     unless bare
+      @container = $("<div/>", {
+          class: "subcontainer"
+      })
       @svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
       $(@svg).append(image)
       @svg.setAttribute("class", "artifact")
-
+      @container.append(@svg)
+      @container.append("<div class=\"subcontainer-text\">#{dataItem.get("name")}</div>")
+    
     @image = image
 
     @resize()
@@ -41,6 +46,7 @@ class Artifact
     @image.setAttribute('height',width)
     @svg?.setAttribute('width',width)
     @svg?.setAttribute('height',width)
+    @container?.css('width',width) 
 
     width = @image.getBoundingClientRect().width
 
@@ -68,7 +74,7 @@ class Artifact
   getResourceResolution : (resource) ->
 
     name = resource.get("name")
-    +name.substring(0, name.lastIndexOf("."))
+    +name.match(/(\d+)\.(png|gif)$/)[1]
 
 
   getNearest : (width, typ) ->
@@ -89,6 +95,10 @@ class Artifact
   getSvgElement : ->
 
     @svg
+
+  getContainerElement : ->
+
+    @container 
 
 
   getImage : ->
