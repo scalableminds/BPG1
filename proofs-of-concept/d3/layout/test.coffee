@@ -19,12 +19,6 @@ list_of_nodes = [
 
 color = d3.scale.category10()
 
-positions =
-  0: "upper_left_corner"
-  1: "upper_right_corner"
-  2: "bottom_left_corner"
-  3: "bottom_right_corner"
-
 $(document).ready( ->
   try_this()
 )
@@ -99,32 +93,20 @@ add_vectors = (vector, other_vector) ->
   {x: x, y: y}
 
 
-overlap_position = (node, other_node) ->
+subtract_vectors = (vector, other_vector) ->
 
-  result = null
+  x = vector.x - other_vector.x
+  y = vector.y - other_vector.y
 
-  if (node.y > other_node.y)          # upper corner
-    if (node.x > other_node.x)        # upper left
-      result = 0
-    else                              # upper right
-      result = 1
-  else                                # bottom corner
-    if (node.x > other_node.x)        # bottom left
-      result = 2
-    else result = 3                   # bottom right
-
-  result
+  {x: x, y: y}
 
 
-overlap_vector = (node, other_node, overlap_pos) ->
+overlap_vector = (node, other_node) ->
 
-  x = y = null
+  temp = subtract_vectors(node, other_node)
 
-  switch overlap_pos
-    when 0 then x = - (other_node.x + NODE_SIZE - node.x);  y = - (other_node.y + NODE_SIZE - node.y)
-    when 1 then x = node.x + NODE_SIZE - other_node.x;      y = - (other_node.y + NODE_SIZE - node.y)
-    when 2 then x = - (other_node.x + NODE_SIZE - node.x);  y = node.y + NODE_SIZE - other_node.y
-    when 3 then x = node.x + NODE_SIZE - other_node.x;      y = node.y + NODE_SIZE - other_node.y
+  x = if temp.x < 0 then temp.x + NODE_SIZE else temp.x - NODE_SIZE
+  y = if temp.y < 0 then temp.y + NODE_SIZE else temp.y - NODE_SIZE
 
   {x: x, y: y}
 
@@ -135,7 +117,8 @@ move_if_collision = (curr_node_position, origin) ->
   destination_vector = {x: 0, y: 0}
   dragged_node = curr_node_position
 
-  while no_collisions is false
+  loop_iterations = 0
+  while (no_collisions is false) and (loop_iterations < 4)
 
     collisions = get_collisions(curr_node_position, list_of_nodes, dragged_node)
 
@@ -150,8 +133,7 @@ move_if_collision = (curr_node_position, origin) ->
       reversed_dest_vector = {x: 0, y: 0}
 
       for coll_node in collisions
-        overlap_pos = overlap_position(curr_node_position, coll_node)
-        overlap_vec = overlap_vector(curr_node_position, coll_node, overlap_pos)
+        overlap_vec = overlap_vector(curr_node_position, coll_node)
         reversed_dest_vector = add_vectors(reversed_dest_vector, overlap_vec)
 
       destination_vector = reverse_vector reversed_dest_vector
@@ -161,6 +143,8 @@ move_if_collision = (curr_node_position, origin) ->
       destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
 
       curr_node_position = add_vectors(curr_node_position, destination_vector)
+
+      loop_iterations += 1
 
   curr_node_position
 
