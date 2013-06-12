@@ -1,10 +1,6 @@
 ### define
 d3 : d3
 lib/event_mixin : EventMixin
-./behavior/behavior : Behavior
-./behavior/connect_behavior : ConnectBehavior
-./behavior/drag_behavior : DragBehavior
-./behavior/delete_behavior : DeleteBehavior
 ../../component/layouter : Layouter
 ###
 
@@ -23,8 +19,6 @@ class ProjectGraph
 
     @projectNodes = @graphContainer.append("svg:g").selectAll("projectNode")
 
-    @currentBehavior = new DragBehavior(@)
-    @currentBehavior.activate()
 
 
   drawProjects : (scale_value = @scale_value, projects = @projects) ->
@@ -38,7 +32,7 @@ class ProjectGraph
     margin_x = 30
     margin_y = 70
     nodeWidth = 100
-    svgWidth = parseInt @svg.attr("width") / scale_value
+    svgWidth = parseInt $(@svg[0][0]).width() / scale_value
     next_line = parseInt( svgWidth / (margin_x + nodeWidth) )
 
     g = @projectNodes.enter().append("svg:g")
@@ -76,13 +70,6 @@ class ProjectGraph
     # g.append("svg:text") #tags!!!!
 
     @projectNodes.exit().remove()
-
-
-  changeBehavior : (behavior) ->
-
-    @currentBehavior.deactivate()
-    @currentBehavior = behavior
-    @currentBehavior.activate()
 
 
 

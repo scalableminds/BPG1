@@ -7,7 +7,7 @@ lib/event_mixin : EventMixin
 
 class ViewWrapper
 
-  constructor : (@maker, @zoomConverter) ->
+  constructor : (@maker, @zoomConverter = _.identity) ->
 
     EventMixin.extend(this)
     @zoom = 0

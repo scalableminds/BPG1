@@ -4,13 +4,13 @@ jquery : $
 
 class GUI
 
-  constructor : (@tagbar) ->
+  constructor : (@tagbar, @$el) ->
 
     @appendTagbar()
     @appendSVG()
 
     @resizeHandler = =>
-      @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+      @svg.attr("height", $(window).height() - @$el.find(".graph").offset().top - 30)
 
 
   activate : ->
@@ -24,39 +24,39 @@ class GUI
 
   deactivate : ->
 
-    $(".btn-group .btn").off("click")
-    $("a.toggles").off("click")
+    @$el.find(".btn-group .btn").off("click")
+    @$el.find("a.toggles").off("click")
     $(window).off("resize", @resizeHandler)
 
 
   appendSVG : ->
 
-    @svg = d3.select(".graph")
+    @svg = d3.select(@$el[0]).select(".graph")
       .append("svg")
-      .attr("width", $(".graph").width())
+      .attr("width", @$el.find(".graph").width())
       .attr("pointer-events", "all")
 
     $(window).resize(
-      => @svg.attr("height", $(window).height() - $(".graph").offset().top - 30)
+      => @svg.attr("height", $(window).height() - @$el.find(".graph").offset().top - 30)
     ).resize()
 
 
   initSideBar : ->
 
-    $(".side-bar").css("height", @height)
+    @$el.find(".side-bar").css("height", @height)
 
 
   initToggleHandler : ->
 
-    $("a.toggles").click ->
-      $("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
-      $("#tagbar").toggle()
-      $("#main").toggleClass "span12 span8"
+    @$el.find("a.toggles").click =>
+      @$el.find("a.toggles i").toggleClass "icon-chevron-left icon-chevron-right"
+      @$el.find("#tagbar").toggle()
+      @$el.find("#main").toggleClass "span12 span8"
 
 
   appendTagbar : ->
 
-    $("#tagbar").append( @tagbar.domElement )
+    @$el.find("#tagbar").append( @tagbar.domElement )
 
 
 
