@@ -6,7 +6,7 @@ jquery : $
 
 
 (function() {
-  var $, NODE_SIZE, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_current_node, try_this;
+  var $, NODE_SIZE, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_current_node, reverse_vector, try_this;
 
   $ = jQuery;
 
@@ -93,6 +93,18 @@ jquery : $
 
     x = other_node.x - node.x;
     y = other_node.y - node.y;
+    return {
+      x: x,
+      y: y
+    };
+  };
+
+  reverse_vector = function(_arg) {
+    var x, y;
+
+    x = _arg.x, y = _arg.y;
+    x = -x;
+    y = -y;
     return {
       x: x,
       y: y

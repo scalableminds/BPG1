@@ -81,6 +81,13 @@ distance_vector = (node, other_node) ->
   {x, y}
 
 
+reverse_vector = ({x, y}) ->
+
+  x = - x
+  y = - y
+  {x, y}
+
+
 get_collisions = (curr_node, other_nodes) ->
 
   collisions = []
