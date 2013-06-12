@@ -153,9 +153,8 @@
   };
 
   move_if_collision = function(curr_node_position, origin) {
-    var coll_node, coll_node_1, coll_node_2, coll_node_3, collisions, destination_vector, dragged_node, no_collisions, overlap_pos, overlap_pos_1, overlap_pos_2, overlap_pos_3, overlap_vector_1, overlap_vector_2, overlap_vector_3, temp_1, temp_2;
+    var collisions, destination_vector, dragged_node, no_collisions, overlap_pos, overlap_pos_1, overlap_pos_2, overlap_pos_3, overlap_vector_1, overlap_vector_2, overlap_vector_3, temp_1, temp_2;
 
-    console.log("origin: ", origin);
     no_collisions = false;
     destination_vector = {
       x: 0,
@@ -163,40 +162,31 @@
     };
     dragged_node = curr_node_position;
     while (no_collisions === false) {
-      console.log("dragged_node: ", dragged_node);
       collisions = get_collisions(curr_node_position, list_of_nodes, dragged_node);
-      console.log("collisions: ", collisions);
       if (collisions.length === 0) {
         no_collisions = true;
       } else if (collisions.length === 1) {
-        coll_node = collisions[0];
-        overlap_pos = overlap_position(curr_node_position, coll_node);
-        destination_vector = reverse_vector(overlap_vector(curr_node_position, coll_node, overlap_pos));
+        overlap_pos = overlap_position(curr_node_position, collisions[0]);
+        destination_vector = reverse_vector(overlap_vector(curr_node_position, collisions[0], overlap_pos));
         destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
         destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
-        console.log("destination_vector: ", destination_vector);
         curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else if (collisions.length === 2) {
-        coll_node_1 = collisions[0];
-        coll_node_2 = collisions[1];
-        overlap_pos_1 = overlap_position(curr_node_position, coll_node_1);
-        overlap_pos_2 = overlap_position(curr_node_position, coll_node_2);
-        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1);
-        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2);
+        overlap_pos_1 = overlap_position(curr_node_position, collisions[0]);
+        overlap_pos_2 = overlap_position(curr_node_position, collisions[1]);
+        overlap_vector_1 = overlap_vector(curr_node_position, collisions[0], overlap_pos_1);
+        overlap_vector_2 = overlap_vector(curr_node_position, collisions[1], overlap_pos_2);
         destination_vector = reverse_vector(add_vectors(overlap_vector_1, overlap_vector_2));
         destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
         destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
         curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else if (collisions.length === 3) {
-        coll_node_1 = collisions[0];
-        coll_node_2 = collisions[1];
-        coll_node_3 = collisions[2];
-        overlap_pos_1 = overlap_position(curr_node_position, coll_node_1);
-        overlap_pos_2 = overlap_position(curr_node_position, coll_node_2);
-        overlap_pos_3 = overlap_position(curr_node_position, coll_node_3);
-        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1);
-        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2);
-        overlap_vector_3 = overlap_vector(curr_node_position, coll_node_3, overlap_pos_3);
+        overlap_pos_1 = overlap_position(curr_node_position, collisions[0]);
+        overlap_pos_2 = overlap_position(curr_node_position, collisions[1]);
+        overlap_pos_3 = overlap_position(curr_node_position, collisions[2]);
+        overlap_vector_1 = overlap_vector(curr_node_position, collisions[0], overlap_pos_1);
+        overlap_vector_2 = overlap_vector(curr_node_position, collisions[1], overlap_pos_2);
+        overlap_vector_3 = overlap_vector(curr_node_position, collisions[2], overlap_pos_3);
         temp_1 = add_vectors(overlap_vector_1, overlap_vector_2);
         temp_2 = add_vectors(overlap_vector_2, overlap_vector_3);
         destination_vector = reverse_vector(add_vectors(temp_1, temp_2));
@@ -204,7 +194,6 @@
         destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
         curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else {
-        console.log("too many colls");
         no_collisions = true;
       }
     }
@@ -229,7 +218,6 @@
   };
 
   move_node = function(node, node_selector, destination) {
-    console.log("moving node to: ", destination.x, destination.y);
     node.x = destination.x;
     node.y = destination.y;
     return d3.select(node_selector).attr({
@@ -248,8 +236,7 @@
 
     node_selector = "#node_" + i;
     destination = move_if_collision(d, drag.origin());
-    move_node(d, node_selector, destination);
-    return console.log(d);
+    return move_node(d, node_selector, destination);
   });
 
   draw_nodes = function(svg) {
