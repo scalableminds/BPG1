@@ -40,8 +40,8 @@ class DragAndDropBehavior extends Behavior
       translation = d3.transform(@graph.graphContainer.attr("transform")).translate
 
       position =
-        x: mouse.x - translation[0] / app.view.zoom.level
-        y: mouse.y - translation[1] / app.view.zoom.level
+        x: mouse.x - translation[0] / app.view.process.zoom
+        y: mouse.y - translation[1] / app.view.process.zoom
 
       @graph.addNode(position.x, position.y, artifactId)
 
@@ -67,7 +67,7 @@ class DragAndDropBehavior extends Behavior
       )
 
     @$preview.append(svgContainer)
-    @$el.append(@$preview)
+    $("body").append(@$preview)
 
 
   dragMove : (event) =>

@@ -40,18 +40,25 @@ class ProcessView
       @panning = new PanBehavior(@$el, @graph)
       @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
       @selectionHandler = new SelectionHandler(@$el, @graph)
+
+      @activate() if @pleaseActivate
     )
 
     @isActivated = false
+    @pleaseActivate = false
 
 
   deactivate : ->
 
+    @pleaseActivate = false
+    
     return unless @isActivated
+
+    @isActivated = false
 
     @$el.find("#artifact-finder").off("dragstart")
 
-    @$el.find(".toolbar a").off("click", @changeBehavior)
+    @$el.find(".toolbar .dropdown-menu a").off("click", @changeBehavior)
 
     @$el.find("image").off("dragstart")
 
@@ -65,12 +72,17 @@ class ProcessView
     @dragAndDrop.deactivate()
     @selectionHandler.deactivate()
 
+    @dispatcher.unregisterAll(this)
+
 
   activate : ->
 
     return if @isActivated
 
-    @projectModel.get("graphs/0", this, =>
+    if @graph
+
+      @isActivated = true
+      @pleaseActivate = false
 
       @$el.on("transitionend", @windowResize)
       $(window).on("resize", @windowResize)
@@ -86,7 +98,7 @@ class ProcessView
       @$el.find("#artifact-finder").on( "dragstart", ".artifact-image", (e) -> e.preventDefault() )
 
       # change tool from toolbox
-      @$el.find(".toolbar a").on("click", @changeBehavior)
+      @$el.find(".toolbar .dropdown-menu a").on("click", @changeBehavior)
 
       @$el.find("image").on "dragstart", (e) ->
         e.preventDefault() #disable Firefox's native drag API
@@ -97,9 +109,9 @@ class ProcessView
         wrappedArtifact = new Artifact(artifact, (->64), true, event.target)
         wrappedArtifact.onMouseEnter()
 
-      @isActivated = true
+    else
 
-    )
+      @pleaseActivate = true
 
 
   windowResize : =>
@@ -111,18 +123,17 @@ class ProcessView
 
   changeBehavior : ({ target : selectedTool}) =>
 
-    graph = @graph
+    { graph, $el:element } = @
 
-    toolBox = @$el.find(".toolbar a")
+    toolBox = @$el.find(".toolbar .dropdown-menu a")
     behavior = switch selectedTool
 
-      when toolBox[0] then new DrawClusterBehavior(graph, "standard")
-      when toolBox[1] then new DrawClusterBehavior(graph, "standard") #twice is right
-      when toolBox[2] then new DrawClusterBehavior(graph, "understand")
-      when toolBox[3] then new DrawClusterBehavior(graph, "observe")
-      when toolBox[4] then new DrawClusterBehavior(graph, "pov")
-      when toolBox[5] then new DrawClusterBehavior(graph, "ideate")
-      when toolBox[6] then new DrawClusterBehavior(graph, "prototype")
-      when toolBox[7] then new DrawClusterBehavior(graph, "test")
+      when toolBox[0] then new DrawClusterBehavior(graph, element, "standard")
+      when toolBox[1] then new DrawClusterBehavior(graph, element, "understand")
+      when toolBox[2] then new DrawClusterBehavior(graph, element, "observe")
+      when toolBox[3] then new DrawClusterBehavior(graph, element, "pov")
+      when toolBox[4] then new DrawClusterBehavior(graph, element, "ideate")
+      when toolBox[5] then new DrawClusterBehavior(graph, element, "prototype")
+      when toolBox[6] then new DrawClusterBehavior(graph, element, "test")
 
     @selectionHandler.changeBehavior( behavior )

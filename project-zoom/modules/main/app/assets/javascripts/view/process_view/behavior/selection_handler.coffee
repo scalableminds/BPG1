@@ -5,7 +5,7 @@
 ./delete_behavior : DeleteBehavior
 ./comment_behavior : CommentBehavior
 app : app
-lib/event_mixin : EventMixin
+d3 : d3
 ###
 
 class SelectionHandler extends Behavior
@@ -77,9 +77,14 @@ class SelectionHandler extends Behavior
     @selection = event.gesture.target
     @selection.position = @mousePosition(event)
 
+    node = d3.select(@selection).datum()
+    artifact = node.get("payload/resources").find((a) -> a.get("typ") == "default")
+    downloadURL = "/artifacts/#{node.get("payload/id")}/default/#{artifact.get("name")}"
+
     @positionToolbar()
+    @$tools.find("#download").attr("href", downloadURL)
     @$tools
-      .removeClass("node")
+      .removeClass("node cluster")
       .addClass("node") # make sure we only add the class once
       .show()
 
@@ -95,7 +100,7 @@ class SelectionHandler extends Behavior
 
     @positionToolbar()
     @$tools
-      .removeClass("cluster")
+      .removeClass("cluster node")
       .addClass("cluster") # make sure we only add the class once
       .show()
 
@@ -126,11 +131,11 @@ class SelectionHandler extends Behavior
     if @selection
 
       boundingBox = @selection.getBoundingClientRect()
-      buttonWidth = 50
+      buttonWidth = 48
 
       @$tools.css(
         left: boundingBox.left
-        top: boundingBox.top
+        top: boundingBox.top - buttonWidth # offset due to parents relative position
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )

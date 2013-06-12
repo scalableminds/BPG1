@@ -50,10 +50,9 @@ object Global extends GlobalSettings with GlobalDBAccess {
     if (app.mode == Mode.Dev) {
       putSampleValuesInDB
 
-
        sys.scheduler.scheduleOnce(5 seconds) {
          new File("modules/common/public/testfiles").listFiles.map{f =>
-             models.Artifact(f.getName, "Airport Security Process", "someFolder", "dummy", 0, Json.obj()) ->
+             models.Artifact(f.getName, "Project-Zoom", "someFolder", "dummy", 0, Json.obj()) ->
                new FileInputStream(f)
          }.map{
            case (info, stream) =>
