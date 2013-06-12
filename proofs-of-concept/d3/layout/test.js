@@ -6,11 +6,13 @@ jquery : $
 
 
 (function() {
-  var $, NODE_SIZE, add_vectors, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_if_collision, overlap_position, overlap_vector, reverse_vector, try_this;
+  var $, MARGIN, NODE_SIZE, add_vectors, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_if_collision, move_node, overlap_position, overlap_vector, positions, reverse_vector, try_this;
 
   $ = jQuery;
 
   NODE_SIZE = 64;
+
+  MARGIN = 5;
 
   list_of_nodes = [
     {
@@ -48,6 +50,13 @@ jquery : $
 
   color = d3.scale.category10();
 
+  positions = {
+    0: "upper_left_corner",
+    1: "upper_right_corner",
+    2: "bottom_left_corner",
+    3: "bottom_right_corner"
+  };
+
   $(document).ready(function() {
     return try_this();
   });
@@ -59,29 +68,10 @@ jquery : $
 
 
   try_this = function() {
-    var colls, node, node_image, svg;
+    var svg;
 
     svg = d3.select("body").append("svg").attr("width", 1000).attr("height", 1000).attr("id", "svg").append("g");
-    draw_nodes(svg);
-    node = {
-      x: 10,
-      y: 20
-    };
-    node_image = svg.append("rect").attr({
-      x: node.x,
-      y: node.y,
-      width: NODE_SIZE,
-      height: NODE_SIZE,
-      rx: 20,
-      ry: 20,
-      opacity: .5
-    }).style({
-      fill: "forestgreen",
-      stroke: "red",
-      "stroke-width": 5
-    });
-    colls = get_collisions(node, list_of_nodes);
-    return console.log(colls);
+    return draw_nodes(svg);
   };
 
   collides_with = function(node, other_node) {
@@ -125,7 +115,7 @@ jquery : $
     var result;
 
     result = null;
-    if (a.y > b.y) {
+    if (node.y > other_node.y) {
       if (node.x > other_node.x) {
         result = 0;
       } else {
@@ -169,44 +159,55 @@ jquery : $
   };
 
   move_if_collision = function(curr_node_position, curr_node_selector, origin) {
-    var coll_node, coll_node_1, coll_node_2, coll_node_3, collisions, destination, no_collisions, overlap_position_1, overlap_position_2, overlap_position_3, overlap_vector_1, overlap_vector_2, overlap_vector_3, temp_1, temp_2;
+    var coll_node, coll_node_1, coll_node_2, coll_node_3, collisions, destination_vector, no_collisions, overlap_pos, overlap_pos_1, overlap_pos_2, overlap_pos_3, overlap_vector_1, overlap_vector_2, overlap_vector_3, temp_1, temp_2;
 
+    console.log("origin: ", origin);
     no_collisions = false;
-    destination = null;
+    destination_vector = {
+      x: 0,
+      y: 0
+    };
     while (no_collisions === false) {
       collisions = get_collisions(curr_node_position, list_of_nodes);
+      console.log("collisions: ", collisions);
       if (collisions.length === 0) {
         no_collisions = true;
       } else if (collisions.length === 1) {
         coll_node = collisions[0];
-        overlap_position = overlap_position(node, coll_node);
-        destination = reverse_vector(overlap_vector(curr_node_position, coll_node, overlap_position));
-        curr_node_position = destination;
+        overlap_pos = overlap_position(curr_node_position, coll_node);
+        destination_vector = reverse_vector(overlap_vector(curr_node_position, coll_node, overlap_pos));
+        destination_vector.x += MARGIN;
+        destination_vector.y += MARGIN;
+        curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else if (collisions.length === 2) {
         coll_node_1 = collisions[0];
         coll_node_2 = collisions[1];
-        overlap_position_1 = overlap_position(node, coll_node_1);
-        overlap_position_2 = overlap_position(node, coll_node_2);
-        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_position_1);
-        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_position_2);
-        destination = reverse_vector(add_vectors(overlap_vector_1, overlap_vector_2));
-        curr_node_position = destination;
+        overlap_pos_1 = overlap_position(curr_node_position, coll_node_1);
+        overlap_pos_2 = overlap_position(curr_node_position, coll_node_2);
+        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1);
+        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2);
+        destination_vector = reverse_vector(add_vectors(overlap_vector_1, overlap_vector_2));
+        destination_vector.x += MARGIN;
+        destination_vector.y += MARGIN;
+        curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else if (collisions.length === 3) {
         coll_node_1 = collisions[0];
         coll_node_2 = collisions[1];
         coll_node_3 = collisions[2];
-        overlap_position_1 = overlap_position(node, coll_node_1);
-        overlap_position_2 = overlap_position(node, coll_node_2);
-        overlap_position_3 = overlap_position(node, coll_node_3);
-        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_position_1);
-        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_position_2);
-        overlap_vector_3 = overlap_vector(curr_node_position, coll_node_3, overlap_position_3);
+        overlap_pos_1 = overlap_position(curr_node_position, coll_node_1);
+        overlap_pos_2 = overlap_position(curr_node_position, coll_node_2);
+        overlap_pos_3 = overlap_position(curr_node_position, coll_node_3);
+        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1);
+        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2);
+        overlap_vector_3 = overlap_vector(curr_node_position, coll_node_3, overlap_pos_3);
         temp_1 = add_vectors(overlap_vector_1, overlap_vector_2);
         temp_2 = add_vectors(overlap_vector_2, overlap_vector_3);
-        destination = reverse_vector(add_vectors(temp_1, temp_2));
-        curr_node_position = destination;
+        destination_vector = reverse_vector(add_vectors(temp_1, temp_2));
+        destination_vector.x += MARGIN;
+        destination_vector.y += MARGIN;
+        curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else {
-        curr_node_position = origin;
+        console.log("too many colls");
         no_collisions = true;
       }
     }
@@ -217,18 +218,19 @@ jquery : $
     var collisions, i, node, _i, _len;
 
     collisions = [];
-    console.log(curr_node);
     for (i = _i = 0, _len = other_nodes.length; _i < _len; i = ++_i) {
       node = other_nodes[i];
-      console.log(i, node);
       if (node !== curr_node) {
         if (collides_with(curr_node, node)) {
-          console.log("coll!!!!");
           collisions.push(node);
         }
       }
     }
     return collisions;
+  };
+
+  move_node = function(node_selector, destination) {
+    return console.log("moving node to: ", destination.x, destination.y);
   };
 
   /*
@@ -253,21 +255,22 @@ jquery : $
       return "translate(" + [d.x, d.y] + ")";
     });
   }).on("dragend", function(d, i) {
-    var colls;
+    var node_selector;
 
-    console.log(d, i);
-    colls = get_collisions(d, list_of_nodes);
-    console.log("--------------------");
-    console.log(colls);
-    return console.log("--------------------");
+    node_selector = "#node_" + i;
+    move_if_collision(d, node_selector, drag.origin());
+    return console.log(d);
   });
 
   draw_nodes = function(svg) {
     var node;
 
-    console.log("drawing");
-    console.log(list_of_nodes);
-    node = svg.selectAll(".node").data(list_of_nodes).enter().append("g").attr("class", "node").call(drag).attr("transform", function(d) {
+    node = svg.selectAll(".node").data(list_of_nodes).enter().append("g").attr({
+      "class": "node",
+      id: function(d, i) {
+        return "node_" + i;
+      }
+    }).call(drag).attr("transform", function(d) {
       return "translate(" + d.x + "," + d.y + ")";
     });
     node.append("rect").attr({

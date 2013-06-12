@@ -6,6 +6,7 @@ jquery : $
 $ = jQuery
 
 NODE_SIZE = 64
+MARGIN = 5
 
 list_of_nodes = [
   {x: 50, y: 30},
@@ -21,6 +22,12 @@ list_of_nodes = [
 ]
 
 color = d3.scale.category10()
+
+positions =
+  0: "upper_left_corner"
+  1: "upper_right_corner"
+  2: "bottom_left_corner"
+  3: "bottom_right_corner"
 
 $(document).ready( ->
   try_this()
@@ -42,28 +49,28 @@ try_this = ->
 
   draw_nodes(svg)
 
-  node =
-    x: 10
-    y: 20
+  # node =
+  #   x: 10
+  #   y: 20
 
-  node_image = svg.append("rect")
-  .attr(
-    x: node.x
-    y: node.y
-    width: NODE_SIZE
-    height: NODE_SIZE
-    rx: 20
-    ry: 20
-    opacity: .5
-    )
-  .style(
-    fill: "forestgreen"
-    stroke: "red"
-    "stroke-width": 5
-    )
+  # node_image = svg.append("rect")
+  # .attr(
+  #   x: node.x
+  #   y: node.y
+  #   width: NODE_SIZE
+  #   height: NODE_SIZE
+  #   rx: 20
+  #   ry: 20
+  #   opacity: .5
+  #   )
+  # .style(
+  #   fill: "forestgreen"
+  #   stroke: "red"
+  #   "stroke-width": 5
+  #   )
 
-  colls = get_collisions(node, list_of_nodes)
-  console.log colls
+  # colls = get_collisions(node, list_of_nodes)
+  # console.log colls
 
 
 collides_with = (node, other_node) ->
@@ -100,7 +107,7 @@ overlap_position = (node, other_node) ->
 
   result = null
 
-  if (a.y > b.y)                      # upper corner
+  if (node.y > other_node.y)                      # upper corner
     if (node.x > other_node.x)        # upper left
       result = 0
     else                              # upper right
@@ -128,43 +135,52 @@ overlap_vector = (node, other_node, overlap_position) ->
 
 move_if_collision = (curr_node_position, curr_node_selector, origin) ->
 
+  console.log "origin: ", origin
   no_collisions = false
-  destination = null
+  destination_vector = {x: 0, y: 0}
 
   while no_collisions is false
     collisions = get_collisions(curr_node_position, list_of_nodes)
+    console.log "collisions: ", collisions
     if collisions.length is 0
       no_collisions = true
     else if collisions.length is 1
       coll_node = collisions[0]
-      overlap_position = overlap_position(node, coll_node)
-      destination = reverse_vector overlap_vector(curr_node_position, coll_node, overlap_position)
-      curr_node_position = destination
+      overlap_pos = overlap_position(curr_node_position, coll_node)
+      destination_vector = reverse_vector overlap_vector(curr_node_position, coll_node, overlap_pos)
+      destination_vector.x += MARGIN
+      destination_vector.y += MARGIN
+      curr_node_position = add_vectors(curr_node_position, destination_vector)
     else if collisions.length is 2
       coll_node_1 = collisions[0]
       coll_node_2 = collisions[1]
-      overlap_position_1 = overlap_position(node, coll_node_1)
-      overlap_position_2 = overlap_position(node, coll_node_2)
-      overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_position_1)
-      overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_position_2)
-      destination = reverse_vector add_vectors(overlap_vector_1, overlap_vector_2)
-      curr_node_position = destination
+      overlap_pos_1 = overlap_position(curr_node_position, coll_node_1)
+      overlap_pos_2 = overlap_position(curr_node_position, coll_node_2)
+      overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1)
+      overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2)
+      destination_vector = reverse_vector add_vectors(overlap_vector_1, overlap_vector_2)
+      destination_vector.x += MARGIN
+      destination_vector.y += MARGIN
+      curr_node_position = add_vectors(curr_node_position, destination_vector)
     else if collisions.length is 3
       coll_node_1 = collisions[0]
       coll_node_2 = collisions[1]
       coll_node_3 = collisions[2]
-      overlap_position_1 = overlap_position(node, coll_node_1)
-      overlap_position_2 = overlap_position(node, coll_node_2)
-      overlap_position_3 = overlap_position(node, coll_node_3)
-      overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_position_1)
-      overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_position_2)
-      overlap_vector_3 = overlap_vector(curr_node_position, coll_node_3, overlap_position_3)
+      overlap_pos_1 = overlap_position(curr_node_position, coll_node_1)
+      overlap_pos_2 = overlap_position(curr_node_position, coll_node_2)
+      overlap_pos_3 = overlap_position(curr_node_position, coll_node_3)
+      overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1)
+      overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2)
+      overlap_vector_3 = overlap_vector(curr_node_position, coll_node_3, overlap_pos_3)
       temp_1 = add_vectors(overlap_vector_1, overlap_vector_2)
       temp_2 = add_vectors(overlap_vector_2, overlap_vector_3)
-      destination = reverse_vector add_vectors(temp_1, temp_2)
-      curr_node_position = destination
+      destination_vector = reverse_vector add_vectors(temp_1, temp_2)
+      destination_vector.x += MARGIN
+      destination_vector.y += MARGIN
+      curr_node_position = add_vectors(curr_node_position, destination_vector)
     else
-      curr_node_position = origin
+      # curr_node_position = origin
+      console.log "too many colls"
       no_collisions = true
 
   move_node(curr_node_selector, curr_node_position)
@@ -174,19 +190,18 @@ get_collisions = (curr_node, other_nodes) ->
 
   collisions = []
 
-  console.log curr_node
-
   for node, i in other_nodes
-    console.log i, node
     if node isnt curr_node
       if collides_with(curr_node, node)
-        console.log "coll!!!!"
         collisions.push node
 
   collisions
 
 
+move_node = (node_selector, destination) ->
 
+  # $(node_selector).translate()
+  console.log "moving node to: ", destination.x, destination.y
 
 ###
 
@@ -204,30 +219,65 @@ If origin is specified, sets the origin accessor to the specified function. If o
 ###
 
 drag = d3.behavior.drag()
+# .origin( ->
+#   temp = d3.select(this)
+#   origin = {x: temp.attr("x"), y: temp.attr("y")}
+# )
 .on("drag", (d, i) ->
   d.x += d3.event.dx
   d.y += d3.event.dy
   d3.select(this).attr "transform", (d, i) ->
     "translate(" + [d.x, d.y] + ")"
+
+  # move_away = false
+  # if (get_collisions(d, list_of_nodes).length is 0) or (move_away is true)
+  #   d.x += d3.event.dx
+  #   d.y += d3.event.dy
+  #   d3.select(this).attr "transform", (d, i) ->
+  #     "translate(" + [d.x, d.y] + ")"
+  #   move_away = false
+  # else
+  #   move_away = true
+  #   console.log "buuuuuh!!!!!!!"
+  #   d3.select(this).attr "transform", (d, i) ->
+  #     "translate(" + [d.x, d.y] + ")"
+  # console.log "m", move_away
 )
 .on("dragend", (d, i) ->
-  console.log d, i
-  colls = get_collisions(d, list_of_nodes)
-  console.log "--------------------"
-  console.log colls
-  console.log "--------------------"
-  )
+  node_selector = "#node_#{i}"
+
+  move_if_collision(d, node_selector, drag.origin())
+  console.log d
+
+  # console.log d, i
+  # collisions = get_collisions(d, list_of_nodes)
+  # console.log "--------------------"
+  # console.log collisions
+  # console.log "--------------------"
+  # reversed_distance_vectors = []
+  # for collision_node in collisions
+  #   reversed_distance_vectors.push reversed_distance_vector(d, collision_node)
+  # console.log reversed_distance_vectors
+  # console.log "--------------------"
+  # reversed_relocation_vector = reversed_distance_vectors[0]
+  # for vec, i in reversed_distance_vectors when i isnt 0
+  #   reversed_relocation_vector = add_vectors(reversed_relocation_vector, vec)
+
+  # console.log reversed_relocation_vector
+  # console.log "--------------------"
+
+)
 
 
 draw_nodes = (svg) ->
 
-  console.log "drawing"
-  console.log list_of_nodes
-
   node = svg.selectAll(".node")
   .data(list_of_nodes)
   .enter().append("g")
-  .attr("class", "node")
+  .attr(
+    class: "node"
+    id: (d, i) -> "node_#{i}"
+  )
   .call(drag)
   .attr("transform", (d) ->
     "translate(" + d.x + "," + d.y + ")"
