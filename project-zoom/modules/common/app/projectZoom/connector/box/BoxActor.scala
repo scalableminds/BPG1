@@ -43,8 +43,9 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
             case Some(file: BoxFile) =>
               box.downloadFile(file.id).map { byteArray =>
                 findProjectForFile(file).foreach { project =>
+                  val sourceJson = (event.json \ "source")
                   Logger.debug(s"found ${file.fullPath} to be in project ${project.name}")
-                  publishFoundArtifact(byteArray, Artifact(file.name, project.name, file.path, "box", file.created_at.getMillis(), Json.parse("{}")))
+                  publishFoundArtifact(byteArray, Artifact(file.name, project.name, file.path, "box", file.created_at.getMillis(), sourceJson))
                 }
               }
             case Some(folder: BoxFolder) =>
