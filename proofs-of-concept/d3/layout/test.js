@@ -172,8 +172,8 @@
         coll_node = collisions[0];
         overlap_pos = overlap_position(curr_node_position, coll_node);
         destination_vector = reverse_vector(overlap_vector(curr_node_position, coll_node, overlap_pos));
-        destination_vector.x += MARGIN;
-        destination_vector.y += MARGIN;
+        destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
+        destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
         console.log("destination_vector: ", destination_vector);
         curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else if (collisions.length === 2) {
@@ -184,8 +184,8 @@
         overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1);
         overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2);
         destination_vector = reverse_vector(add_vectors(overlap_vector_1, overlap_vector_2));
-        destination_vector.x += MARGIN;
-        destination_vector.y += MARGIN;
+        destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
+        destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
         curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else if (collisions.length === 3) {
         coll_node_1 = collisions[0];
@@ -200,8 +200,8 @@
         temp_1 = add_vectors(overlap_vector_1, overlap_vector_2);
         temp_2 = add_vectors(overlap_vector_2, overlap_vector_3);
         destination_vector = reverse_vector(add_vectors(temp_1, temp_2));
-        destination_vector.x += MARGIN;
-        destination_vector.y += MARGIN;
+        destination_vector.x = destination_vector.x < 0 ? destination_vector.x - MARGIN : destination_vector.x + MARGIN;
+        destination_vector.y = destination_vector.y < 0 ? destination_vector.y - MARGIN : destination_vector.y + MARGIN;
         curr_node_position = add_vectors(curr_node_position, destination_vector);
       } else {
         console.log("too many colls");

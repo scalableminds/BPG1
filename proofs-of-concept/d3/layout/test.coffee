@@ -103,7 +103,7 @@ overlap_position = (node, other_node) ->
 
   result = null
 
-  if (node.y > other_node.y)                      # upper corner
+  if (node.y > other_node.y)          # upper corner
     if (node.x > other_node.x)        # upper left
       result = 0
     else                              # upper right
@@ -146,8 +146,8 @@ move_if_collision = (curr_node_position, origin) ->
       coll_node = collisions[0]
       overlap_pos = overlap_position(curr_node_position, coll_node)
       destination_vector = reverse_vector overlap_vector(curr_node_position, coll_node, overlap_pos)
-      destination_vector.x += MARGIN
-      destination_vector.y += MARGIN
+      destination_vector.x = if (destination_vector.x < 0) then destination_vector.x - MARGIN else destination_vector.x + MARGIN
+      destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
       console.log "destination_vector: ", destination_vector
       curr_node_position = add_vectors(curr_node_position, destination_vector)
     else if collisions.length is 2
@@ -158,8 +158,8 @@ move_if_collision = (curr_node_position, origin) ->
       overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_pos_1)
       overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_pos_2)
       destination_vector = reverse_vector add_vectors(overlap_vector_1, overlap_vector_2)
-      destination_vector.x += MARGIN
-      destination_vector.y += MARGIN
+      destination_vector.x = if (destination_vector.x < 0) then destination_vector.x - MARGIN else destination_vector.x + MARGIN
+      destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
       curr_node_position = add_vectors(curr_node_position, destination_vector)
     else if collisions.length is 3
       coll_node_1 = collisions[0]
@@ -174,8 +174,8 @@ move_if_collision = (curr_node_position, origin) ->
       temp_1 = add_vectors(overlap_vector_1, overlap_vector_2)
       temp_2 = add_vectors(overlap_vector_2, overlap_vector_3)
       destination_vector = reverse_vector add_vectors(temp_1, temp_2)
-      destination_vector.x += MARGIN
-      destination_vector.y += MARGIN
+      destination_vector.x = if (destination_vector.x < 0) then destination_vector.x - MARGIN else destination_vector.x + MARGIN
+      destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
       curr_node_position = add_vectors(curr_node_position, destination_vector)
     else
       # curr_node_position = origin
