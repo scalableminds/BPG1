@@ -6,7 +6,7 @@ jquery : $
 
 
 (function() {
-  var $, NODE_SIZE, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_current_node, overlap_position, overlap_vector, reverse_vector, try_this;
+  var $, NODE_SIZE, add_vectors, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_if_collision, overlap_position, overlap_vector, reverse_vector, try_this;
 
   $ = jQuery;
 
@@ -99,12 +99,22 @@ jquery : $
     };
   };
 
-  reverse_vector = function(_arg) {
+  reverse_vector = function(vector) {
+    var new_x, new_y;
+
+    new_x = -vector.x;
+    new_y = -vector.y;
+    return {
+      x: new_x,
+      y: new_y
+    };
+  };
+
+  add_vectors = function(vector, other_vector) {
     var x, y;
 
-    x = _arg.x, y = _arg.y;
-    x = -x;
-    y = -y;
+    x = vector.x + other_vector.x;
+    y = vector.y + other_vector.y;
     return {
       x: x,
       y: y
@@ -158,6 +168,51 @@ jquery : $
     };
   };
 
+  move_if_collision = function(curr_node_position, curr_node_selector, origin) {
+    var coll_node, coll_node_1, coll_node_2, coll_node_3, collisions, destination, no_collisions, overlap_position_1, overlap_position_2, overlap_position_3, overlap_vector_1, overlap_vector_2, overlap_vector_3, temp_1, temp_2;
+
+    no_collisions = false;
+    destination = null;
+    while (no_collisions === false) {
+      collisions = get_collisions(curr_node_position, list_of_nodes);
+      if (collisions.length === 0) {
+        no_collisions = true;
+      } else if (collisions.length === 1) {
+        coll_node = collisions[0];
+        overlap_position = overlap_position(node, coll_node);
+        destination = reverse_vector(overlap_vector(curr_node_position, coll_node, overlap_position));
+        curr_node_position = destination;
+      } else if (collisions.length === 2) {
+        coll_node_1 = collisions[0];
+        coll_node_2 = collisions[1];
+        overlap_position_1 = overlap_position(node, coll_node_1);
+        overlap_position_2 = overlap_position(node, coll_node_2);
+        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_position_1);
+        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_position_2);
+        destination = reverse_vector(add_vectors(overlap_vector_1, overlap_vector_2));
+        curr_node_position = destination;
+      } else if (collisions.length === 3) {
+        coll_node_1 = collisions[0];
+        coll_node_2 = collisions[1];
+        coll_node_3 = collisions[2];
+        overlap_position_1 = overlap_position(node, coll_node_1);
+        overlap_position_2 = overlap_position(node, coll_node_2);
+        overlap_position_3 = overlap_position(node, coll_node_3);
+        overlap_vector_1 = overlap_vector(curr_node_position, coll_node_1, overlap_position_1);
+        overlap_vector_2 = overlap_vector(curr_node_position, coll_node_2, overlap_position_2);
+        overlap_vector_3 = overlap_vector(curr_node_position, coll_node_3, overlap_position_3);
+        temp_1 = add_vectors(overlap_vector_1, overlap_vector_2);
+        temp_2 = add_vectors(overlap_vector_2, overlap_vector_3);
+        destination = reverse_vector(add_vectors(temp_1, temp_2));
+        curr_node_position = destination;
+      } else {
+        curr_node_position = origin;
+        no_collisions = true;
+      }
+    }
+    return move_node(curr_node_selector, curr_node_position);
+  };
+
   get_collisions = function(curr_node, other_nodes) {
     var collisions, i, node, _i, _len;
 
@@ -174,11 +229,6 @@ jquery : $
       }
     }
     return collisions;
-  };
-
-  move_current_node = function(curr_node, new_x, new_y) {
-    curr_node.x = new_x;
-    return curr_node.y = new_y;
   };
 
   /*
