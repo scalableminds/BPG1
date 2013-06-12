@@ -53,7 +53,7 @@ object Global extends GlobalSettings with GlobalDBAccess {
 
        sys.scheduler.scheduleOnce(5 seconds) {
          new File("modules/common/public/testfiles").listFiles.map{f =>
-             models.Artifact(f.getName, "Airport Security Process", "someFolder", "dummy", Json.obj()) ->
+             models.Artifact(f.getName, "Airport Security Process", "someFolder", "dummy", 0, Json.obj()) ->
                new FileInputStream(f)
          }.map{
            case (info, stream) =>

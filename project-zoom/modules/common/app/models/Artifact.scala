@@ -15,6 +15,7 @@ trait ArtifactLike {
   def projectName: String
   def path: String
   def source: String
+  def createdAt: Long
   def metadata: JsValue
   def isDeleted: Boolean
 }
@@ -22,13 +23,14 @@ trait ArtifactLike {
 trait ArtifactLikeTransformers extends ResourceLikeTransformers {
 
   def toTuple(a: ArtifactLike) =
-    (a.name, a.projectName, a.path, a.source, a.metadata, a.isDeleted)
+    (a.name, a.projectName, a.path, a.source, a.createdAt, a.metadata, a.isDeleted)
 
   implicit val artifactLikeWrites =
     ((__ \ 'name).write[String] and
       (__ \ 'projectName).write[String] and
       (__ \ 'path).write[String] and
       (__ \ 'source).write[String] and
+      (__ \ 'createdAt).write[Long] and
       (__ \ 'metadata).write[JsValue] and
       (__ \ 'isDeleted).write[Boolean])(toTuple _)
 }
@@ -38,6 +40,7 @@ case class Artifact(
   projectName: String,
   path: String,
   source: String,
+  createdAt: Long,
   metadata: JsValue,
   isDeleted: Boolean = false,
   resources: List[Resource] = Nil,
@@ -99,6 +102,13 @@ object ArtifactDAO
     collectionFind(Json.obj(
       "projectName" -> projectName))
 
+  def findAllForSource(_source: String)(implicit ctx: DBAccessContext) = 
+    findForSource(_source).cursor[JsObject].toList
+    
+  def findForSource(source: String)(implicit ctx: DBAccessContext) = 
+    collectionFind(Json.obj(
+        "source" -> source))
+     
   def findResource(artifact: ArtifactLike, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
     collectionFind(findByArtifactQ(artifact) ++ findByResourceQ(resource)).one[Artifact].map(
       _.flatMap(_.resources.find(_.isSameAs(resource))))
