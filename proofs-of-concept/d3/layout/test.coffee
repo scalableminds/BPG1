@@ -1,9 +1,5 @@
-### define
-d3 : d3
-jquery : $
-###
-
 $ = jQuery
+
 
 NODE_SIZE = 64
 MARGIN = 5
@@ -138,9 +134,11 @@ move_if_collision = (curr_node_position, origin) ->
   console.log "origin: ", origin
   no_collisions = false
   destination_vector = {x: 0, y: 0}
+  dragged_node = curr_node_position
 
   while no_collisions is false
-    collisions = get_collisions(curr_node_position, list_of_nodes)
+    console.log "dragged_node: ", dragged_node
+    collisions = get_collisions(curr_node_position, list_of_nodes, dragged_node)
     console.log "collisions: ", collisions
     if collisions.length is 0
       no_collisions = true
@@ -187,14 +185,13 @@ move_if_collision = (curr_node_position, origin) ->
   curr_node_position
 
 
-get_collisions = (curr_node, other_nodes) ->
+get_collisions = (curr_node, other_nodes, curr_node_copy=null) ->
 
   collisions = []
 
-  for node, i in other_nodes
-    if node isnt curr_node
-      if collides_with(curr_node, node)
-        collisions.push node
+  for node, i in _.without(other_nodes, curr_node, curr_node_copy)
+    if collides_with(curr_node, node)
+      collisions.push node
 
   collisions
 
@@ -208,20 +205,6 @@ move_node = (node, node_selector, destination) ->
     "transform" : "translate(" + [destination.x, destination.y] + ")"
   )
 
-###
-
-# drag.on(type, listener)
-
-Registers the specified listener to receive events of the specified type from the drag behavior. The following events are supported:
-
-"dragstart": fired when a drag gesture is started.
-"drag": fired when the element is dragged. d3.event will contain "x" and "y" properties representing the current absolute drag coordinates of the element. It will also contain "dx" and "dy" properties representing the element's coordinates relative to its position at the beginning of the gesture.
-"dragend": fired when the drag gesture has finished.
-# drag.origin([origin])
-
-If origin is specified, sets the origin accessor to the specified function. If origin is not specified, returns the current origin accessor which defaults to null.
-
-###
 
 drag = d3.behavior.drag()
 # .origin( ->
