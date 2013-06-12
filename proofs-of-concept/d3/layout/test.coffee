@@ -88,6 +88,23 @@ reverse_vector = ({x, y}) ->
   {x, y}
 
 
+overlap_position = (node, other_node) ->
+
+  result = null
+
+  if (a.y > b.y)                      # upper corner
+    if (node.x > other_node.x)        # upper left
+      result = 0
+    else                              # upper right
+      result = 1
+  else                                # bottom corner
+    if (node.x > other_node.x)        # bottom left
+      result = 2
+    else result = 3                   # bottom right
+
+  result
+
+
 get_collisions = (curr_node, other_nodes) ->
 
   collisions = []
