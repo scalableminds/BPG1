@@ -6,7 +6,7 @@ jquery : $
 
 
 (function() {
-  var $, NODE_SIZE, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_current_node, overlap_position, reverse_vector, try_this;
+  var $, NODE_SIZE, collides_with, color, distance_vector, drag, draw_nodes, get_collisions, list_of_nodes, move_current_node, overlap_position, overlap_vector, reverse_vector, try_this;
 
   $ = jQuery;
 
@@ -129,6 +129,33 @@ jquery : $
       }
     }
     return result;
+  };
+
+  overlap_vector = function(node, other_node, overlap_position) {
+    var x, y;
+
+    x = y = null;
+    switch (overlap_position) {
+      case 0:
+        x = -(other_node.x + NODE_SIZE - node.x);
+        y = -(other_node.y + NODE_SIZE - node.y);
+        break;
+      case 1:
+        x = node.x + NODE_SIZE - other_node.x;
+        y = -(other_node.y + NODE_SIZE - node.y);
+        break;
+      case 2:
+        x = -(other_node.x + NODE_SIZE - node.x);
+        y = node.y + NODE_SIZE - other_node.y;
+        break;
+      case 3:
+        x = node.x + NODE_SIZE - other_node.x;
+        y = node.y + NODE_SIZE - other_node.y;
+    }
+    return {
+      x: x,
+      y: y
+    };
   };
 
   get_collisions = function(curr_node, other_nodes) {

@@ -105,6 +105,19 @@ overlap_position = (node, other_node) ->
   result
 
 
+overlap_vector = (node, other_node, overlap_position) ->
+
+  x = y = null
+
+  switch overlap_position
+    when 0 then x = - (other_node.x + NODE_SIZE - node.x);  y = - (other_node.y + NODE_SIZE - node.y)
+    when 1 then x = node.x + NODE_SIZE - other_node.x;      y = - (other_node.y + NODE_SIZE - node.y)
+    when 2 then x = - (other_node.x + NODE_SIZE - node.x);  y = node.y + NODE_SIZE - other_node.y
+    when 3 then x = node.x + NODE_SIZE - other_node.x;      y = node.y + NODE_SIZE - other_node.y
+
+  {x, y}
+
+
 get_collisions = (curr_node, other_nodes) ->
 
   collisions = []
