@@ -112,10 +112,16 @@ public class ImageUtil {
 
 			int w = image.getWidth();
 			int h = image.getHeight();
-			int size = Math.max(w, h);
+			int size = Math.min(w, h);
 			float scale = (float)width/size;
 			BufferedImage newImage = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
 			AffineTransform at = new AffineTransform();
+			if (w > h)
+				at.translate(
+						(width-(w*scale))/2,
+					    0
+					);
+
 			at.scale(scale, scale);
 			AffineTransformOp scaleOp = 
 			   new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
