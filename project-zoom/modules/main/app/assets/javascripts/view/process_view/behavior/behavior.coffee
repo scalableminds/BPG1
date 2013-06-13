@@ -12,7 +12,7 @@ class Behavior
     @offset = @graph.$svgEl.offset()
 
     @svgRoot = $("#process-graph")[0]
-    @transformationGroup = @svgRoot.childNodes[0]
+    @transformationGroup = @graph.graphContainer[0][0]
 
 
   mousePosition : (event, relativeToGraph = true) =>
@@ -52,6 +52,10 @@ class Behavior
 
     p.matrixTransform(@transformationGroup.getCTM().inverse())
 
+
+  setCTM : (matrix) ->
+    matrixString = "#{matrix.a} #{matrix.b} #{matrix.c} #{matrix.d} #{matrix.e} #{matrix.f}"
+    @graph.graphContainer.attr("transform", "matrix(#{matrixString})")
 
   activate : ->
 

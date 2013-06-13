@@ -70,9 +70,7 @@ class DrawClusterBehavior extends Behavior
 
     mouse = @mousePosition(event)
 
-    position =
-      x: mouse.x - @translateX
-      y: mouse.y - @translateY
+    position = @mouseToSVGLocalCoordinates(event)
 
     @cluster.get("waypoints").add(position)
 
