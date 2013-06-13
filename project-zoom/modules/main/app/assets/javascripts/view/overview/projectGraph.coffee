@@ -8,9 +8,18 @@ class ProjectGraph
 
   constructor : (@graphContainer, @svg, @projects) ->
 
+
+    @$el = $(@graphContainer)
     @selectedTags = []
     @clusters = []
     @scale_value = 1.0
+
+    @$svgEl = @$el.find("svg").prevObject
+    @svgEl = @$svgEl[0][0]
+    window.debug = @$el.find("svg").prevObject
+
+    @d3Element = d3.select(@el).select("svg")
+    # @graphContainer = @d3Element.append("svg:g")
 
     EventMixin.extend(this)
     @initLayouter()
