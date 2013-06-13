@@ -26,13 +26,9 @@ class DragBehavior extends Behavior
   dragMoveNode : (event) =>
 
     node = d3.select(@element).datum()
-    mouse = @mousePosition(event)
+    mouse = @mouseToSVGLocalCoordinates(event)
 
-    delta =
-      x : mouse.x - @startPoint.x
-      y : mouse.y - @startPoint.y
-
-    @graph.moveNode(node, delta, true)
+    @graph.moveNode(node, mouse, true)
 
     @startPoint = mouse
     app.trigger "behavior:drag"
@@ -41,7 +37,7 @@ class DragBehavior extends Behavior
   dragMoveCluster : (event) =>
 
     cluster = d3.select(@element).datum()
-    mouse = @mousePosition(event)
+    mouse = @mouseToSVGLocalCoordinates(event)
 
     delta =
       x : mouse.x - @startPoint.x

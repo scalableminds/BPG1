@@ -80,7 +80,7 @@ class SelectionHandler extends Behavior
     app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
 
     @selection = event.gesture.target
-    @selection.position = @mousePosition(event)
+    @selection.position = @mouseToSVGLocalCoordinates(event)
 
     node = d3.select(@selection).datum()
     artifact = node.get("payload/resources").find((a) -> a.get("typ") == "default")
@@ -102,7 +102,7 @@ class SelectionHandler extends Behavior
     app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
 
     @selection = event.gesture.target
-    @selection.position = @mousePosition(event)
+    @selection.position = @mouseToSVGLocalCoordinates(event)
 
     @positionToolbar()
     @$tools

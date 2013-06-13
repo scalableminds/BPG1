@@ -35,11 +35,7 @@ class DragAndDropBehavior extends Behavior
 
     if touch.pageX > @offset.left and touch.pageY > @offset.top
 
-      mouse =
-        x: touch.pageX - @offset.left
-        y: touch.pageY - @offset.top
-
-      position = @transformPointToLocal(mouse)
+      position = @mouseToSVGLocalCoordinates(event)
 
       artifactId = imageElement.data("id")
       @graph.addNode(position.x, position.y, artifactId)

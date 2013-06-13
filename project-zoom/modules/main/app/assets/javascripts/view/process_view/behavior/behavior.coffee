@@ -11,6 +11,9 @@ class Behavior
 
     @offset = @graph.$svgEl.offset()
 
+    @svgRoot = $("#process-graph")[0]
+    @transformationGroup = @svgRoot.childNodes[0]
+
 
   mousePosition : (event, relativeToGraph = true) =>
 
@@ -39,6 +42,15 @@ class Behavior
     p.y = point.y
 
     p.matrixTransform(transformationMatrix.inverse())
+
+
+  mouseToSVGLocalCoordinates : (event) ->
+
+    p = @svgRoot.createSVGPoint()
+    p.x = event.gesture.touches[0].pageX - @offset.left
+    p.y = event.gesture.touches[0].pageY - @offset.top
+
+    p.matrixTransform(@transformationGroup.getCTM().inverse())
 
 
   activate : ->
