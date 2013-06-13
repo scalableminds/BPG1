@@ -36,6 +36,7 @@ class SelectionHandler extends Behavior
       .on("tap", ".cluster", @selectCluster)
       .on("dragstart", ".node", @selectNode)
       .on("dragstart", ".cluster", @selectCluster)
+      .on("dragend", @enablePanning)
 
     @$tools.find(".btn").on("tap", @selectBehavior)
 
@@ -45,6 +46,7 @@ class SelectionHandler extends Behavior
           @changeBehavior( @behaviors.DRAG )
         else
           @changeBehavior( @behaviors.IDLE )
+
       "behavior:delete" : => @unselect()
       "behavior:drag" : => @positionToolbar()
       "behavior:zooming" : => @positionToolbar()
@@ -63,6 +65,7 @@ class SelectionHandler extends Behavior
       .off("tap", @selectCluster)
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)
+      .off("dragend", @enablePanning)
 
     @dispatcher.unregisterAll(this)
 
@@ -73,6 +76,8 @@ class SelectionHandler extends Behavior
 
     return unless event.gesture
     return if @currentBehavior instanceof ConnectBehavior #unclean workaround
+
+    app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
 
     @selection = event.gesture.target
     @selection.position = @mousePosition(event)
@@ -94,6 +99,7 @@ class SelectionHandler extends Behavior
   selectCluster : (event) =>
 
     return unless event.gesture
+    app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
 
     @selection = event.gesture.target
     @selection.position = @mousePosition(event)
@@ -171,3 +177,8 @@ class SelectionHandler extends Behavior
     @currentBehavior.deactivate()
     @currentBehavior = behavior
     @currentBehavior.activate(@selection)
+
+
+  enablePanning : ->
+
+    app.trigger "behavior:enable_panning"

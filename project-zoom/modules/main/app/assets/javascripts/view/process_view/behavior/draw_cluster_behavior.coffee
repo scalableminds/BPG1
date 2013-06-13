@@ -20,6 +20,7 @@ class DrawClusterBehavior extends Behavior
 
     super(@graph)
 
+
   activate : ->
 
     @hammerContext = Hammer( @graph.svgEl, { swipe : false} )

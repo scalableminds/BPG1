@@ -14,15 +14,13 @@ class DragBehavior extends Behavior
       .on("drag", ".cluster", @dragMoveCluster)
 
     @startPoint = @element.position
-    app.trigger "behavior:disable_panning"
+    #app.trigger "behavior:disable_panning"
 
   deactivate : ->
 
     @hammerContext
       .off("drag", @dragMoveNode)
       .off("drag", @dragMoveCluster)
-
-    app.trigger "behavior:enable_panning"
 
 
   dragMoveNode : (event) =>
