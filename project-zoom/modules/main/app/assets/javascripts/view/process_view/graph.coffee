@@ -234,14 +234,28 @@ class Graph
         )
 
     comment
-      .append("svg:text")
-      .attr(
-        x: 0
-        y: -50
-        width: 80
-        height: 40
-      )
-      .text( (data) -> data.get("comment"))
+      # .append("svg:text")
+      # .attr(
+      #   x: 0
+      #   y: -50
+      #   width: 80
+      #   height: 40
+      # )
+      # .text( (data) -> data.get("comment"))
+      .append("foreignObject")
+        .attr(
+          x: -7
+          y: -73
+          width: 77
+          height: 50
+        )
+      .append("xhtml:body")
+        .style(
+          "font-size": "12px"
+          "line-height": "16px"
+        )
+        .html( (data) -> data.get("comment"))
+
 
     #update existing ones
     commentGroup
@@ -255,8 +269,9 @@ class Graph
             "translate(#{position.x}, #{position.y})"
       )
 
-    commentGroup.selectAll("text")
-      .text( (data) ->  data.get("comment") )
+    commentGroup.selectAll("body")
+      .html( (data) -> data.get("comment"))
+      #.text( (data) ->  data.get("comment") )
 
     #remove deleted comments
     commentGroup.exit().remove()
