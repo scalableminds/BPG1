@@ -10,7 +10,8 @@ text!templates/zoom_slider.html : ZoomSliderTemplate
 class Zoom
 
   min : 0
-  max : 10
+  max : 150
+  step : 1
 
   constructor : ->
 
@@ -21,18 +22,17 @@ class Zoom
 
     @$input = @$el.find("input")
 
-    @$input.attr({ @max, @min })
+    @$input.attr({ @max, @min, @step })
 
     @level = +@$input.val()
-    @step = +@$input.attr("step")
 
 
   activate : ->
 
     @$el
       .on("change", "input", @onzoom)
-      .on("click", ".plus", => @changeZoom(.1) )
-      .on("click", ".minus", => @changeZoom(-.1) )
+      .on("click", ".plus", => @changeZoom(1) )
+      .on("click", ".minus", => @changeZoom(-1) )
 
 
   deactivate : ->
@@ -52,6 +52,6 @@ class Zoom
   changeZoom : (delta, position) =>
 
     $input = @$el.find("input")
-    @level = Utils.clamp(@min, Math.round((+$input.val() + delta) / @step) * @step, @max)
+    @level = Utils.clamp(@min, (+$input.val() + delta) * @step, @max)
     $input.val(@level)
     @trigger("change", @level, position)

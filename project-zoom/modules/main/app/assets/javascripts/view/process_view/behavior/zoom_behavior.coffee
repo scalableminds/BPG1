@@ -34,8 +34,6 @@ class ZoomBehavior extends Behavior
 
   zoom : (scaleValue = app.view.process.zoom) =>
 
-    console.log scaleValue
-
     graphContainer = @graph.graphContainer
 
     transformation = d3.transform(graphContainer.attr("transform"))

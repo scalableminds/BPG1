@@ -1,4 +1,6 @@
 ### define
+underscore : _
+jquery : $
 lib/event_mixin : EventMixin
 d3 : d3
 hammer : Hammer

@@ -42,7 +42,7 @@ class GUI
       .append("svg")
       .attr(
         id: "process-graph"
-        width: $(".graph").width()
+        width: @$el.find(".graph").width()
         "pointer-events": "all"
       )
 

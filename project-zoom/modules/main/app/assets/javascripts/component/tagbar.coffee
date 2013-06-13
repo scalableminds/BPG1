@@ -15,7 +15,7 @@ class Tagbar
   ]
 
 
-  constructor : () ->
+  constructor : ->
 
     # t = taglist.concat app.model.get("tags").items
     # console.log t

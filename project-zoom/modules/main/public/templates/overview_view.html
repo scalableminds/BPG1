@@ -1,0 +1,66 @@
+<div class="container-fluid zoom-view overview-view">
+  <div class="row-fluid">
+
+    <div id="tagbar" class="span2">
+
+        <h4>Branch Tags:</h4>
+        <form class="checkbox-group" id="branchtags">
+        </form>
+
+        <h4>Project Partner Tags:</h4>
+        <form class="checkbox-group" id="partnertags">
+        </form>
+
+        <h4>Date Tags:</h4>
+        <form class="checkbox-group" id="datetags">
+        </form>
+
+    </div>
+
+    <div id="main" class="main-body span10">
+
+      <div class="row-fluid">
+        <div class="row-fluid">
+          <div class="graph span12"></div>
+
+          <div class="side-bar hide">
+
+            <div class="selection"></div>
+            <hr>
+            <div class="comment">
+              <h4>Comment</h4>
+              <textarea></textarea>
+            </div>
+            <hr>
+            <div class="actions">
+              <h4>Actions</h4>
+              <ul>
+                <li>Clone</li>
+                <li>Move To ...</li>
+                <li>ABC</li>
+              </ul>
+
+            </div>
+          </div>
+
+      </div>
+
+      <div class="modal hide fade" id="comment-modal">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3>Add a comment</h3>
+          </div>
+          <div class="modal-body">
+            <textarea>
+            </textarea>
+          </div>
+          <div class="modal-footer">
+            <a href="#" class="btn" data-dismiss="modal">Close</a>
+            <a href="#" class="btn btn-primary">Save</a>
+          </div>
+        </div>
+
+    </div>
+
+  </div>
+</div>
