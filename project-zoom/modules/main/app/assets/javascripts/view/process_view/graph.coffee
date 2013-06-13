@@ -234,14 +234,6 @@ class Graph
         )
 
     comment
-      # .append("svg:text")
-      # .attr(
-      #   x: 0
-      #   y: -50
-      #   width: 80
-      #   height: 40
-      # )
-      # .text( (data) -> data.get("comment"))
       .append("foreignObject")
         .attr(
           x: -7
@@ -271,19 +263,15 @@ class Graph
 
     commentGroup.selectAll("body")
       .html( (data) -> data.get("comment"))
-      #.text( (data) ->  data.get("comment") )
 
     #remove deleted comments
     commentGroup.exit().remove()
 
 
-  moveNode : (node, delta, checkForCluster = false) ->
+  moveNode : (node, position, checkForCluster = false) ->
 
     #move nodes
-    node.update("position", (position) ->
-      position = position.toObject()
-      position.x += delta.x
-      position.y += delta.y
+    node.update("position", ->
       position
     )
 

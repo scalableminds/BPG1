@@ -9,8 +9,13 @@ class ZoomBehavior extends Behavior
 
   constructor : (@$el, @graph) ->
 
-    @zoom(.2)
+    @graphContainer = @graph.graphContainer[0][0] #get the DOM Element not the D3 object
+    @svgRoot = $el.find("#process-graph")[0]
+
+    #@zoom(.2)
     @wheel = new Wheel(@$el.find(".graph"))
+
+    super(@graph)
 
 
   activate : ->
@@ -23,7 +28,6 @@ class ZoomBehavior extends Behavior
     @zoom()
 
 
-
   deactivate : ->
 
     app.view.process.off(this, "zoom", @zoom)
@@ -31,14 +35,11 @@ class ZoomBehavior extends Behavior
     @wheel.off("delta", app.view.process.changeZoom)
 
 
-
   zoom : (scaleValue = app.view.process.zoom) =>
 
-    graphContainer = @graph.graphContainer
+    transformationMatrix = @graphContainer.getCTM()
+    transformationMatrix.a = transformationMatrix.d = scaleValue
 
-    transformation = d3.transform(graphContainer.attr("transform"))
-    transformation.scale = [scaleValue, scaleValue]
-
-    graphContainer.attr("transform", transformation.toString())
+    @setCTM(transformationMatrix)
 
     app.trigger "behavior:zooming"

@@ -34,14 +34,11 @@ class Behavior
 
   transformPointToLocal : (point) ->
 
-    groupElement = @graph.graphContainer[0][0]
-    transformationMatrix = groupElement.getCTM()
-
-    p = $("svg")[0].createSVGPoint()
+    p = @svgRoot.createSVGPoint()
     p.x = point.x
     p.y = point.y
 
-    p.matrixTransform(transformationMatrix.inverse())
+    p.matrixTransform(@transformationGroup.getCTM.inverse())
 
 
   mouseToSVGLocalCoordinates : (event) ->

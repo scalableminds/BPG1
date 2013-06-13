@@ -47,31 +47,32 @@ class DragAndDropBehavior extends Behavior
 
     return unless event.gesture
 
-    svgContainer = $(event.gesture.target).closest("svg").clone() #use clone for the preview, so that original stays within the artifacFinder
-    mouse = @mousePosition(event, false)
+    $svgContainer = $(event.gesture.target).closest("svg").clone() #use clone for the preview, so that original stays within the artifacFinder
 
     @$preview = $("<div>", {class: "drag-preview"})
       .css(
         position : "absolute"
-        left: mouse.x #better use css transform, once it is prefix-free
-        top: mouse.y
         width: "64px"
         height: "64px"
         opacity: 0.8
         "z-index": 100
       )
 
-    @$preview.append(svgContainer)
+    @$preview.append($svgContainer)
     $("body").append(@$preview)
+
+    @containerDimensions = $svgContainer[0].getBoundingClientRect() #correct dimension can only be retrieved after appending container to DOM
 
 
   dragMove : (event) =>
 
     return unless event.gesture
 
-    mouse = @mousePosition(event, false)
+    x = event.gesture.touches[0].pageX - @containerDimensions.width / 2
+    y = event.gesture.touches[0].pageY - @containerDimensions.height / 2
 
+    #TODO use css transform instead of left/top, once they are prefix-free
     @$preview.css(
-      left: mouse.x
-      top: mouse.y
+      left: x
+      top: y
     )
