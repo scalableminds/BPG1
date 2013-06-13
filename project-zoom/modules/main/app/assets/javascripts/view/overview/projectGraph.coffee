@@ -76,8 +76,6 @@ class ProjectGraph
     for h, i in headline[0]
       @layouter.textWrap(h, names[i], 120)
 
-    # g.append("svg:text") #tags!!!!
-
     @projectNodes.exit().remove()
 
 

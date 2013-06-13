@@ -46,21 +46,32 @@ class Tagbar
 
       $container = $("<div>",
         class: "tagbarItem"
+        id: "container_#{tag.name}"
       )
 
       $checkbox = $("<input>",
         type: "checkbox"
+        id: "checkbox_#{tag.name}"
         name: tag.name
         value: tag.name
       )
 
-      $label = $("<label>")
+      $label = $("<label>",
+        id: "label_#{tag.name}"
+        )
       $label.text tag.name
 
       $container.append $checkbox
       $container.append $label
 
       $taglist.append $container
+
+
+  init_tag_count : (projects) ->
+
+    for project in projects
+
+      console.log project.tags
 
 
   destroy : ->

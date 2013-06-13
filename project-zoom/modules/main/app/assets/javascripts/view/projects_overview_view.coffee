@@ -25,6 +25,7 @@ class ProjectsOverviewView
     @initTagbar()
     @gui = new GUI(@tagbar, @$el)
     @initGraph()
+    @tagbar.init_tag_count(@projects)
 
     @panning = new PanBehavior(@$el, @graph)
 
