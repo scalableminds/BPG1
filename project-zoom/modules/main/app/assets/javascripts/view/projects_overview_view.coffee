@@ -9,6 +9,7 @@ app : app
 ../component/tagbar : Tagbar
 ./wheel : Wheel
 text!templates/overview_view.html : OverviewTemplate
+./overview/behavior/pan_behavior : PanBehavior
 ###
 
 class ProjectsOverviewView
@@ -25,6 +26,8 @@ class ProjectsOverviewView
     @gui = new GUI(@tagbar, @$el)
     @initGraph()
 
+    @panning = new PanBehavior(@$el, @graph)
+
     @wheel = new Wheel(@$el)
 
 
@@ -38,6 +41,7 @@ class ProjectsOverviewView
 
     @gui.activate()
     @tagbar.activate()
+    @panning.activate()
     @wheel.activate()
     @wheel.on("delta", app.view.overview.changeZoom)
 
@@ -62,6 +66,7 @@ class ProjectsOverviewView
     @$el.find(".tagbarItem input").off("click")
 
     @gui.deactivate()
+    @panning.deactivate()
     @tagbar.deactivate()
     @wheel.deactivate()
 
@@ -83,7 +88,6 @@ class ProjectsOverviewView
     @graphContainer = @domElement.append("svg:g")
 
     @projects = []
-    console.log IMAGE_FOLDER
 
     @projectsCollection.forEach( (project) =>
 
