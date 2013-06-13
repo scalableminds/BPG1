@@ -87,7 +87,8 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
   override def receive = {
     case UpdateBoxAccessTokens(tokens: BoxAccessTokens) => DBProxy.setBoxToken(tokens)
     case UpdateProjects => updateProjects
-    case BoxUpdated(accessTokens) => stopActor(BoxActor())
+    case BoxUpdated(accessTokens) => 
+      if (BoxActor().isDefined) stopActor(BoxActor()) else startBoxActor
     case Terminated(actor) => restartActor(actor)  
   }
 

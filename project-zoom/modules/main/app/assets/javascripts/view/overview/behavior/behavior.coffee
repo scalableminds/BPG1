@@ -19,8 +19,5 @@ class Behavior
 
   activate : ->
 
-    return true
 
   deactivate : ->
-
-    return false

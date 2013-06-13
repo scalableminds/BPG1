@@ -1,103 +1,75 @@
 ### define
 lib/event_mixin : EventMixin
+underscore : _
+jquery : $
 d3 : d3
 app : app
 ./overview/projectGraph : ProjectGraph
 ./overview/gui : GUI
-./overview/behavior/behavior : Behavior
-./overview/behavior/connect_behavior : ConnectBehavior
-./overview/behavior/drag_behavior : DragBehavior
-./overview/behavior/delete_behavior : DeleteBehavior
 ../component/tagbar : Tagbar
-jquery : $
+./wheel : Wheel
+text!templates/overview_view.html : OverviewTemplate
 ###
 
 class ProjectsOverviewView
 
   IMAGE_FOLDER = "/assets/images/letter_images/"
 
-  constructor : ->
-
-    @initTagbar()
-    @gui = new GUI(@tagbar)
-    @initGraph()
-
-    $(".tagbarItem input").on "click", (event) => @graph.updateVennDiagram(event.currentTarget)
+  constructor : (@projectsCollection) ->
 
     EventMixin.extend(this)
+    @$el = $(OverviewTemplate)
+    @el = @$el[0]
 
-    @activate()
+    @initTagbar()
+    @gui = new GUI(@tagbar, @$el)
+    @initGraph()
+
+    @wheel = new Wheel(@$el)
+
 
   initTagbar : ->
 
     @tagbar = new Tagbar()
-    $("#tagbar").append( @tagbar.domElement )
-
-
-  deactivate : ->
-
-    $("body").off("dragstart")
-
-    $(".btn-group a").off("click")
-    $(".zoom-slider")
-      .off("change")
-      .off("click")
-
-    @graph.changeBehavior(new Behavior())
-    @gui.deactivate()
-    @tagbar.deactivate()
+    @$el.find("#tagbar").append( @tagbar.domElement )
 
 
   activate : ->
 
     @gui.activate()
     @tagbar.activate()
+    @wheel.activate()
+    @wheel.on("delta", app.view.overview.changeZoom)
+
+    @$el.find(".tagbarItem input").on "click", (event) => @graph.updateVennDiagram(event.currentTarget)
 
     # drag artifact into graph
-    $("body").on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
+    @$el.on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
 
-    # change tool from toolbox
-    processView = this
-    $(".btn-group a").on "click", (event) -> processView.changeBehavior(this)
-
-    # zooming
-    $(".zoom-slider")
-      .on("change", "input", @zoom)
-      .on("click", ".plus", => @changeZoomSlider(0.1) )
-      .on("click", ".minus", => @changeZoomSlider(-0.1) )
-
-    do =>
-
-      mouseDown = false
-
-      $(".graph").on "mousewheel", (evt, delta, deltaX, deltaY) =>
-
-        evt.preventDefault()
-        return if mouseDown
-        if deltaY > 0
-          @changeZoomSlider(0.1)
-        else
-          @changeZoomSlider(-0.1)
+    app.view.overview.on(this, "zoom", @zoom)
+    @graph.drawProjects()
 
 
-  changeBehavior : (selectedTool) =>
+  deactivate : ->
 
-    graph = @graph
-    graphContainer = @graph.graphContainer
+    @$el.off("dragstart")
 
-    toolBox = $(".btn-group a")
-    behavior = switch selectedTool
+    @$el.find(".btn-group a").off("click")
+    @$el.find(".zoom-slider")
+      .off("change")
+      .off("click")
 
-      when toolBox[0] then new DragBehavior(graph)
-      when toolBox[1] then new ConnectBehavior(graph, graphContainer)
-      when toolBox[2] then new DeleteBehavior(graph)
+    @$el.find(".tagbarItem input").off("click")
 
-    graph.changeBehavior( behavior )
+    @gui.deactivate()
+    @tagbar.deactivate()
+    @wheel.deactivate()
+
+    @wheel.off("delta", app.view.overview.changeZoom)
+    app.view.overview.off(this, "zoom", @zoom)
 
 
-  zoom : (event) =>
-
-    scaleValue = $(".zoom-slider input").val()
+  zoom : (scaleValue, position) =>
 
     @graph.graphContainer.attr("transform", "scale( #{scaleValue} )")
     @trigger("view:zooming")
@@ -105,24 +77,15 @@ class ProjectsOverviewView
     @graph.drawProjects(scaleValue)
 
 
-  changeZoomSlider : (delta) ->
-
-    $slider = $(".zoom-slider input")
-    sliderValue = parseFloat($slider.val())
-    $slider.val( sliderValue + delta )
-
-    @zoom()
-
-
   initGraph : ->
 
-    @domElement = d3.select(".graph svg")
+    @domElement = d3.select(@el).select(".graph svg")
     @graphContainer = @domElement.append("svg:g")
 
     @projects = []
     console.log IMAGE_FOLDER
 
-    app.model.projects.forEach( (project) =>
+    @projectsCollection.forEach( (project) =>
 
       p =
         id:           project.get("id")
@@ -134,14 +97,12 @@ class ProjectsOverviewView
         image:        IMAGE_FOLDER.concat "#{project.get("name")[0].toLowerCase()}.png"
         width:        "100px"
         height:       "100px"
-        tags:         [project.get("season")]    # to be set to "year"!
-      # tags:         project.get("tags") # .concat [project.get("season")]
+        tags:         [project.get("year")]
 
       @projects.push p
     )
 
     @graph = new ProjectGraph(@graphContainer, @domElement, @projects)
-    @graph.drawProjects()
 
 
 

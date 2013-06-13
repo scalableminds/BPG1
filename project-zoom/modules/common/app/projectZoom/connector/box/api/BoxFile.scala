@@ -2,6 +2,8 @@ package projectZoom.connector.box.api
 
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import org.joda.time.DateTime
+import projectZoom.util.DateTimeHelper
 
 case class BoxMiniFile(id: String, sequence_id: String, name: String) extends BoxMiniSource
 
@@ -23,12 +25,12 @@ case class BoxFile(
     description: String,
     size: Int,
     path_collection: BoxPathCollection,
-    created_at: String,
-    modified_at: String,
-    trashed_at: Option[String],
-    purged_at: Option[String],
-    content_created_at: String,
-    content_modified_at: String,
+    created_at: DateTime,
+    modified_at: DateTime,
+    trashed_at: Option[DateTime],
+    purged_at: Option[DateTime],
+    content_created_at: DateTime,
+    content_modified_at: DateTime,
     created_by: BoxMiniUser,
     modified_by: BoxMiniUser,
     owned_by: BoxMiniUser,
@@ -39,7 +41,9 @@ case class BoxFile(
   val path = path_collection.path
 }
 
-object BoxFile extends Function19[String, String, String, String, String, String, Int, BoxPathCollection, String, String, Option[String], Option[String], String, String, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, BoxFile]{
+object BoxFile extends Function19[String, String, String, String, String, String, Int, BoxPathCollection, DateTime, DateTime, Option[DateTime], Option[DateTime], DateTime, DateTime, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, BoxFile]{
+  import DateTimeHelper.BoxTimeStampReader
+
   implicit val BoxFileAsSourceReads: Reads[BoxSource] = (
     (__ \ "id").read[String] and
     (__ \ "sequence_id").read[String] and
@@ -49,12 +53,12 @@ object BoxFile extends Function19[String, String, String, String, String, String
     (__ \ "description").read[String] and
     (__ \ "size").read[Int] and
     (__ \ "path_collection").read[BoxPathCollection] and
-    (__ \ "created_at").read[String] and
-    (__ \ "modified_at").read[String] and
-    (__ \ "trashed_at").readNullable[String] and
-    (__ \ "purged_at").readNullable[String] and
-    (__ \ "content_created_at").read[String] and
-    (__ \ "content_modified_at").read[String] and
+    (__ \ "created_at").read[DateTime] and
+    (__ \ "modified_at").read[DateTime] and
+    (__ \ "trashed_at").readNullable[DateTime] and
+    (__ \ "purged_at").readNullable[DateTime] and
+    (__ \ "content_created_at").read[DateTime] and
+    (__ \ "content_modified_at").read[DateTime] and
     (__ \ "created_by").read[BoxMiniUser] and
     (__ \ "modified_by").read[BoxMiniUser] and
     (__ \ "owned_by").read[BoxMiniUser] and

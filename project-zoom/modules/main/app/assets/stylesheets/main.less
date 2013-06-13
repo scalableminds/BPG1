@@ -1,10 +1,11 @@
 @import "graph.less";
 @import "projects_overview_view.less";
 @import "process_view.less";
+@import "details_view.less";
 
 html {
   height: 100%;
-}
+} 
 
 body {
 
@@ -43,9 +44,9 @@ body {
 .zoom-slider {
 
   position: absolute;
-  right: 0px;
-  top: 50px;
-  z-index: 10;
+  right: 0;
+  top: 10px;
+  z-index: 20;
 
   width: 45px;
   overflow: hidden;
@@ -74,6 +75,14 @@ body {
   }
 }
 
+.content {
+  position: absolute;
+  top: 41px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
 .zoom-view {
 
   -webkit-transition: -webkit-transform .2s ease;
@@ -81,7 +90,11 @@ body {
   -moz-transition: -moz-transform .2s ease;
   transition: transform .2s ease;
 
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
 
   .inactive-blocker {
     display: none;
@@ -97,3 +110,8 @@ body {
     display: block;
   }
 }
+
+.overview-view {
+  z-index: 3;
+}
+

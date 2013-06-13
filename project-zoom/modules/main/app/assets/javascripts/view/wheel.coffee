@@ -35,7 +35,7 @@ Wheel = (el) ->
 
       buffer = buffer % BUFFER_THRESHOLD
 
-      @trigger("delta", delta * .1, [ event.pageX, event.pageY ])
+      @trigger("delta", delta, [ event.pageX, event.pageY ])
 
 
   @activate = ->
