@@ -10,8 +10,6 @@ class PanBehavior extends Behavior
 
     @active = false
 
-    app.on "behavior:enable_panning", => @activate()
-    app.on "behavior:disable_panning", => @deactivate()
 
     super(@graph)
 
@@ -19,6 +17,11 @@ class PanBehavior extends Behavior
   activate : ->
 
     unless @active
+
+      app.on this,
+        "behavior:enable_panning", => @activate()
+        "behavior:disable_panning", => @deactivate()
+
       @hammerContext = Hammer(@graph.svgEl)
         .on("dragstart", @panStart)
         .on("drag", @pan)
@@ -29,11 +32,14 @@ class PanBehavior extends Behavior
   deactivate : ->
 
     if @active
+
       @hammerContext
         .off("dragstart", @panStart)
         .off("drag", @pan)
 
       @active = false
+
+    @dispatcher.unregisterAll(this)
 
 
   panStart : (event) =>
