@@ -33,7 +33,7 @@ class ProjectsOverviewView
 
   initTagbar : ->
 
-    @tagbar = new Tagbar()
+    @tagbar = new Tagbar(app.model.tags, @$el)
     @$el.find("#tagbar").append( @tagbar.domElement )
 
 
