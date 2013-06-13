@@ -79,8 +79,6 @@ class ProjectsOverviewView
 
     @graph.graphContainer.attr("transform", "scale( #{scaleValue} )")
     @trigger("view:zooming")
-    @graph.drawProjects(scaleValue, [])
-    @graph.drawProjects(scaleValue)
 
 
   initGraph : ->

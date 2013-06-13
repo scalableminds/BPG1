@@ -12,7 +12,6 @@ class ProjectGraph
     @$el = $(@graphContainer)
     @selectedTags = []
     @clusters = []
-    @scale_value = 1.0
 
     @$svgEl = @$el.find("svg").prevObject
     @svgEl = @$svgEl[0][0]
@@ -30,9 +29,8 @@ class ProjectGraph
 
 
 
-  drawProjects : (scale_value = @scale_value, projects = @projects) ->
+  drawProjects : (projects = @projects) ->
 
-    @scale_value = scale_value
     names = []
     layouter = @layouter
     @projectNodes = @projectNodes.data(projects, (data) -> data.id)
@@ -41,8 +39,8 @@ class ProjectGraph
     margin_x = 30
     margin_y = 70
     nodeWidth = 100
-    svgWidth = parseInt $(@svg[0][0]).width() / scale_value
-    next_line = parseInt( svgWidth / (margin_x + nodeWidth) )
+    # svgWidth = parseInt $(@svg[0][0]).width() / scale_value
+    next_line = 25 # parseInt( svgWidth / (margin_x + nodeWidth) )
 
     g = @projectNodes.enter().append("svg:g")
     g.append("svg:image")
@@ -152,10 +150,10 @@ class ProjectGraph
         if _.intersection(p.tags, @selectedTags).length isnt 0
           tagged.push p
 
-      @drawProjects(@scale_value, [])
-      @drawProjects(@scale_value, tagged)
+      @drawProjects([])
+      @drawProjects(tagged)
     else
-      @drawProjects(@scale_value, [])
+      @drawProjects([])
       @drawProjects()
 
 
