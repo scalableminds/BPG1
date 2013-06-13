@@ -52,6 +52,25 @@ class ArtifactFinder
         a.show()
 
 
+  getStringFromTimeStamp : (time) ->
+
+    return "00-00-0000" unless time?
+    return "00-00-0000" unless time > 0
+
+    d = new Date time
+
+    td = "#{d.getDate()}"
+    tm = "#{d.getMonth() + 1}"
+    ty = "#{d.getFullYear()}"
+
+    s = "#{ty}-"
+    s += if tm.length is 1 then "0#{tm}-" else tm
+    s += if td.length is 1 then "0#{td}" else td
+
+
+    s
+
+
   windowResize : ->
 
     @domElement.height($(window).height() - @domElement.offset().top - 30)
@@ -80,6 +99,10 @@ class ArtifactFinder
     { group, getSliderValue, domElement } = @
     
     @generateToGroupFolder(artifacts)
+    @generateToGroupDates(artifacts)
+
+    $('#sortTabs a[href="#tabdate"]').tab('show')
+    $('#sortTabs a[href="#tabfolder"]').tab('show') 
     
 
 
@@ -107,14 +130,16 @@ class ArtifactFinder
       @artifactComponents.push artifactC
       parent.append(artifactC.getContainerElement())
 
-    $('#sortTabs a[href="#tabdate"]').tab('show')
-    $('#sortTabs a[href="#tabfolder"]').tab('show')    
+   
 
 
   generateToGroupDates : (artifacts) ->
 
-    group = @groups[0]
-    paths = 
+    { getSliderValue } = @
+
+    group = @groups[1]
+
+    paths = _.uniq(_.map(artifacts, (a) => @getStringFromTimeStamp(a.get("createdAt")))).sort()
     
     group.div.append("<div class=\"accordion\">")
     folder = []
@@ -124,6 +149,15 @@ class ArtifactFinder
       )
     group.div.append("</div>")
 
+
+    for artifact in artifacts
+
+      path = @getStringFromTimeStamp(artifact.get("createdAt"))
+      parent = $("#collapseBody#{path.replace(/\//g,"_")}").find(".accordion-inner")
+
+      artifactC = new Artifact(artifact, getSliderValue)
+      @artifactComponents.push artifactC
+      parent.append(artifactC.getContainerElement())
 
 
 
