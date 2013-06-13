@@ -6,7 +6,7 @@ hammer : Hammer
 lib/event_mixin : EventMixin
 ###
 
-BUFFER_THRESHOLD = 20
+BUFFER_THRESHOLD = 50
 
 Wheel = (el) ->
 
@@ -35,7 +35,7 @@ Wheel = (el) ->
 
       buffer = buffer % BUFFER_THRESHOLD
 
-      @trigger("delta", delta * .1, [ event.pageX, event.pageY ])
+      @trigger("delta", delta, [ event.pageX, event.pageY ])
 
 
   @activate = ->
