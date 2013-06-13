@@ -10,9 +10,12 @@ class Artifact
   FAIL_IMAGE : "assets/images/unknown.png"
 
   _domElement : null
+  name : null
 
 
   constructor : (@dataItem, @width, bare = false, image) ->
+
+    @name = dataItem.get("name")
 
     unless image
       image = document.createElementNS("http://www.w3.org/2000/svg", "image")
@@ -127,3 +130,11 @@ class Artifact
     $(image).off("mouseleave", @resize)
 
 
+  hide : ->
+
+    @container?.css("display","none") 
+
+
+  show : ->
+    
+    @container?.css("display","inline-block") 

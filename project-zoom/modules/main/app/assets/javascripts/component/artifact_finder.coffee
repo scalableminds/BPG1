@@ -25,7 +25,7 @@ class ArtifactFinder
     domElement = $('<div/>', {
       class : "artifact-container"
     })
-
+    @createSearch(domElement)
     @createGroups(domElement, @GROUP_NAMES)
 
     @domElement = domElement
@@ -33,6 +33,23 @@ class ArtifactFinder
 
     app.model.project.get("artifacts", @, (a) => @addArtifacts(a.items))
     @windowResize()
+
+
+  createSearch : (domElement) ->
+
+    domElement.append('<input type="text" id="artifacrsearch" class="search-query" placeholder="Search">')
+
+
+  search : (text) ->
+
+    { artifactComponents } = @
+
+    for a in artifactComponents
+
+      if a.name.toLowerCase().indexOf(text.toLowerCase()) is -1
+        a.hide()
+      else
+        a.show()
 
 
   windowResize : ->
@@ -61,11 +78,17 @@ class ArtifactFinder
   addArtifacts : (artifacts) ->
 
     { group, getSliderValue, domElement } = @
+    
+    @generateToGroupFolder(artifacts)
+    
 
-    paths = _.uniq(_.map(artifacts, (a) -> a.get("path"))).sort()
+
+  generateToGroupFolder : (artifacts) ->
+
+    { getSliderValue } = @
 
     group = @groups[0]
-
+    paths = _.uniq(_.map(artifacts, (a) -> a.get("path"))).sort()
     
     group.div.append("<div class=\"accordion\">")
     folder = []
@@ -74,7 +97,6 @@ class ArtifactFinder
         @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
       )
     group.div.append("</div>")
-    
 
     for artifact in artifacts
 
@@ -86,7 +108,22 @@ class ArtifactFinder
       parent.append(artifactC.getContainerElement())
 
     $('#sortTabs a[href="#tabdate"]').tab('show')
-    $('#sortTabs a[href="#tabfolder"]').tab('show')
+    $('#sortTabs a[href="#tabfolder"]').tab('show')    
+
+
+  generateToGroupDates : (artifacts) ->
+
+    group = @groups[0]
+    paths = 
+    
+    group.div.append("<div class=\"accordion\">")
+    folder = []
+    for path in paths         
+      group.div.append(
+        @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
+      )
+    group.div.append("</div>")
+
 
 
 
@@ -111,6 +148,8 @@ class ArtifactFinder
     @slider.on("change", @onResize)
     app.on(this, "behavior:zooming", @resize)
     @windowResize()
+    @onSearch =  (e) => @search e.currentTarget.value
+    $("#artifacrsearch").on("keyup", @onSearch)
 
     for artifact in @artifactComponents
       artifact.activate()
@@ -120,6 +159,7 @@ class ArtifactFinder
 
     @slider.off("change", @onResize)
     app.off(this, "behavior:zooming", @resize)
+    $("#artifacrsearch").off("keyup", @onSearch)
 
     for artifact in @artifactComponents
       artifact.deactivate()
