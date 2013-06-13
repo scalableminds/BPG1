@@ -145,7 +145,12 @@ class SelectionHandler extends Behavior
 
   selectBehavior : (event) =>
 
-    behavior = switch $(event.target).attr("id")
+    if $(event.target).is(".btn")
+      $target = $(event.target)
+    else
+      $target = $(event.target).closest(".btn")
+
+    behavior = switch $target.attr("id")
       when "delete" then @behaviors.DELETE
       when "comment" then @behaviors.COMMENT
       when "connect" then @behaviors.CONNECT
