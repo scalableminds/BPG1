@@ -25,7 +25,7 @@ class ArtifactFinder
     domElement = $('<div/>', {
       class : "artifact-container"
     })
-
+    @createSearch(domElement)
     @createGroups(domElement, @GROUP_NAMES)
 
     @domElement = domElement
@@ -33,6 +33,42 @@ class ArtifactFinder
 
     app.model.project.get("artifacts", @, (a) => @addArtifacts(a.items))
     @windowResize()
+
+
+  createSearch : (domElement) ->
+
+    domElement.append('<input type="text" id="artifacrsearch" class="search-query" placeholder="Search">')
+
+
+  search : (text) ->
+
+    { artifactComponents } = @
+
+    for a in artifactComponents
+
+      if a.name.toLowerCase().indexOf(text.toLowerCase()) is -1
+        a.hide()
+      else
+        a.show()
+
+
+  getStringFromTimeStamp : (time) ->
+
+    return "00-00-0000" unless time?
+    return "00-00-0000" unless time > 0
+
+    d = new Date time
+
+    td = "#{d.getDate()}"
+    tm = "#{d.getMonth() + 1}"
+    ty = "#{d.getFullYear()}"
+
+    s = "#{ty}-"
+    s += if tm.length is 1 then "0#{tm}-" else tm
+    s += if td.length is 1 then "0#{td}" else td
+
+
+    s
 
 
   windowResize : ->
@@ -61,11 +97,21 @@ class ArtifactFinder
   addArtifacts : (artifacts) ->
 
     { group, getSliderValue, domElement } = @
+    
+    @generateToGroupFolder(artifacts)
+    @generateToGroupDates(artifacts)
 
-    paths = _.uniq(_.map(artifacts, (a) -> a.get("path"))).sort()
+    $('#sortTabs a[href="#tabdate"]').tab('show')
+    $('#sortTabs a[href="#tabfolder"]').tab('show') 
+    
+
+
+  generateToGroupFolder : (artifacts) ->
+
+    { getSliderValue } = @
 
     group = @groups[0]
-
+    paths = _.uniq(_.map(artifacts, (a) -> a.get("path"))).sort()
     
     group.div.append("<div class=\"accordion\">")
     folder = []
@@ -74,7 +120,6 @@ class ArtifactFinder
         @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
       )
     group.div.append("</div>")
-    
 
     for artifact in artifacts
 
@@ -85,8 +130,34 @@ class ArtifactFinder
       @artifactComponents.push artifactC
       parent.append(artifactC.getContainerElement())
 
-    $('#sortTabs a[href="#tabdate"]').tab('show')
-    $('#sortTabs a[href="#tabfolder"]').tab('show')
+   
+
+
+  generateToGroupDates : (artifacts) ->
+
+    { getSliderValue } = @
+
+    group = @groups[1]
+
+    paths = _.uniq(_.map(artifacts, (a) => @getStringFromTimeStamp(a.get("createdAt")))).sort()
+    
+    group.div.append("<div class=\"accordion\">")
+    folder = []
+    for path in paths         
+      group.div.append(
+        @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
+      )
+    group.div.append("</div>")
+
+
+    for artifact in artifacts
+
+      path = @getStringFromTimeStamp(artifact.get("createdAt"))
+      parent = $("#collapseBody#{path.replace(/\//g,"_")}").find(".accordion-inner")
+
+      artifactC = new Artifact(artifact, getSliderValue)
+      @artifactComponents.push artifactC
+      parent.append(artifactC.getContainerElement())
 
 
 
@@ -111,6 +182,8 @@ class ArtifactFinder
     @slider.on("change", @onResize)
     app.on(this, "behavior:zooming", @resize)
     @windowResize()
+    @onSearch =  (e) => @search e.currentTarget.value
+    $("#artifacrsearch").on("keyup", @onSearch)
 
     for artifact in @artifactComponents
       artifact.activate()
@@ -120,6 +193,7 @@ class ArtifactFinder
 
     @slider.off("change", @onResize)
     app.off(this, "behavior:zooming", @resize)
+    $("#artifacrsearch").off("keyup", @onSearch)
 
     for artifact in @artifactComponents
       artifact.deactivate()

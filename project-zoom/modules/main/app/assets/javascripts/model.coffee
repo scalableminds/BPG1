@@ -15,6 +15,15 @@ SAVE_RETRY_COUNT = 20
 
 ModelFunctions =
 
+  prepareTags : (project) ->
+
+    (new $.Deferred (deferred) ->
+      project.get("tags", project, (tagCollection) ->
+        deferred.resolve(tagCollection)
+      )
+    )
+
+
   prepareArtifacts : (project) ->
 
     artifacts = new DataItem.Collection("/projects/#{project.get("id")}/artifacts")
@@ -128,6 +137,7 @@ app.addInitializer (options, callback) ->
       ->
         model.project = model.projects.find( (a) -> a.get("name") == "Project-Zoom" )
         $.when(
+          model.projects.map(ModelFunctions.prepareTags)...
           ModelFunctions.prepareGraph(model.project)
           ModelFunctions.prepareArtifacts(model.project)
         )

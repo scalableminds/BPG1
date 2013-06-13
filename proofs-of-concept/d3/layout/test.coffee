@@ -19,12 +19,6 @@ list_of_nodes = [
 
 color = d3.scale.category10()
 
-positions =
-  0: "upper_left_corner"
-  1: "upper_right_corner"
-  2: "bottom_left_corner"
-  3: "bottom_right_corner"
-
 $(document).ready( ->
   try_this()
 )
@@ -99,32 +93,20 @@ add_vectors = (vector, other_vector) ->
   {x: x, y: y}
 
 
-overlap_position = (node, other_node) ->
+subtract_vectors = (vector, other_vector) ->
 
-  result = null
+  x = vector.x - other_vector.x
+  y = vector.y - other_vector.y
 
-  if (node.y > other_node.y)          # upper corner
-    if (node.x > other_node.x)        # upper left
-      result = 0
-    else                              # upper right
-      result = 1
-  else                                # bottom corner
-    if (node.x > other_node.x)        # bottom left
-      result = 2
-    else result = 3                   # bottom right
-
-  result
+  {x: x, y: y}
 
 
-overlap_vector = (node, other_node, overlap_position) ->
+overlap_vector = (node, other_node) ->
 
-  x = y = null
+  temp = subtract_vectors(node, other_node)
 
-  switch overlap_position
-    when 0 then x = - (other_node.x + NODE_SIZE - node.x);  y = - (other_node.y + NODE_SIZE - node.y)
-    when 1 then x = node.x + NODE_SIZE - other_node.x;      y = - (other_node.y + NODE_SIZE - node.y)
-    when 2 then x = - (other_node.x + NODE_SIZE - node.x);  y = node.y + NODE_SIZE - other_node.y
-    when 3 then x = node.x + NODE_SIZE - other_node.x;      y = node.y + NODE_SIZE - other_node.y
+  x = if temp.x < 0 then temp.x + NODE_SIZE else temp.x - NODE_SIZE
+  y = if temp.y < 0 then temp.y + NODE_SIZE else temp.y - NODE_SIZE
 
   {x: x, y: y}
 
@@ -135,56 +117,34 @@ move_if_collision = (curr_node_position, origin) ->
   destination_vector = {x: 0, y: 0}
   dragged_node = curr_node_position
 
-  while no_collisions is false
+  loop_iterations = 0
+  while (no_collisions is false) and (loop_iterations < 4)
 
     collisions = get_collisions(curr_node_position, list_of_nodes, dragged_node)
 
     if collisions.length is 0
       no_collisions = true
 
-    else if collisions.length is 1
-      overlap_pos = overlap_position(curr_node_position, collisions[0])
-
-      destination_vector = reverse_vector overlap_vector(curr_node_position, collisions[0], overlap_pos)
-      destination_vector.x = if (destination_vector.x < 0) then destination_vector.x - MARGIN else destination_vector.x + MARGIN
-      destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
-
-      curr_node_position = add_vectors(curr_node_position, destination_vector)
-
-    else if collisions.length is 2
-      overlap_pos_1 = overlap_position(curr_node_position, collisions[0])
-      overlap_pos_2 = overlap_position(curr_node_position, collisions[1])
-
-      overlap_vector_1 = overlap_vector(curr_node_position, collisions[0], overlap_pos_1)
-      overlap_vector_2 = overlap_vector(curr_node_position, collisions[1], overlap_pos_2)
-
-      destination_vector = reverse_vector add_vectors(overlap_vector_1, overlap_vector_2)
-      destination_vector.x = if (destination_vector.x < 0) then destination_vector.x - MARGIN else destination_vector.x + MARGIN
-      destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
-
-      curr_node_position = add_vectors(curr_node_position, destination_vector)
-
-    else if collisions.length is 3
-      overlap_pos_1 = overlap_position(curr_node_position, collisions[0])
-      overlap_pos_2 = overlap_position(curr_node_position, collisions[1])
-      overlap_pos_3 = overlap_position(curr_node_position, collisions[2])
-
-      overlap_vector_1 = overlap_vector(curr_node_position, collisions[0], overlap_pos_1)
-      overlap_vector_2 = overlap_vector(curr_node_position, collisions[1], overlap_pos_2)
-      overlap_vector_3 = overlap_vector(curr_node_position, collisions[2], overlap_pos_3)
-
-      temp_1 = add_vectors(overlap_vector_1, overlap_vector_2)
-      temp_2 = add_vectors(overlap_vector_2, overlap_vector_3)
-
-      destination_vector = reverse_vector add_vectors(temp_1, temp_2)
-      destination_vector.x = if (destination_vector.x < 0) then destination_vector.x - MARGIN else destination_vector.x + MARGIN
-      destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
-
-      curr_node_position = add_vectors(curr_node_position, destination_vector)
-
-    else
+    else if collisions.length >= 4
       # curr_node_position = origin
       no_collisions = true
+
+    else
+      reversed_dest_vector = {x: 0, y: 0}
+
+      for coll_node in collisions
+        overlap_vec = overlap_vector(curr_node_position, coll_node)
+        reversed_dest_vector = add_vectors(reversed_dest_vector, overlap_vec)
+
+      destination_vector = reverse_vector reversed_dest_vector
+
+      # add margin:
+      destination_vector.x = if (destination_vector.x < 0) then destination_vector.x - MARGIN else destination_vector.x + MARGIN
+      destination_vector.y = if (destination_vector.y < 0) then destination_vector.y - MARGIN else destination_vector.y + MARGIN
+
+      curr_node_position = add_vectors(curr_node_position, destination_vector)
+
+      loop_iterations += 1
 
   curr_node_position
 
