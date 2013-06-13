@@ -59,7 +59,7 @@ class ConnectBehavior extends Behavior
 
   move : (event) =>
 
-    scaleValue = app.view.zoom.level
+    scaleValue = app.view.process.zoom
     mouse =
       x : event.offsetX / scaleValue
       y : event.offsetY / scaleValue

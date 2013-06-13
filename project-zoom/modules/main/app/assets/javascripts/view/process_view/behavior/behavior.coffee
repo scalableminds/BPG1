@@ -10,7 +10,6 @@ class Behavior
     EventMixin.extend(this)
 
     @offset = @graph.$svgEl.offset()
-    @scaleValue = app.view.zoom.level
 
 
   mousePosition : (event, relativeToGraph = true) =>

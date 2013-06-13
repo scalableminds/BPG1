@@ -54,6 +54,8 @@ class SelectionHandler extends Behavior
   deactivate : ->
 
     @$tools.remove()
+    @$tools.find(".btn").off("tap", @changeBehavior)
+    @$tools = null
 
     @hammerContext
       .off("tap", @unselect)
@@ -61,8 +63,6 @@ class SelectionHandler extends Behavior
       .off("tap", @selectCluster)
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)
-
-    @$tools.find(".btn").off("tap", @changeBehavior)
 
     @dispatcher.unregisterAll(this)
 
@@ -116,7 +116,7 @@ class SelectionHandler extends Behavior
           <a class="btn" href="#" id="comment"><i class="icon-comment"></i></a>
           <a class="btn" href="#" id="connect"><i class="icon-arrow-right"></i></a>
           <a class="btn" href="#" id="delete"><i class="icon-trash"></i></a>
-          <a class="btn" href="#" id="download"><i class="icon-download-alt"></i></a>
+          <a class="btn" href="#" id="download" target="_blank"><i class="icon-download-alt"></i></a>
         </div>
       </div>
       """
