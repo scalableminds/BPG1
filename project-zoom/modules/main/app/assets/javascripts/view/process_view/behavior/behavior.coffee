@@ -29,6 +29,18 @@ class Behavior
     return { x: x, y : y }
 
 
+  transformPointToLocal : (point) ->
+
+    groupElement = @graph.graphContainer[0][0]
+    transformationMatrix = groupElement.getCTM()
+
+    p = $("svg")[0].createSVGPoint()
+    p.x = point.x
+    p.y = point.y
+
+    p.matrixTransform(transformationMatrix.inverse())
+
+
   activate : ->
 
     return true

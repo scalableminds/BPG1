@@ -7,6 +7,7 @@ class DragAndDropBehavior extends Behavior
 
   constructor : (@$el, @graph) ->
 
+    super(@graph)
 
   activate : ->
 
@@ -34,15 +35,13 @@ class DragAndDropBehavior extends Behavior
 
     if touch.pageX > @offset.left and touch.pageY > @offset.top
 
-      mouse = @mousePosition(event)
+      mouse =
+        x: touch.pageX - @offset.left
+        y: touch.pageY - @offset.top
+
+      position = @transformPointToLocal(mouse)
+
       artifactId = imageElement.data("id")
-
-      translation = d3.transform(@graph.graphContainer.attr("transform")).translate
-
-      position =
-        x: mouse.x - translation[0] / app.view.process.zoom
-        y: mouse.y - translation[1] / app.view.process.zoom
-
       @graph.addNode(position.x, position.y, artifactId)
 
     @$preview.remove()

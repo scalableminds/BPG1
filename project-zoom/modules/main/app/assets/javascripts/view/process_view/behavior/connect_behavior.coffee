@@ -59,11 +59,11 @@ class ConnectBehavior extends Behavior
 
   move : (event) =>
 
-    scaleValue = app.view.process.zoom
     mouse =
-      x : event.offsetX / scaleValue
-      y : event.offsetY / scaleValue
+      x : event.offsetX
+      y : event.offsetY
 
+    mouse = @transformPointToLocal(mouse)
 
     nodeData = d3.select(@element).datum()
     lineStart = nodeData.get("position").toObject()
