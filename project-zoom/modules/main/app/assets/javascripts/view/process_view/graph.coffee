@@ -80,7 +80,6 @@ class Graph
 
   removeNode : (node) ->
 
-    @nodes.remove(node)
 
     @edges
       .filter( (edge) -> edge.get("to") == node.get("id") or edge.get("from") == node.get("id") )
@@ -90,6 +89,7 @@ class Graph
       .filter( (cluster) -> cluster.get("content").contains(node.get("id")) )
       .forEach( (cluster) -> Cluster(cluster).removeNode(node) )
 
+    @nodes.remove(node)
 
     @drawNodes()
     @drawEdges()
