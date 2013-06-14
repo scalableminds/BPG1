@@ -9,24 +9,23 @@ class PanBehavior extends Behavior
   constructor : (@$el, @graph) ->
 
     @active = false
-
-
     super(@graph)
+
+    app.on this,
+      "behavior:enable_panning" : => @activate()
+      "behavior:disable_panning": => @deactivate()
 
 
   activate : ->
 
     unless @active
 
-      app.on this,
-        "behavior:enable_panning", => @activate()
-        "behavior:disable_panning", => @deactivate()
-
       @hammerContext = Hammer(@graph.svgEl)
-        .on("dragstart", @panStart)
         .on("drag", @pan)
+        .on("dragstart", @panStart)
 
       @active = true
+      app.view.process.on this, "zoom", @panAfterZooming
 
 
   deactivate : ->
@@ -34,46 +33,54 @@ class PanBehavior extends Behavior
     if @active
 
       @hammerContext
-        .off("dragstart", @panStart)
         .off("drag", @pan)
+        .off("dragstart", @panStart)
 
       @active = false
-
-    @dispatcher.unregisterAll(this)
+      app.view.zoom.off this, "change"
 
 
   panStart : (event) =>
 
-    return unless event.gesture
-
-    @scaleValue = app.view.process.zoom
-    @startPoint = @mousePosition(event)
-
-    graphContainer = @graph.graphContainer
+    @startPoint = @mouseToSVGLocalCoordinates(event)
+    @startMatrix = @graph.graphContainer[0][0].getCTM()
 
 
   pan : (event) =>
 
     return unless event.gesture
-    target = d3.select(event.gesture.target)
+    mouse = @mouseToSVGLocalCoordinates(event, @startMatrix.inverse())
 
-    if target.classed("node")
-      return
+    delta =
+      x: mouse.x - @startPoint.x
+      y: mouse.y - @startPoint.y
 
-    mouse = @mousePosition(event)
-    graphContainer = @graph.graphContainer
-    transformation = d3.transform(graphContainer.attr("transform"))
+    transformationMatrix = @startMatrix.translate(delta.x, delta.y)
+    @setCTM(transformationMatrix)
 
-    deltaX = ( mouse.x - @startPoint.x ) * @scaleValue
-    deltaY = ( mouse.y - @startPoint.y ) * @scaleValue
-
-    x = transformation.translate[0] + deltaX
-    y = transformation.translate[1] + deltaY
-
-
-    transformation.translate = [x, y]
-
-    graphContainer.attr("transform", transformation.toString())
-
-    @startPoint = mouse
     app.trigger "behavior:panning"
+
+
+  panAfterZooming : (zoomLevel, position) =>
+
+    # $svg = @$el.find("#process-graph")
+    # svgRoot = $svg[0]
+
+    # midX = $svg.width() / 2
+    # midY = $svg.height() / 2
+
+    # groupElement = @graph.graphContainer[0][0]
+    # transformationMatrix = groupElement.getCTM()
+
+    # p = svgRoot.createSVGPoint()
+    # p.x = midX
+    # p.y = midY
+
+    # p = p.matrixTransform(transformationMatrix.inverse())
+
+    # transformationMatrix = transformationMatrix.translate(-p.x, -p.y)
+    # transformationMatrix = transformationMatrix.scale(zoomLevel + 1)
+    # transformationMatrix = transformationMatrix.translate(p.x, p.y)
+
+    # @setCTM(transformationMatrix)
+

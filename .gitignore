@@ -21,3 +21,5 @@ target/
 *.zip
 *.skp
 *.mtl
+
+project-zoom/modules/main/public/templates/zoom_slider.html
