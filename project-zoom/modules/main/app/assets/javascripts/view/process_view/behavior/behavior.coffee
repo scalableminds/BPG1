@@ -9,9 +9,7 @@ class Behavior
 
     EventMixin.extend(this)
 
-    @offset = @graph.$svgEl.offset()
-
-    @svgRoot = $("#process-graph")[0]
+    @svgRoot = @graph.svgEl
     @transformationGroup = @graph.graphContainer[0][0]
 
 
@@ -26,9 +24,11 @@ class Behavior
 
   mouseToSVGLocalCoordinates : (event, matrix) ->
 
+    offset = @graph.$svgEl.offset()
     p = @svgRoot.createSVGPoint()
-    p.x = event.gesture.touches[0].pageX - @offset.left
-    p.y = event.gesture.touches[0].pageY - @offset.top
+
+    p.x = event.gesture.touches[0].pageX - offset.left
+    p.y = event.gesture.touches[0].pageY - offset.top
 
     transformationMatrix = matrix ? @transformationGroup.getCTM().inverse()
     p.matrixTransform(transformationMatrix)

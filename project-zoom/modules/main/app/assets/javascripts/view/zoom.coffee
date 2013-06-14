@@ -12,6 +12,7 @@ class Zoom
   min : 0
   max : 150
   step : 1
+  startValue : 2
 
   constructor : ->
 
@@ -22,7 +23,7 @@ class Zoom
 
     @$input = @$el.find("input")
 
-    @$input.attr({ @max, @min, @step })
+    @$input.attr({ @max, @min, @step, value : @startValue })
 
     @level = +@$input.val()
 

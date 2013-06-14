@@ -7,9 +7,8 @@ app : app
 ./overview/projectGraph : ProjectGraph
 ./overview/gui : GUI
 ../component/tagbar : Tagbar
-./wheel : Wheel
 text!templates/overview_view.html : OverviewTemplate
-./overview/behavior/pan_behavior : PanBehavior
+./overview/behavior/pan_zoom_behavior : PanZoomBehavior
 ###
 
 class ProjectsOverviewView
@@ -27,10 +26,7 @@ class ProjectsOverviewView
     @initGraph()
     @tagbar.init_tag_count(@projects)
 
-    @panning = new PanBehavior(@$el, @graph)
-
-    @wheel = new Wheel(@$el)
-
+    @panning = new PanZoomBehavior(@$el, @graph)
 
   initTagbar : ->
 
@@ -43,15 +39,12 @@ class ProjectsOverviewView
     @gui.activate()
     @tagbar.activate()
     @panning.activate()
-    @wheel.activate()
-    @wheel.on("delta", app.view.overview.changeZoom)
 
     @$el.find(".tagbarItem input").on "click", (event) => @graph.updateVennDiagram(event.currentTarget)
 
     # drag artifact into graph
     @$el.on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
 
-    app.view.overview.on(this, "zoom", @zoom)
     @graph.drawProjects()
 
 
@@ -69,22 +62,9 @@ class ProjectsOverviewView
     @gui.deactivate()
     @panning.deactivate()
     @tagbar.deactivate()
-    @wheel.deactivate()
-
-    @wheel.off("delta", app.view.overview.changeZoom)
-    app.view.overview.off(this, "zoom", @zoom)
-
-
-  zoom : (scaleValue, position) =>
-
-    @graph.graphContainer.attr("transform", "scale( #{scaleValue} )")
-    @trigger("view:zooming")
 
 
   initGraph : ->
-
-    @domElement = d3.select(@el).select(".graph svg")
-    @graphContainer = @domElement.append("svg:g")
 
     @projects = []
 
@@ -105,7 +85,7 @@ class ProjectsOverviewView
       @projects.push p
     )
 
-    @graph = new ProjectGraph(@graphContainer, @domElement, @projects)
+    @graph = new ProjectGraph(@el, @projects)
 
 
 

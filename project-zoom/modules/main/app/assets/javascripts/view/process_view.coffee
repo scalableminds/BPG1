@@ -14,8 +14,7 @@ text!templates/process_view.html : ProcessViewTemplate
 
 ./process_view/behavior/selection_handler : SelectionHandler
 ./process_view/behavior/draw_cluster_behavior : DrawClusterBehavior
-./process_view/behavior/zoom_behavior : ZoomBehavior
-./process_view/behavior/pan_behavior : PanBehavior
+./process_view/behavior/pan_zoom_behavior : PanZoomBehavior
 ./process_view/behavior/drag_and_drop_behavior : DragAndDropBehavior
 
 ###
@@ -38,8 +37,7 @@ class ProcessView
     @projectModel.get("graphs/0", this, (graphModel) =>
 
       @graph = new Graph(@$el.find(".graph")[0], graphModel, @artifactFinder)
-      @zooming = new ZoomBehavior(@$el, @graph)
-      @panning = new PanBehavior(@$el, @graph)
+      @panning = new PanZoomBehavior(@$el, @graph)
       @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
       @selectionHandler = new SelectionHandler(@$el, @graph)
 
@@ -69,7 +67,6 @@ class ProcessView
 
     @gui.deactivate()
     @artifactFinder.deactivate()
-    @zooming.deactivate()
     @panning.deactivate()
     @dragAndDrop.deactivate()
     @selectionHandler.deactivate()
@@ -91,7 +88,6 @@ class ProcessView
 
       @gui.activate()
       @artifactFinder.activate()
-      @zooming.activate()
       @panning.activate()
       @dragAndDrop.activate()
       @selectionHandler.activate()
