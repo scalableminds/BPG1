@@ -280,9 +280,6 @@ class Graph
         .filter( (cluster) -> not Cluster(cluster).ensureNode(node) )
         .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
 
-    # @drawNodes()
-    # @drawEdges()
-
 
   moveCluster : (cluster, delta) ->
 
@@ -295,17 +292,15 @@ class Graph
         x : waypoint.x + delta.x
         y : waypoint.y + delta.y
       )
-
     )
 
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
 
-      @moveNode(node, delta)
-
-    #actually move the svg elements
-    # @drawClusters()
-    # @drawNodes()
+      position = node.get("position").toObject()
+      position.x += delta.x
+      position.y += delta.y
+      @moveNode(node, position)
 
 
   nextId : ->

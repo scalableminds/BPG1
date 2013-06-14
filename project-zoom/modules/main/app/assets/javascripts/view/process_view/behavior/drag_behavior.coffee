@@ -23,6 +23,11 @@ class DragBehavior extends Behavior
       .off("drag", @dragMoveCluster)
 
 
+  dragStart : (event) =>
+
+    @startPoint = @mouseToSVGLocalCoordinates(event)
+
+
   dragMoveNode : (event) =>
 
     node = d3.select(@element).datum()
