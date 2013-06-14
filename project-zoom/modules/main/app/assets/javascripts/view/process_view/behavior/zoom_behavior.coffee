@@ -40,6 +40,6 @@ class ZoomBehavior extends Behavior
     transformationMatrix = @graphContainer.getCTM()
     transformationMatrix.a = transformationMatrix.d = scaleValue
 
-    @setCTM(transformationMatrix)
+    # @setCTM(transformationMatrix)
 
     app.trigger "behavior:zooming"

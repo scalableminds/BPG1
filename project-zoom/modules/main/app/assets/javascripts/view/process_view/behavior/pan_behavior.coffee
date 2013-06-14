@@ -20,6 +20,8 @@ class PanBehavior extends Behavior
 
     unless @active
 
+      @oldZoomLevel = app.view.process.zoom
+
       @hammerContext = Hammer(@graph.svgEl)
         .on("drag", @pan)
         .on("dragstart", @panStart)
@@ -63,24 +65,35 @@ class PanBehavior extends Behavior
 
   panAfterZooming : (zoomLevel, position) =>
 
-    # $svg = @$el.find("#process-graph")
-    # svgRoot = $svg[0]
+    $svg = @$el.find("#process-graph")
+    svgRoot = $svg[0]
+    groupElement = @graph.graphContainer[0][0]
 
-    # midX = $svg.width() / 2
-    # midY = $svg.height() / 2
 
-    # groupElement = @graph.graphContainer[0][0]
-    # transformationMatrix = groupElement.getCTM()
 
-    # p = svgRoot.createSVGPoint()
-    # p.x = midX
-    # p.y = midY
+    if position
 
-    # p = p.matrixTransform(transformationMatrix.inverse())
+      mouse =
+        x: position[0] - $svg.offset().left
+        y: position[1] - $svg.offset().top
 
-    # transformationMatrix = transformationMatrix.translate(-p.x, -p.y)
-    # transformationMatrix = transformationMatrix.scale(zoomLevel + 1)
-    # transformationMatrix = transformationMatrix.translate(p.x, p.y)
+    else
 
-    # @setCTM(transformationMatrix)
+      mouse =
+        x: $svg.width() / 2
+        y: $svg.height() / 2
+
+    scale = zoomLevel / @oldZoomLevel
+
+    p = @transformPointToLocal(mouse)
+
+
+    transformationMatrix = svgRoot.createSVGMatrix()
+      .translate(p.x, p.y)
+      .scale(scale)
+      .translate(-p.x, -p.y)
+
+    @setCTM(groupElement.getCTM().multiply(transformationMatrix))
+
+    @oldZoomLevel = zoomLevel
 
