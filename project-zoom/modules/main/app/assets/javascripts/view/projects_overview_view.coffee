@@ -80,17 +80,23 @@ class ProjectsOverviewView
         image:        IMAGE_FOLDER.concat "#{project.get("name")[0].toLowerCase()}.png"
         width:        "100px"
         height:       "100px"
-        tags:         [project.get("year")]
+        tags:         @clean_tags project.get("tags").toObject() # [project.get("year")]
 
       @projects.push p
+      console.log p.tags
     )
 
     @graph = new ProjectGraph(@el, @projects)
 
 
+  clean_tags : (tag_list) ->
 
+    result_tags = []
 
+    for tag in tag_list
+      result_tags.push tag.name
 
+    result_tags
 
 
 
