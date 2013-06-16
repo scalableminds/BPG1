@@ -80,7 +80,6 @@ class Graph
 
   removeNode : (node) ->
 
-    @nodes.remove(node)
 
     @edges
       .filter( (edge) -> edge.get("to") == node.get("id") or edge.get("from") == node.get("id") )
@@ -90,6 +89,7 @@ class Graph
       .filter( (cluster) -> cluster.get("content").contains(node.get("id")) )
       .forEach( (cluster) -> Cluster(cluster).removeNode(node) )
 
+    @nodes.remove(node)
 
     @drawNodes()
     @drawEdges()
@@ -234,14 +234,20 @@ class Graph
         )
 
     comment
-      .append("svg:text")
-      .attr(
-        x: 0
-        y: -50
-        width: 80
-        height: 40
-      )
-      .text( (data) -> data.get("comment"))
+      .append("foreignObject")
+        .attr(
+          x: -7
+          y: -73
+          width: 77
+          height: 50
+        )
+      .append("xhtml:body")
+        .style(
+          "font-size": "12px"
+          "line-height": "16px"
+        )
+        .html( (data) -> data.get("comment"))
+
 
     #update existing ones
     commentGroup
@@ -255,20 +261,17 @@ class Graph
             "translate(#{position.x}, #{position.y})"
       )
 
-    commentGroup.selectAll("text")
-      .text( (data) ->  data.get("comment") )
+    commentGroup.selectAll("body")
+      .html( (data) -> data.get("comment"))
 
     #remove deleted comments
     commentGroup.exit().remove()
 
 
-  moveNode : (node, delta, checkForCluster = false) ->
+  moveNode : (node, position, checkForCluster = false) ->
 
     #move nodes
-    node.update("position", (position) ->
-      position = position.toObject()
-      position.x += delta.x
-      position.y += delta.y
+    node.update("position", ->
       position
     )
 
@@ -277,13 +280,8 @@ class Graph
         .filter( (cluster) -> not Cluster(cluster).ensureNode(node) )
         .forEach( (cluster) ->  Cluster(cluster).removeNode(node) )
 
-    # @drawNodes()
-    # @drawEdges()
-
 
   moveCluster : (cluster, delta) ->
-
-    #cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
 
     #move waypoints
     cluster.update("waypoints", (waypoints) ->
@@ -292,17 +290,15 @@ class Graph
         x : waypoint.x + delta.x
         y : waypoint.y + delta.y
       )
-
     )
 
     #move child nodes
     Cluster(cluster).getNodes(@nodes).forEach (node) =>
 
-      @moveNode(node, delta)
-
-    #actually move the svg elements
-    # @drawClusters()
-    # @drawNodes()
+      position = node.get("position").toObject()
+      position.x += delta.x
+      position.y += delta.y
+      @moveNode(node, position)
 
 
   nextId : ->

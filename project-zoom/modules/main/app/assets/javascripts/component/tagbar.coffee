@@ -7,24 +7,14 @@ app : app
 class Tagbar
 
   domElement : null
-  taglist = [
-    {type :"date", name : "2013"},
-    {type :"date", name : "2012"},
-    {type :"date", name : "2011"},
-    {type :"date", name : "2010"},
-  ]
 
 
-  constructor : () ->
-
-    # t = taglist.concat app.model.get("tags").items
-    # console.log t
-
-    @availableTags = taglist
+  constructor : (@tagCollection, @$el) ->
 
     domElement = $("<div/>")
     @domElement = domElement
 
+    @initTags()
     @populateTagForm()
 
 
@@ -33,40 +23,55 @@ class Tagbar
     @onResized = func
 
 
+  initTags : ->
+
+    @tags = []
+
+    @tagCollection.forEach( (tag) =>
+
+      t =
+        id:           tag.get("id")
+        name:         tag.get("name")
+        color:        tag.get("color")
+
+      @tags.push t
+    )
+
+
   populateTagForm : ->
 
-    $branchTaglist = $("#branchtags")
-    $dateTaglist = $("#datetags")
-    $partnerTaglist = $("#partnertags")
+    $taglist = @$el.find("#taglist")
 
-    for tag in @availableTags
-      tagName = tag.name
-      tagType = tag.type
+    for tag in @tags
 
       $container = $("<div>",
         class: "tagbarItem"
+        id: "container_#{tag.name}"
       )
 
       $checkbox = $("<input>",
         type: "checkbox"
-        name: tagName
-        value: tagName
+        id: "checkbox_#{tag.name}"
+        name: tag.name
+        value: tag.name
+      )
+
+      $label = $("<label>",
+        id: "label_#{tag.name}"
         )
-
-      label = document.createElement("label") #jquery!
-      label.innerHTML = tagName
-
-      # $label = $("label")
-      # $label.text tagName
+      $label.text tag.name
 
       $container.append $checkbox
-      $container.append label
+      $container.append $label
 
-      switch tagType
-        when "date" then $dateTaglist.append $container
-        when "project_partner" then $partnerTaglist.append $container
-        when "branch" then $branchTaglist.append $container
-        else console.log "tag with strange type"
+      $taglist.append $container
+
+
+  init_tag_count : (projects) ->
+
+    for project in projects
+
+      console.log project.tags
 
 
   destroy : ->

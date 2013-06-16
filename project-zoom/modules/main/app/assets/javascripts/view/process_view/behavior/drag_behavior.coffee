@@ -14,7 +14,7 @@ class DragBehavior extends Behavior
       .on("drag", ".cluster", @dragMoveCluster)
 
     @startPoint = @element.position
-    app.trigger "behavior:disable_panning"
+    #app.trigger "behavior:disable_panning"
 
   deactivate : ->
 
@@ -22,19 +22,18 @@ class DragBehavior extends Behavior
       .off("drag", @dragMoveNode)
       .off("drag", @dragMoveCluster)
 
-    app.trigger "behavior:enable_panning"
+
+  dragStart : (event) =>
+
+    @startPoint = @mouseToSVGLocalCoordinates(event)
 
 
   dragMoveNode : (event) =>
 
     node = d3.select(@element).datum()
-    mouse = @mousePosition(event)
+    mouse = @mouseToSVGLocalCoordinates(event)
 
-    delta =
-      x : mouse.x - @startPoint.x
-      y : mouse.y - @startPoint.y
-
-    @graph.moveNode(node, delta, true)
+    @graph.moveNode(node, mouse, true)
 
     @startPoint = mouse
     app.trigger "behavior:drag"
@@ -43,7 +42,7 @@ class DragBehavior extends Behavior
   dragMoveCluster : (event) =>
 
     cluster = d3.select(@element).datum()
-    mouse = @mousePosition(event)
+    mouse = @mouseToSVGLocalCoordinates(event)
 
     delta =
       x : mouse.x - @startPoint.x

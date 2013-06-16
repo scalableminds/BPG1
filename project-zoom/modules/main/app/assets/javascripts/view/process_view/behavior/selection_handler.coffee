@@ -32,12 +32,15 @@ class SelectionHandler extends Behavior
 
     @hammerContext = Hammer( @graph.svgEl )
       .on("tap", "svg", @unselect)
-      .on("tap", ".node", @selectNode)
+      .on("touch", ".node", @selectNode)
       .on("tap", ".cluster", @selectCluster)
       .on("dragstart", ".node", @selectNode)
       .on("dragstart", ".cluster", @selectCluster)
+      .on("dragend", @enablePanning)
 
-    @$tools.find(".btn").on("tap", @selectBehavior)
+    @toolsContext = Hammer(@$tools[0])
+      .on("tap", ".btn", @selectBehavior)
+      .on("tap", "i", @selectBehavior)
 
     app.on this,
       "behavior:done" : =>
@@ -45,6 +48,7 @@ class SelectionHandler extends Behavior
           @changeBehavior( @behaviors.DRAG )
         else
           @changeBehavior( @behaviors.IDLE )
+
       "behavior:delete" : => @unselect()
       "behavior:drag" : => @positionToolbar()
       "behavior:zooming" : => @positionToolbar()
@@ -54,6 +58,8 @@ class SelectionHandler extends Behavior
   deactivate : ->
 
     @$tools.remove()
+    @$tools.find(".btn").off("tap", @changeBehavior)
+    @$tools = null
 
     @hammerContext
       .off("tap", @unselect)
@@ -61,8 +67,10 @@ class SelectionHandler extends Behavior
       .off("tap", @selectCluster)
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)
+      .off("dragend", @enablePanning)
 
-    @$tools.find(".btn").off("tap", @changeBehavior)
+    @toolsContext
+      .off("tap", @selectBehavior)
 
     @dispatcher.unregisterAll(this)
 
@@ -74,8 +82,10 @@ class SelectionHandler extends Behavior
     return unless event.gesture
     return if @currentBehavior instanceof ConnectBehavior #unclean workaround
 
+    app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
+
     @selection = event.gesture.target
-    @selection.position = @mousePosition(event)
+    @selection.position = @mouseToSVGLocalCoordinates(event)
 
     node = d3.select(@selection).datum()
     artifact = node.get("payload/resources").find((a) -> a.get("typ") == "default")
@@ -94,9 +104,10 @@ class SelectionHandler extends Behavior
   selectCluster : (event) =>
 
     return unless event.gesture
+    app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
 
     @selection = event.gesture.target
-    @selection.position = @mousePosition(event)
+    @selection.position = @mouseToSVGLocalCoordinates(event)
 
     @positionToolbar()
     @$tools
@@ -116,7 +127,7 @@ class SelectionHandler extends Behavior
           <a class="btn" href="#" id="comment"><i class="icon-comment"></i></a>
           <a class="btn" href="#" id="connect"><i class="icon-arrow-right"></i></a>
           <a class="btn" href="#" id="delete"><i class="icon-trash"></i></a>
-          <a class="btn" href="#" id="download"><i class="icon-download-alt"></i></a>
+          <a class="btn" href="#" id="download" target="_blank"><i class="icon-download-alt"></i></a>
         </div>
       </div>
       """
@@ -124,18 +135,21 @@ class SelectionHandler extends Behavior
       @$tools = $(template)
       @$tools.hide()
 
-      @$el.append(@$tools)
+      @$el.find(".graph").append(@$tools)
 
   positionToolbar : ->
 
-    if @selection
+    selection = @selection
 
-      boundingBox = @selection.getBoundingClientRect()
-      buttonWidth = 48
+    if selection
+
+      offset = @graph.$svgEl.offset()
+      boundingBox = selection.getBoundingClientRect()
+      buttonWidth = 50
 
       @$tools.css(
-        left: boundingBox.left
-        top: boundingBox.top - buttonWidth # offset due to parents relative position
+        left: boundingBox.left - offset.left
+        top: boundingBox.top - offset.top
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )
@@ -145,7 +159,12 @@ class SelectionHandler extends Behavior
 
   selectBehavior : (event) =>
 
-    behavior = switch $(event.target).attr("id")
+    if $(event.target).is(".btn")
+      $target = $(event.target)
+    else
+      $target = $(event.target).closest(".btn")
+
+    behavior = switch $target.attr("id")
       when "delete" then @behaviors.DELETE
       when "comment" then @behaviors.COMMENT
       when "connect" then @behaviors.CONNECT
@@ -166,3 +185,8 @@ class SelectionHandler extends Behavior
     @currentBehavior.deactivate()
     @currentBehavior = behavior
     @currentBehavior.activate(@selection)
+
+
+  enablePanning : ->
+
+    app.trigger "behavior:enable_panning"

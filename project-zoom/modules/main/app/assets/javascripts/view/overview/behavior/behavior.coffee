@@ -1,26 +1,40 @@
 ### define
+lib/event_mixin : EventMixin
+app : app
 ###
 
 class Behavior
 
   constructor : (@graph) ->
 
+    EventMixin.extend(this)
 
-  mousePosition : (event) =>
-
-    x = event.gesture.touches[0].pageX - @offset.left
-    y = event.gesture.touches[0].pageY - @offset.top
-
-    x /= @scaleValue
-    y /= @scaleValue
-
-    return { x: x, y : y }
+    @svgRoot = @graph.svgEl
+    @transformationGroup = @graph.graphContainer[0][0]
 
 
-  activate : ->
+  transformPointToLocalCoordinates : (point) ->
 
-    return true
+    p = @svgRoot.createSVGPoint()
+    p.x = point.x
+    p.y = point.y
 
-  deactivate : ->
+    p.matrixTransform(@transformationGroup.getCTM().inverse())
 
-    return false
+
+  mouseToSVGLocalCoordinates : (event, matrix) ->
+
+    offset = @graph.$svgEl.offset()
+    p = @svgRoot.createSVGPoint()
+
+    p.x = event.gesture.touches[0].pageX - offset.left
+    p.y = event.gesture.touches[0].pageY - offset.top
+
+    transformationMatrix = matrix ? @transformationGroup.getCTM().inverse()
+    p.matrixTransform(transformationMatrix)
+
+
+  setCTM : (matrix) ->
+
+    matrixString = "#{matrix.a} #{matrix.b} #{matrix.c} #{matrix.d} #{matrix.e} #{matrix.f}"
+    @graph.graphContainer.attr("transform", "matrix(#{matrixString})")

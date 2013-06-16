@@ -20,6 +20,7 @@ class DrawClusterBehavior extends Behavior
 
     super(@graph)
 
+
   activate : ->
 
     @hammerContext = Hammer( @graph.svgEl, { swipe : false} )
@@ -61,17 +62,10 @@ class DrawClusterBehavior extends Behavior
     )
     @preview.data(@cluster)
 
-    translation = d3.transform(@graph.graphContainer.attr("transform")).translate
-    @translateX = translation[0] / app.view.process.zoom
-    @translateY = translation[1] / app.view.process.zoom
 
   dragMove : (event) =>
 
-    mouse = @mousePosition(event)
-
-    position =
-      x: mouse.x - @translateX
-      y: mouse.y - @translateY
+    position = @mouseToSVGLocalCoordinates(event)
 
     @cluster.get("waypoints").add(position)
 

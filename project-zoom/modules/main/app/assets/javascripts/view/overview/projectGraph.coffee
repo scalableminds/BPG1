@@ -1,35 +1,33 @@
 ### define
 d3 : d3
 lib/event_mixin : EventMixin
-./behavior/behavior : Behavior
-./behavior/connect_behavior : ConnectBehavior
-./behavior/drag_behavior : DragBehavior
-./behavior/delete_behavior : DeleteBehavior
 ../../component/layouter : Layouter
 ###
 
 class ProjectGraph
 
-  constructor : (@graphContainer, @svg, @projects) ->
+  constructor : (@el, @projects) ->
 
     @selectedTags = []
     @clusters = []
-    @scale_value = 1.0
+
+    @$el = $(@el)
+    @$svgEl = @$el.find("svg")
+    @svgEl = @$svgEl[0]
+    @d3Element = d3.select(@el).select("svg")
+    @graphContainer = @d3Element.append("svg:g")
 
     EventMixin.extend(this)
     @initLayouter()
 
-    @circles = @svg.append("svg:g").selectAll("circle")
+    @circles = @d3Element.append("svg:g").selectAll("circle")
 
     @projectNodes = @graphContainer.append("svg:g").selectAll("projectNode")
 
-    @currentBehavior = new DragBehavior(@)
-    @currentBehavior.activate()
 
 
-  drawProjects : (scale_value = @scale_value, projects = @projects) ->
+  drawProjects : (projects = @projects) ->
 
-    @scale_value = scale_value
     names = []
     layouter = @layouter
     @projectNodes = @projectNodes.data(projects, (data) -> data.id)
@@ -38,8 +36,7 @@ class ProjectGraph
     margin_x = 30
     margin_y = 70
     nodeWidth = 100
-    svgWidth = parseInt @svg.attr("width") / scale_value
-    next_line = parseInt( svgWidth / (margin_x + nodeWidth) )
+    next_line = 25
 
     g = @projectNodes.enter().append("svg:g")
     g.append("svg:image")
@@ -73,16 +70,7 @@ class ProjectGraph
     for h, i in headline[0]
       @layouter.textWrap(h, names[i], 120)
 
-    # g.append("svg:text") #tags!!!!
-
     @projectNodes.exit().remove()
-
-
-  changeBehavior : (behavior) ->
-
-    @currentBehavior.deactivate()
-    @currentBehavior = behavior
-    @currentBehavior.activate()
 
 
 
@@ -158,10 +146,10 @@ class ProjectGraph
         if _.intersection(p.tags, @selectedTags).length isnt 0
           tagged.push p
 
-      @drawProjects(@scale_value, [])
-      @drawProjects(@scale_value, tagged)
+      @drawProjects([])
+      @drawProjects(tagged)
     else
-      @drawProjects(@scale_value, [])
+      @drawProjects([])
       @drawProjects()
 
 
