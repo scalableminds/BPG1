@@ -15,7 +15,7 @@ class Behavior
     @transformationGroup = @graph.graphContainer[0][0]
 
 
-  transformPointToLocal : (point) ->
+  transformPointToLocalCoordinates : (point) ->
 
     p = @svgRoot.createSVGPoint()
     p.x = point.x

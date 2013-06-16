@@ -32,7 +32,7 @@ class SelectionHandler extends Behavior
 
     @hammerContext = Hammer( @graph.svgEl )
       .on("tap", "svg", @unselect)
-      .on("tap", ".node", @selectNode)
+      .on("touch", ".node", @selectNode)
       .on("tap", ".cluster", @selectCluster)
       .on("dragstart", ".node", @selectNode)
       .on("dragstart", ".cluster", @selectCluster)
@@ -130,18 +130,21 @@ class SelectionHandler extends Behavior
       @$tools = $(template)
       @$tools.hide()
 
-      @$el.append(@$tools)
+      @$el.find(".graph").append(@$tools)
 
   positionToolbar : ->
 
-    if @selection
+    selection = @selection
 
-      boundingBox = @selection.getBoundingClientRect()
-      buttonWidth = 48
+    if selection
+
+      boundingBox = selection.getBoundingClientRect()
+      position = selection.getBBox()
+      buttonWidth = 50
 
       @$tools.css(
-        left: boundingBox.left
-        top: boundingBox.top - buttonWidth # offset due to parents relative position
+        left: position.x
+        top: position.y
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )

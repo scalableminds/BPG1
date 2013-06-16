@@ -69,8 +69,6 @@ class PanBehavior extends Behavior
     svgRoot = $svg[0]
     groupElement = @graph.graphContainer[0][0]
 
-
-
     if position
 
       mouse =
@@ -85,7 +83,7 @@ class PanBehavior extends Behavior
 
     scale = zoomLevel / @oldZoomLevel
 
-    p = @transformPointToLocal(mouse)
+    p = @transformPointToLocalCoordinates(mouse)
 
 
     transformationMatrix = svgRoot.createSVGMatrix()
