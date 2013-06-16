@@ -2,9 +2,10 @@
 ./behavior : Behavior
 hammer : Hammer
 app : app
+view/wheel : Wheel
 ###
 
-class PanBehavior extends Behavior
+class PanZoomBehavior extends Behavior
 
   constructor : (@$el, @graph) ->
 
@@ -15,19 +16,23 @@ class PanBehavior extends Behavior
       "behavior:enable_panning" : => @activate()
       "behavior:disable_panning": => @deactivate()
 
+    @wheel = new Wheel(@$el.find(".graph"))
+    @oldZoomLevel = 1
+
 
   activate : ->
 
     unless @active
-
-      @oldZoomLevel = app.view.process.zoom
 
       @hammerContext = Hammer(@graph.svgEl)
         .on("drag", @pan)
         .on("dragstart", @panStart)
 
       @active = true
-      app.view.process.on this, "zoom", @panAfterZooming
+      app.view.overview.on this, "zoom", @panZoom
+
+      @wheel.activate()
+      @wheel.on("delta", app.view.overview.changeZoom)
 
 
   deactivate : ->
@@ -39,7 +44,10 @@ class PanBehavior extends Behavior
         .off("dragstart", @panStart)
 
       @active = false
-      app.view.zoom.off this, "change"
+      app.view.overview.off this, "zoom", @panZoom
+
+      @wheel.deactivate()
+      @wheel.off("delta", app.view.overview.changeZoom)
 
 
   panStart : (event) =>
@@ -63,10 +71,9 @@ class PanBehavior extends Behavior
     app.trigger "behavior:panning"
 
 
-  panAfterZooming : (zoomLevel, position) =>
+  panZoom : (zoomLevel, position) =>
 
-    $svg = @$el.find("#process-graph")
-    svgRoot = $svg[0]
+    $svg = $(@svgRoot)
     groupElement = @graph.graphContainer[0][0]
 
     if position
@@ -86,7 +93,7 @@ class PanBehavior extends Behavior
     p = @transformPointToLocalCoordinates(mouse)
 
 
-    transformationMatrix = svgRoot.createSVGMatrix()
+    transformationMatrix = @svgRoot.createSVGMatrix()
       .translate(p.x, p.y)
       .scale(scale)
       .translate(-p.x, -p.y)

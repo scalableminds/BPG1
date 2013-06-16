@@ -22,7 +22,7 @@ app.addInitializer ->
   app.view.zoom = new Zoom()
   app.view.overview = new ViewWrapper(
     -> new ProjectsOverviewView(app.model.projects)
-    (level) -> Math.max(level * .1 + .3, .3)
+    (level) -> Math.max(level * .3 + .3, .3)
   )
 
   app.view.details = new ViewWrapper(
@@ -32,8 +32,14 @@ app.addInitializer ->
   app.view.process = new ViewWrapper(
       -> new ProcessView(app.model.project)
       (level) -> 
-        # wants range from .3 to 10.3 in .1 steps => 100 steps
-        Math.max((level - 40) * .1, .3)
+        # 100 steps starting from .2
+        Math.max(
+          if level > 60
+            (level - 50) * .1 + 1
+          else
+            (level - 40) * .0833 + .4
+          .4
+        )
     )
 
   app.view.wheel = new Wheel(document.body)
@@ -94,7 +100,7 @@ switchView = RangeSwitch(
     app.view.wheel.activate()
 
 
-  "40 <= x <= 140" : (level) ->
+  "40 <= x <= 150" : (level) ->
 
     app.view.overview.kill()
     app.view.details.kill()

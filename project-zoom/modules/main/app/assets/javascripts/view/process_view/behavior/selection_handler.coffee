@@ -138,13 +138,13 @@ class SelectionHandler extends Behavior
 
     if selection
 
+      offset = @graph.$svgEl.offset()
       boundingBox = selection.getBoundingClientRect()
-      position = selection.getBBox()
       buttonWidth = 50
 
       @$tools.css(
-        left: position.x
-        top: position.y
+        left: boundingBox.left - offset.left
+        top: boundingBox.top - offset.top
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )

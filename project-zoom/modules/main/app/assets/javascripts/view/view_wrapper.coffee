@@ -61,7 +61,7 @@ class ViewWrapper
     @make()
     @view.$el.css(
       "transform" : "scale(#{scale})"
-      "transformOrigin" : if position then "#{position[0]}px #{position[1]}px" else ""
+      "transformOrigin" : if position then "#{position[0]}px #{position[1] - 41}px" else ""
     )
 
 

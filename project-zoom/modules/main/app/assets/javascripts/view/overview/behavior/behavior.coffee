@@ -9,35 +9,32 @@ class Behavior
 
     EventMixin.extend(this)
 
-    # @offset = @graph.$svgEl.offset()
-    @scaleValue = if app.view.zoom.level is 0 then 1.0 else app.view.zoom.level
+    @svgRoot = @graph.svgEl
+    @transformationGroup = @graph.graphContainer[0][0]
 
 
-  mousePosition : (event, relativeToGraph = true) =>
+  transformPointToLocalCoordinates : (point) ->
 
-    @scaleValue = if app.view.zoom.level is 0 then 1.0 else app.view.zoom.level
+    p = @svgRoot.createSVGPoint()
+    p.x = point.x
+    p.y = point.y
 
-    unless relativeToGraph
-      @scaleValue = 1.0
-      @offset = { left: 0, top: 0}
-
-    x = event.gesture.touches[0].pageX #- @offset.left
-    y = event.gesture.touches[0].pageY #- @offset.top
-
-    x /= @scaleValue
-    y /= @scaleValue
-
-    return { x: x, y: y }
+    p.matrixTransform(@transformationGroup.getCTM().inverse())
 
 
-  activate : ->
+  mouseToSVGLocalCoordinates : (event, matrix) ->
 
-    return true
+    offset = @graph.$svgEl.offset()
+    p = @svgRoot.createSVGPoint()
 
-  deactivate : ->
+    p.x = event.gesture.touches[0].pageX - offset.left
+    p.y = event.gesture.touches[0].pageY - offset.top
 
-    return false
+    transformationMatrix = matrix ? @transformationGroup.getCTM().inverse()
+    p.matrixTransform(transformationMatrix)
 
 
+  setCTM : (matrix) ->
 
-
+    matrixString = "#{matrix.a} #{matrix.b} #{matrix.c} #{matrix.d} #{matrix.e} #{matrix.f}"
+    @graph.graphContainer.attr("transform", "matrix(#{matrixString})")

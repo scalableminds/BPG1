@@ -6,24 +6,21 @@ lib/event_mixin : EventMixin
 
 class ProjectGraph
 
-  constructor : (@graphContainer, @svg, @projects) ->
+  constructor : (@el, @projects) ->
 
-
-    @$el = $(@graphContainer)
     @selectedTags = []
     @clusters = []
 
-    @$svgEl = @$el.find("svg").prevObject
-    @svgEl = @$svgEl[0][0]
-    window.debug = @$el.find("svg").prevObject
-
+    @$el = $(@el)
+    @$svgEl = @$el.find("svg")
+    @svgEl = @$svgEl[0]
     @d3Element = d3.select(@el).select("svg")
-    # @graphContainer = @d3Element.append("svg:g")
+    @graphContainer = @d3Element.append("svg:g")
 
     EventMixin.extend(this)
     @initLayouter()
 
-    @circles = @svg.append("svg:g").selectAll("circle")
+    @circles = @d3Element.append("svg:g").selectAll("circle")
 
     @projectNodes = @graphContainer.append("svg:g").selectAll("projectNode")
 
@@ -39,8 +36,7 @@ class ProjectGraph
     margin_x = 30
     margin_y = 70
     nodeWidth = 100
-    # svgWidth = parseInt $(@svg[0][0]).width() / scale_value
-    next_line = 25 # parseInt( svgWidth / (margin_x + nodeWidth) )
+    next_line = 25
 
     g = @projectNodes.enter().append("svg:g")
     g.append("svg:image")
