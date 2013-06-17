@@ -79,7 +79,6 @@ class PanZoomBehavior extends Behavior
     $svg = $(@svgRoot)
     groupElement = @graph.graphContainer[0][0]
 
-
     if position
 
       mouse =
@@ -95,7 +94,6 @@ class PanZoomBehavior extends Behavior
     scale = zoomLevel / @oldZoomLevel
 
     p = @transformPointToLocalCoordinates(mouse)
-
 
     transformationMatrix = @svgRoot.createSVGMatrix()
       .translate(p.x, p.y)

@@ -63,12 +63,11 @@ class DragAndDropBehavior extends Behavior
         position : "absolute"
         width: "64px"
         height: "64px"
-        opacity: 0.8
         "z-index": 100
       )
 
     @$preview.append($svgContainer)
-    $("body").append(@$preview)
+    $(document.body).append(@$preview[0])
 
     @containerDimensions = $svgContainer[0].getBoundingClientRect() #correct dimension can only be retrieved after appending container to DOM
 

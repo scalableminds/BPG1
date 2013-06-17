@@ -25,6 +25,8 @@ class Mailer extends Actor {
    * Sends an email based on the provided data
    */
   def send(mailGauge: Mail) = {
+    println(s"about to send mail: $mailGauge")
+    
     val mail = use[MailerPlugin].email
     mail.setSubject(subjectPrefix + mailGauge.subject)
     mail.addFrom(mailGauge.from)
@@ -37,6 +39,7 @@ class Mailer extends Actor {
     mailGauge.headers foreach { case (key, value) => mail.addHeader(key, value) }
 
     mail.send(mailGauge.bodyText, mailGauge.bodyHtml)
+    println(s"sent mail")
 
   }
 }

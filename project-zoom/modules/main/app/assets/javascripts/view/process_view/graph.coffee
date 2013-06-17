@@ -192,6 +192,7 @@ class Graph
           class : "cluster"
           "data-id" : (data) -> data.get("id")
           d : (data) => Cluster(data).getLineSegment(@)
+          "stroke" : (data) -> Cluster(data).getColor()
         )
 
     @drawComment(@clusterPaths, Cluster)

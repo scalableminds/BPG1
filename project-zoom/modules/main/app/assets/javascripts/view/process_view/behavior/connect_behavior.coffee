@@ -30,6 +30,8 @@ class ConnectBehavior extends Behavior
 
     app.trigger "behavior:disable_panning"
 
+    @offset = @graph.$svgEl.offset()
+
 
   deactivate : ->
 
@@ -60,8 +62,8 @@ class ConnectBehavior extends Behavior
   move : (event) =>
 
     mouse =
-      x : event.offsetX
-      y : event.offsetY
+      x : event.pageX - @offset.left
+      y : event.pageY - @offset.top
 
     mouse = @transformPointToLocalCoordinates(mouse)
 

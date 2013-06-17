@@ -63,7 +63,7 @@ class SelectionHandler extends Behavior
 
     @hammerContext
       .off("tap", @unselect)
-      .off("tap", @selectNode)
+      .off("touch", @selectNode)
       .off("tap", @selectCluster)
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)

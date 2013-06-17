@@ -23,7 +23,7 @@ case class Node(id: Int, position: Position, typ: String, payload: NodePayload, 
 
 case class Edge(from: Int, to: Int, comment: Option[String] = None)
 
-case class Cluster(id: Int, waypoints: List[Position], content: List[Int], comment: Option[String] = None)
+case class Cluster(id: Int, waypoints: List[Position], content: List[Int], comment: Option[String] = None, phase: Option[String] = None)
 
 case class Graph(
   group: String,

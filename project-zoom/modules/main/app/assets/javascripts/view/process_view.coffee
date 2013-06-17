@@ -126,12 +126,12 @@ class ProcessView
     toolBox = @$el.find(".toolbar .dropdown-menu a")
     behavior = switch selectedTool
 
-      when toolBox[0] then new DrawClusterBehavior(graph, element, "standard")
-      when toolBox[1] then new DrawClusterBehavior(graph, element, "understand")
-      when toolBox[2] then new DrawClusterBehavior(graph, element, "observe")
-      when toolBox[3] then new DrawClusterBehavior(graph, element, "pov")
-      when toolBox[4] then new DrawClusterBehavior(graph, element, "ideate")
-      when toolBox[5] then new DrawClusterBehavior(graph, element, "prototype")
-      when toolBox[6] then new DrawClusterBehavior(graph, element, "test")
+      when toolBox[0] then new DrawClusterBehavior(graph, element, "freeform")
+      when toolBox[1] then new DrawClusterBehavior(graph, element, "Understand")
+      when toolBox[2] then new DrawClusterBehavior(graph, element, "Observe")
+      when toolBox[3] then new DrawClusterBehavior(graph, element, "POV")
+      when toolBox[4] then new DrawClusterBehavior(graph, element, "Ideate")
+      when toolBox[5] then new DrawClusterBehavior(graph, element, "Prototype")
+      when toolBox[6] then new DrawClusterBehavior(graph, element, "Test")
 
     @selectionHandler.changeBehavior( behavior )
