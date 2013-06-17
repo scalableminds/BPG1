@@ -112,7 +112,7 @@ Cluster = (cluster) ->
       x: waypoints.max( (waypoint) -> waypoint.get("x") ).get("x")
       y: waypoints.min( (waypoint) -> waypoint.get("y") ).get("y")
 
-    distance = upperRightCorner.x + upperRightCorner.y
+    distance = Math.abs(upperRightCorner.x) + Math.abs(upperRightCorner.y)
     position = null
 
     #manhattan distance
