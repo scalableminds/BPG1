@@ -94,7 +94,7 @@ class PanZoomBehavior extends Behavior
 
     scale = zoomLevel / @oldZoomLevel
 
-    p = @transformPointToLocal(mouse)
+    p = @transformPointToLocalCoordinates(mouse)
 
 
     transformationMatrix = @svgRoot.createSVGMatrix()

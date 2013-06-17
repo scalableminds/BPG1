@@ -283,8 +283,6 @@ class Graph
 
   moveCluster : (cluster, delta) ->
 
-    #cluster = @clusters.find( (cluster) -> cluster.get("id") == clusterId )
-
     #move waypoints
     cluster.update("waypoints", (waypoints) ->
 

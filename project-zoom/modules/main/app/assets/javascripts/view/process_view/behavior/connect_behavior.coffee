@@ -63,7 +63,7 @@ class ConnectBehavior extends Behavior
       x : event.offsetX
       y : event.offsetY
 
-    mouse = @transformPointToLocal(mouse)
+    mouse = @transformPointToLocalCoordinates(mouse)
 
     nodeData = d3.select(@element).datum()
     lineStart = nodeData.get("position").toObject()

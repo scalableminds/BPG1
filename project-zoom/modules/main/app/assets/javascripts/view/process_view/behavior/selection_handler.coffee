@@ -32,13 +32,15 @@ class SelectionHandler extends Behavior
 
     @hammerContext = Hammer( @graph.svgEl )
       .on("tap", "svg", @unselect)
-      .on("tap", ".node", @selectNode)
+      .on("touch", ".node", @selectNode)
       .on("tap", ".cluster", @selectCluster)
       .on("dragstart", ".node", @selectNode)
       .on("dragstart", ".cluster", @selectCluster)
       .on("dragend", @enablePanning)
 
-    @$tools.find(".btn").on("tap", @selectBehavior)
+    @toolsContext = Hammer(@$tools[0])
+      .on("tap", ".btn", @selectBehavior)
+      .on("tap", "i", @selectBehavior)
 
     app.on this,
       "behavior:done" : =>
@@ -66,6 +68,9 @@ class SelectionHandler extends Behavior
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)
       .off("dragend", @enablePanning)
+
+    @toolsContext
+      .off("tap", @selectBehavior)
 
     @dispatcher.unregisterAll(this)
 
@@ -130,18 +135,21 @@ class SelectionHandler extends Behavior
       @$tools = $(template)
       @$tools.hide()
 
-      @$el.append(@$tools)
+      @$el.find(".graph").append(@$tools)
 
   positionToolbar : ->
 
-    if @selection
+    selection = @selection
 
-      boundingBox = @selection.getBoundingClientRect()
-      buttonWidth = 48
+    if selection
+
+      offset = @graph.$svgEl.offset()
+      boundingBox = selection.getBoundingClientRect()
+      buttonWidth = 50
 
       @$tools.css(
-        left: boundingBox.left
-        top: boundingBox.top - buttonWidth # offset due to parents relative position
+        left: boundingBox.left - offset.left
+        top: boundingBox.top - offset.top
         width: boundingBox.width + buttonWidth
         height: boundingBox.height
       )
