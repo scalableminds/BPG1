@@ -69,9 +69,9 @@ class Tagbar
 
   init_tag_count : (projects) ->
 
-    for project in projects
+    # for project in projects
 
-      console.log project.tags
+      # console.log project.tags
 
 
   destroy : ->

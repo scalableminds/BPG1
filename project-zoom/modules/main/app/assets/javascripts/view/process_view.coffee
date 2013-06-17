@@ -38,7 +38,7 @@ class ProcessView
 
       @graph = new Graph(@$el.find(".graph")[0], graphModel, @artifactFinder)
       @panning = new PanZoomBehavior(@$el, @graph)
-      @dragAndDrop = new DragAndDropBehavior(@$el, @graph)
+      @dragAndDrop = new DragAndDropBehavior(@$el, @graph, @graph.layouter)
       @selectionHandler = new SelectionHandler(@$el, @graph)
 
       @activate() if @pleaseActivate
@@ -51,7 +51,7 @@ class ProcessView
   deactivate : ->
 
     @pleaseActivate = false
-    
+
     return unless @isActivated
 
     @isActivated = false

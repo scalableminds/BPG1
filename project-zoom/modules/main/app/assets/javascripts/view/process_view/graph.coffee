@@ -5,6 +5,7 @@ d3 : d3
 ./edge : Edge
 ./cluster : Cluster
 ../../component/artifact : Artifact
+../../component/layouter : Layouter
 lib/data_item : DataItem
 lib/event_mixin : EventMixin
 ./behavior/drag_behavior : DragBehavior
@@ -39,6 +40,8 @@ class Graph
     @drawEdges()
     @drawClusters()
 
+    @layouter = new Layouter(@nodes, true)
+
 
   addNode : (x, y, artifactId) ->
 
@@ -58,6 +61,7 @@ class Graph
       Cluster(cluster).ensureNode(node)
 
     # @drawNodes()
+    return node
 
 
   addEdge : (source, target) ->

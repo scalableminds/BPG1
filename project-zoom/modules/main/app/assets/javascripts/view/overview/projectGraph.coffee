@@ -18,18 +18,17 @@ class ProjectGraph
     @graphContainer = @d3Element.append("svg:g")
 
     EventMixin.extend(this)
-    @initLayouter()
 
     @circles = @d3Element.append("svg:g").selectAll("circle")
 
     @projectNodes = @graphContainer.append("svg:g").selectAll("projectNode")
+    @layouter = new Layouter(@projectNodes)
 
 
 
   drawProjects : (projects = @projects) ->
 
     names = []
-    layouter = @layouter
     @projectNodes = @projectNodes.data(projects, (data) -> data.id)
 
     start_x = start_y = x = y = 20
@@ -143,7 +142,6 @@ class ProjectGraph
     tagged = []
     if @selectedTags.length isnt 0
       for p in @projects
-        console.log "selected: ", @selectedTags
         if _.intersection(p.tags, @selectedTags).length isnt 0
           tagged.push p
 
@@ -199,9 +197,6 @@ class ProjectGraph
       return "bottom"
 
 
-  initLayouter : ->
-
-    @layouter = new Layouter()
 
 
 

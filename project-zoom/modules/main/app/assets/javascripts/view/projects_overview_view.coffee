@@ -83,7 +83,6 @@ class ProjectsOverviewView
         tags:         @clean_tags project.get("tags").toObject() # [project.get("year")]
 
       @projects.push p
-      console.log p.tags
     )
 
     @graph = new ProjectGraph(@el, @projects)

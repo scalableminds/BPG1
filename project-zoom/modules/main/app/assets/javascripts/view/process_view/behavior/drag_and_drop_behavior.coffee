@@ -5,9 +5,10 @@ app : app
 
 class DragAndDropBehavior extends Behavior
 
-  constructor : (@$el, @graph) ->
+  constructor : (@$el, @graph, @layouter) ->
 
     super(@graph)
+
 
   activate : ->
 
@@ -25,12 +26,19 @@ class DragAndDropBehavior extends Behavior
       .off("drag", @dragMove)
 
 
+  layout : (node) =>
+
+    # imageElement = $(event.gesture.target)
+    destination = @layouter.move_if_collision(node)
+    @graph.moveNode(node, destination)
+
+
   addArtifact : (event) =>
 
     imageElement = $(event.gesture.target)
     touch = event.gesture.touches[0]
 
-    #is the mouse over the SVG?
+    # is the mouse over the SVG?
     @offset = @graph.$svgEl.offset()
 
     if touch.pageX > @offset.left and touch.pageY > @offset.top
@@ -38,7 +46,8 @@ class DragAndDropBehavior extends Behavior
       position = @mouseToSVGLocalCoordinates(event)
 
       artifactId = imageElement.data("id")
-      @graph.addNode(position.x, position.y, artifactId)
+      node = @graph.addNode(position.x, position.y, artifactId)
+      @layout(node)
 
     @$preview.remove()
 
