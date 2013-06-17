@@ -126,7 +126,6 @@ Cluster = (cluster) ->
         distance = manhattanDistance
         position = waypoint
 
-    return {
-      x: position.get("x")
-      y: position.get("y")
-    }
+    result =
+      x: position?.get("x") or upperRightCorner.x
+      y: position?.get("y") or upperRightCorner. y

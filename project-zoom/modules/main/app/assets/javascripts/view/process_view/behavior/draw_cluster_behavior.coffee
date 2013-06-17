@@ -8,7 +8,7 @@ app : app
 
 class DrawClusterBehavior extends Behavior
 
-  constructor : ( @graph, @$el, @type ) ->
+  constructor : ( @graph, @$el, @clusterType ) ->
 
     @throttledDragMove = _.throttle(@dragMove, 50)
     if @graph.$svgEl.find(".preview").length == 0
@@ -59,6 +59,7 @@ class DrawClusterBehavior extends Behavior
       id : @graph.nextId()
       waypoints : []
       content : []
+      comment: @clusterType unless @clusterType == "freeform"
     )
     @preview.data(@cluster)
 
