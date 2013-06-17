@@ -129,3 +129,19 @@ Cluster = (cluster) ->
     result =
       x: position?.get("x") or upperRightCorner.x
       y: position?.get("y") or upperRightCorner. y
+
+
+  getColor : ->
+
+    colorMap =
+      "freeform" : "#000000"
+      "Understand" : "#388aac"
+      "Observe" : "#b72772"
+      "POV" : "#4aa751"
+      "Ideate" : "#e25c36"
+      "Prototype" : "#d33924"
+      "Test" : "#a52025"
+
+    clusterType = cluster.get("phase")
+
+    colorMap[clusterType]
