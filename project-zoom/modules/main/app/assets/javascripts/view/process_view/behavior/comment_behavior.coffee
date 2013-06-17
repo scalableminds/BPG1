@@ -2,6 +2,7 @@
 ./behavior : Behavior
 app: app
 d3 : d3
+text!templates/process_view_modal.html : ModalTemplate
 ###
 
 class CommentBehavior extends Behavior
@@ -55,22 +56,22 @@ class CommentBehavior extends Behavior
 
   showModal : (text, callback) ->
 
-    $modal = $("#comment-modal")
+    $modal = $(ModalTemplate)
 
     $textarea = $modal.find("textarea")
     $textarea.val(text)
 
-    $modal.on "shown", -> $textarea.focus()
+    $modal.one "shown", -> $textarea.focus()
 
     $saveButton = $modal.find(".btn-primary")
     $saveButton.on "click", (event) ->
 
       $modal.modal("hide")
+      $modal.remove()
 
       text = $textarea.val()
       callback(text)
 
-      $modal.off("shown")
       $saveButton.off("click")
 
     $modal.modal("show")

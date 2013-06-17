@@ -143,6 +143,7 @@ class ProjectGraph
     tagged = []
     if @selectedTags.length isnt 0
       for p in @projects
+        console.log "selected: ", @selectedTags
         if _.intersection(p.tags, @selectedTags).length isnt 0
           tagged.push p
 

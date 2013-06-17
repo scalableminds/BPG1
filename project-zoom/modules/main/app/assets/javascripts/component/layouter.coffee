@@ -23,7 +23,7 @@ class Layouter
       pos_x = parseInt( d3.select(svg_text).attr("x") )
       pos_y = parseInt( d3.select(svg_text).attr("y") )
 
-      abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      abc = "abcdefghijklmnopqrstuvwxyzäöüABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ"
       t_copy.textContent = abc
 
       letterWidth = t_copy.getBBox().width / abc.length
