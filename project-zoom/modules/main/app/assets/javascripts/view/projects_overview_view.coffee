@@ -45,6 +45,11 @@ class ProjectsOverviewView
     # drag artifact into graph
     @$el.on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
 
+    @hh = Hammer(@$el.find(".graph svg")[0]).on("tap", "image", (event) -> 
+      app.model.setProject(d3.select(event.target).datum())
+    )
+    
+
     @graph.drawProjects()
 
 
@@ -58,6 +63,8 @@ class ProjectsOverviewView
       .off("click")
 
     @$el.find(".tagbarItem input").off("click")
+
+    @hh.off("tap")
 
     @gui.deactivate()
     @panning.deactivate()

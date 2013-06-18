@@ -117,14 +117,14 @@ class ArtifactFinder
     folder = []
     for path in paths         
       group.div.append(
-        @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
+        @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/[^A-Za-z0-9]/g,"_")}" }
       )
     group.div.append("</div>")
 
     for artifact in artifacts
 
       path = artifact.get("path")
-      parent = $("#collapseBody#{path.replace(/\//g,"_")}").find(".accordion-inner")
+      parent = $("#collapseBody#{path.replace(/[^A-Za-z0-9]/g,"_")}").find(".accordion-inner")
 
       artifactC = new Artifact(artifact, getSliderValue)
       @artifactComponents.push artifactC
