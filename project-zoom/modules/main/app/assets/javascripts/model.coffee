@@ -67,7 +67,7 @@ ModelFunctions =
               graph.save()
             return
 
-          patchData = app.model.project.get("graphs/0").patchAcc.flush()
+          patchData = project.get("graphs/0").patchAcc.flush()
 
           return if patchData.length == 0
 
@@ -129,19 +129,30 @@ app.addInitializer (options, callback) ->
     projects : new DataItem.Collection("/projects")
     tags : new DataItem.Collection("/tags")
     project : null
+    setProject : (project) ->
+
+      unless project instanceof DataItem
+        project = model.projects.find( (a) -> a.get("id") == project.id )
+
+      $.when(
+        ModelFunctions.prepareTags(project)
+        ModelFunctions.prepareGraph(project)
+        ModelFunctions.prepareArtifacts(project)
+      ).then ->
+        model.project = project
+        alert("Done")
 
 
   $.when(
 
     model.projects.fetchNext().then( 
       ->
-        model.project = model.projects.find( (a) -> a.get("name") == "Project-Zoom" )
+        model.project = model.projects.at(0) #find( (a) -> a.get("name") == "Project-Zoom" )
         $.when(
           model.projects.map(ModelFunctions.prepareTags)...
           ModelFunctions.prepareGraph(model.project)
           ModelFunctions.prepareArtifacts(model.project)
         )
-
     )
 
     model.tags.fetchNext()

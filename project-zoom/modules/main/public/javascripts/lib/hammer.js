@@ -1,4 +1,4 @@
-/*! Hammer.JS - v1.0.5 - 2013-05-02
+/*! Hammer.JS - v1.0.5 - 2013-06-18
  * http://eightmedia.github.com/hammer.js
  *
  * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
@@ -181,7 +181,7 @@ Hammer.Instance.prototype = {
         var gestures = gesture.split(' ');
         for(var t=0; t<gestures.length; t++) {
             this.element.addEventListener(gestures[t], selectorHandler, false);
-            this.delegation.push( { handler : selectorHandler, originalHandler : handler, selector : selector} );
+            this.delegation.push( { handler : selectorHandler, originalHandler : handler, selector : selector, gesture : gestures[t] } );
         }
         return this;
     },
@@ -199,23 +199,31 @@ Hammer.Instance.prototype = {
 
         if (arguments.length == 2){
             handler = selector;
+            selector = null;
         }
 
         for(var t=0; t<gestures.length; t++) {
 
+            var notFound = true;
+
             if (this.delegation) {
-                for (var i=0; i<this.delegation.length; i++) {
+                var delegation = this.delegation.slice(0);
 
-                    var delegate = this.delegation[i];
+                for (var i=0; i<delegation.length; i++) {
 
-                    if (handler == delegate.originalHandler){
+                    var delegate = delegation[i];
+
+                    if (gestures[t] == delegate.gesture && handler == delegate.originalHandler){
                         this.element.removeEventListener(gestures[t], delegate.handler, false);
+                        notFound = false;
+                        this.delegation.splice(i, 1);
                         break;
                     }
                 }
-            } else {
-                this.element.removeEventListener(gestures[t], handler, false);
+            }
 
+            if (notFound) {
+                this.element.removeEventListener(gestures[t], handler, false);
             }
 
         }

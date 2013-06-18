@@ -117,6 +117,6 @@ object GraphDAO extends SecuredMongoJsonDAO[Graph] with GraphTransformers {
   }
 
   def findLatestForGroup(group: String)(implicit ctx: DBAccessContext) = {
-    findMaxBy("version")
+    findMaxBy("version", Json.obj("group" -> group))
   }
 }
