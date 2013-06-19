@@ -121,16 +121,16 @@ trait MongoDAO[T] extends DAO[T] {
     collectionFind(Json.obj()).one[T]
   }
 
-  def findMaxBy(attribute: String)(implicit ctx: DBAccessContext) = {
-    findOrderedBy(attribute, -1, 1).map(_.headOption)
+  def findMaxBy(attribute: String, query: JsObject)(implicit ctx: DBAccessContext) = {
+    findOrderedBy(attribute, -1, 1, query).map(_.headOption)
   }
 
-  def findMinBy(attribute: String)(implicit ctx: DBAccessContext) = {
-    findOrderedBy(attribute, 1, 1).map(_.headOption)
+  def findMinBy(attribute: String, query: JsObject)(implicit ctx: DBAccessContext) = {
+    findOrderedBy(attribute, 1, 1, query).map(_.headOption)
   }
 
-  def findOrderedBy(attribute: String, desc: Int, limit: Int = 1)(implicit ctx: DBAccessContext) = {
-    collectionFind().sort(Json.obj(attribute -> desc)).cursor[T].collect[List](limit)
+  def findOrderedBy(attribute: String, desc: Int, limit: Int = 1, query: JsObject)(implicit ctx: DBAccessContext) = {
+    collectionFind(query).sort(Json.obj(attribute -> desc)).cursor[T].collect[List](limit)
   }
 
   def find(attribute: String, value: String)(implicit ctx: DBAccessContext): GenericQueryBuilder[JsObject, play.api.libs.json.Reads, play.api.libs.json.Writes] = {

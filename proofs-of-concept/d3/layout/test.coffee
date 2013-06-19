@@ -1,5 +1,6 @@
 $ = jQuery
 
+version = 1
 
 NODE_SIZE = 64
 MARGIN = 5
@@ -118,7 +119,7 @@ move_if_collision = (curr_node_position, origin) ->
   dragged_node = curr_node_position
 
   loop_iterations = 0
-  while (no_collisions is false) and (loop_iterations < 4)
+  while (no_collisions is false) and (loop_iterations < 100)
 
     collisions = get_collisions(curr_node_position, list_of_nodes, dragged_node)
 
@@ -174,49 +175,35 @@ drag = d3.behavior.drag()
 #   temp = d3.select(this)
 #   origin = {x: temp.attr("x"), y: temp.attr("y")}
 # )
-.on("drag", (d, i) ->
-  d.x += d3.event.dx
-  d.y += d3.event.dy
-  d3.select(this).attr "transform", (d, i) ->
-    "translate(" + [d.x, d.y] + ")"
+.on("dragstart", (d, i) ->
 
-  # move_away = false
-  # if (get_collisions(d, list_of_nodes).length is 0) or (move_away is true)
-  #   d.x += d3.event.dx
-  #   d.y += d3.event.dy
-  #   d3.select(this).attr "transform", (d, i) ->
-  #     "translate(" + [d.x, d.y] + ")"
-  #   move_away = false
-  # else
-  #   move_away = true
-  #   console.log "buuuuuh!!!!!!!"
-  #   d3.select(this).attr "transform", (d, i) ->
-  #     "translate(" + [d.x, d.y] + ")"
-  # console.log "m", move_away
+  @copy = _.clone(d)
+
+)
+.on("drag", (d, i) ->
+
+  if version is 2
+    @copy.x += d3.event.dx
+    @copy.y += d3.event.dy
+
+    if get_collisions(@copy, _.without(list_of_nodes, d) ).length is 0
+      d3.select(this).attr "transform", (d, i) ->
+        "translate(" + [d.x, d.y] + ")"
+      d.x = d3.event.x
+      d.y = d3.event.y
+      @copy = _.clone(d)
+  else
+    d.x += d3.event.dx
+    d.y += d3.event.dy
+    d3.select(this).attr "transform", (d, i) ->
+      "translate(" + [d.x, d.y] + ")"
 )
 .on("dragend", (d, i) ->
-  node_selector = "#node_#{i}"
+  if version is 1
+    node_selector = "#node_#{i}"
 
-  destination = move_if_collision(d, drag.origin())
-  move_node(d, node_selector, destination)
-
-  # console.log d, i
-  # collisions = get_collisions(d, list_of_nodes)
-  # console.log "--------------------"
-  # console.log collisions
-  # console.log "--------------------"
-  # reversed_distance_vectors = []
-  # for collision_node in collisions
-  #   reversed_distance_vectors.push reversed_distance_vector(d, collision_node)
-  # console.log reversed_distance_vectors
-  # console.log "--------------------"
-  # reversed_relocation_vector = reversed_distance_vectors[0]
-  # for vec, i in reversed_distance_vectors when i isnt 0
-  #   reversed_relocation_vector = add_vectors(reversed_relocation_vector, vec)
-
-  # console.log reversed_relocation_vector
-  # console.log "--------------------"
-
+    destination = move_if_collision(d, drag.origin())
+    move_node(d, node_selector, destination)
 )
 
 
@@ -237,8 +224,8 @@ draw_nodes = (svg) ->
   .attr(
     width: NODE_SIZE
     height: NODE_SIZE
-    rx: 20
-    ry: 20
+    # rx: 20
+    # ry: 20
   )
   .style "fill", (d, i) ->
     color i % 10

@@ -18,7 +18,7 @@ object ProjectController extends ControllerBase with JsonCRUDController {
         ProjectDAO.addGraphTo(projectId, graph).map { r =>
           if (r.updated > 0) {
             GraphDAO.insert(graph)
-            Redirect(controllers.main.routes.GraphController.read(graph._id.stringify))
+            Redirect(controllers.main.routes.GraphController.read(graph.group))
           } else {
             BadRequest("Project doesn't exist")
           }
