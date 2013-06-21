@@ -1,7 +1,7 @@
 ### define
 hammer : Hammer
 ./behavior : Behavior
-../cluster : Cluster
+../helpers/cluster : Cluster
 app : app
 ###
 

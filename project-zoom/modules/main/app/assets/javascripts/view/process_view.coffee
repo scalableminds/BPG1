@@ -5,11 +5,12 @@ lib/event_mixin : EventMixin
 d3 : d3
 hammer : Hammer
 jquery.mousewheel : Mousewheel
+
 ./process_view/graph : Graph
 ./process_view/gui : GUI
+./process_view/artifact_finder : ArtifactFinder
+./process_view/artifact : Artifact
 
-../component/artifact_finder : ArtifactFinder
-../component/artifact : Artifact
 text!templates/process_view.html : ProcessViewTemplate
 
 ./process_view/behavior/selection_handler : SelectionHandler
