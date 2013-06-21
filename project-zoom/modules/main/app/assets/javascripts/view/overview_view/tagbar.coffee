@@ -58,10 +58,11 @@ class Tagbar
 
       $label = $("<label>",
         id: "label_#{tag.name}"
+        class: "checkbox"
         )
-      $label.text tag.name
+      $label.text(tag.name)
+      $label.prepend($checkbox, " ")
 
-      $container.append $checkbox
       $container.append $label
 
       $taglist.append $container
