@@ -20,8 +20,6 @@ import scala.util.{Try, Success, Failure}
 
 case object UpdateProjects
 
-class CreatingTunnelFailed extends RuntimeException
-
 case class BoxUpdated(accessTokens: BoxAccessTokens) extends Event
 
 
@@ -88,10 +86,6 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
       case _ => 
     }
   }
-  
-  override def preStart {
-    super.preStart
-  }
 
   override def receive = {
     case UpdateBoxAccessTokens(tokens: BoxAccessTokens) => DBProxy.setBoxToken(tokens)
@@ -101,24 +95,15 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
     case Terminated(actor) => restartActor(actor)  
   }
 
-  val connectors = List[ActorRef]()
-
   def updateProjects =
     DBProxy.getProjects.map{projects =>
       ProjectCache.setProjects(projects)
     }
 
-  def updateUsers = {
-
-  }
-
-  def updateSettings = {
-
-  }
-
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1 minute) {
     case _ => Restart
   }
+  
 }
 
 object SupervisorActor extends StartableActor[SupervisorActor] {
