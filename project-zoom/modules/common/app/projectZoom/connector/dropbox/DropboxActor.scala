@@ -17,25 +17,15 @@ case class DropboxAuth(
 class DropboxActor(dropbox: DropboxAPI) extends ConnectorActor with PlayConfig {
   val TICKER_INTERVAL = 1 minute
 
-  var updateTicker: Cancellable = null
-  
   def aggregate = {
-    
-  }
-  
-  def start = {
-    Logger.debug("Starting update ticker")
-    updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL) {
-      dropbox.updateLocalDropbox.map { l =>
-        Logger.error("Got the list! L: " + l.size)
-        l.map { artifactUpdate =>
-          artifactActor ! artifactUpdate
-        }
+    dropbox.updateLocalDropbox.map { l =>
+      Logger.error("Got the list! L: " + l.size)
+      l.map { artifactUpdate =>
+        //artifactActor ! artifactUpdate
       }
     }
   }
-
-  def stop = {
-    updateTicker.cancel
-  }
+  
+  def start = Logger.debug("Starting Dropbox Actor")
+  def stop = Logger.debug("Stopping Dropbox Actor")
 }

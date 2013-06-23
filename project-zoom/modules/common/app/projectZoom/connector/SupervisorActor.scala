@@ -28,11 +28,20 @@ case class BoxUpdated(accessTokens: BoxAccessTokens) extends Event
 class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConfig {
 
   val BoxActor = Agent[Option[ActorRef]](None)
+  val FilemakerActor = Agent[Option[ActorRef]](None)
   
   Future(updateProjects).onSuccess{
     case _ => 
-      FilemakerConnector.startAggregating(context)
+      startFilemakerActor
       startBoxActor
+  }
+  
+  def startFilemakerActor = {
+    FilemakerAPI.create.map{fmAPI => 
+      val fmActor = context.actorOf(Props(new FilemakerActor(fmAPI)))
+      FilemakerActor.send(Some(fmActor))
+      fmActor ! StartAggregating
+    }
   }
 
   def startBoxActor = {

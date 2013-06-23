@@ -5,12 +5,13 @@ import akka.actor._
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Logger
+import scala.concurrent.Future
+import projectZoom.util.SSH
 
-class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor{
+class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor {
+
   val TICKER_INTERVAL = 1 minute
 
-  var updateTicker: Cancellable = null
-  
   def aggregate() = {
     publishProfiles(filemaker.extractStudents)
     val projects = filemaker.extractProjects
@@ -18,15 +19,10 @@ class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor{
   }
 
   def start = {
-    Logger.debug("Starting update ticker")
-    updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL, self, Aggregate)
+    Logger.debug("Starting FilemakerActor")
   }
 
   def stop = {
-    updateTicker.cancel
-  }
-  
-  override def preStart(){
-    self ! StartAggregating
+    Logger.debug("Stopping FilemakerActor")
   }
 }

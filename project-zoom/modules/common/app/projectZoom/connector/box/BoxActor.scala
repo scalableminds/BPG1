@@ -15,17 +15,15 @@ import org.joda.time.DateTime
 
 import scala.util.{ Success, Failure }
 
-class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventStreamPos: Long) extends ArtifactAggregatorActor {
 
-  Logger.debug(projects.mkString("\n"))
+class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventStreamPos: Long) extends ArtifactAggregatorActor {
+  
   val TICKER_INTERVAL = 1 minute
 
   implicit val timeout = Timeout(30 seconds)
 
   lazy val tokenActor = context.actorOf(Props(new BoxTokenActor(appKeys, accessTokens)))
   lazy val box = new BoxExtendedAPI(appKeys)
-
-  var updateTicker: Cancellable = null
 
   def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Option[ProjectLike] = {
     val collaboratorsOpt = box.fetchCollaborators(file)
@@ -94,17 +92,7 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
       }
     }
   }
-
-  def start = {
-    Logger.debug("Starting update ticker")
-    updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL, self, Aggregate)
-  }
-
-  def stop = {
-    updateTicker.cancel
-  }
-
-  override def preStart() {
-    self ! StartAggregating
-  }
+  
+  def start() = Logger.debug("Starting BoxActor")
+  def stop() = Logger.debug("Stopping BoxActor")
 }
