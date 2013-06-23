@@ -25,6 +25,11 @@ trait ConnectorActor extends Actor with ConnectorInterface with PlayConfig{
   
   val updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL, self, Aggregate)
   
+  override def preRestart = {
+    updateTicker.cancel
+    super.preStart
+  }
+  
   def stopped: Receive = {
     case StartAggregating =>
       start()
