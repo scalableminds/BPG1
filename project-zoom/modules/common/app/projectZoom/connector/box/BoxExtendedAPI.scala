@@ -14,8 +14,10 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import projectZoom.util.PlayConfig
 
-class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayActorSystem {
+
+class BoxExtendedAPI extends BoxAPI with PlayActorSystem {
   type FolderId=String
   
   implicit val timeout = Timeout(5 seconds)
@@ -70,5 +72,11 @@ class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayAc
         None
       }
     }
+  }
+}
+
+object BoxExtendedAPI extends PlayConfig{
+  def create = {
+
   }
 }

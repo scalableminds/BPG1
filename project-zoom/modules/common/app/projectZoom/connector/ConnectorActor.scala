@@ -43,5 +43,5 @@ trait ConnectorActor extends Actor with ConnectorInterface with PlayConfig {
     case Aggregate => aggregate()
   }
 
-  def receive = started
+  def receive = stopped
 }

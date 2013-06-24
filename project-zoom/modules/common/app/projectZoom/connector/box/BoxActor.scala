@@ -2,6 +2,7 @@ package projectZoom.connector.box
 
 import projectZoom.connector._
 import akka.actor._
+import akka.agent._
 import scala.concurrent.duration._
 import scala.concurrent._
 import play.api.libs.concurrent.Execution.Implicits._
@@ -12,16 +13,26 @@ import play.api.libs.json._
 import api._
 import models.{ Artifact, ProjectLike }
 import org.joda.time.DateTime
+import scala.util.{Try, Success, Failure }
 
-import scala.util.{ Success, Failure }
 
-
-class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventStreamPos: Long) extends ArtifactAggregatorActor {
+class BoxActor extends ArtifactAggregatorActor {
 
   implicit val timeout = Timeout(30 seconds)
-
-  lazy val tokenActor = context.actorOf(Props(new BoxTokenActor(appKeys, accessTokens)))
-  lazy val box = new BoxExtendedAPI(appKeys)
+ 
+  lazy val tokenActor = context.actorOf(Props[BoxTokenActor])
+  lazy val box = new BoxExtendedAPI
+  
+  def getEventStreamPos = {
+    val eventStreamPosFut = DBProxy.getBoxEventStreamPos
+    Try {
+      Await.result(eventStreamPosFut, 10 seconds)    
+    } match {
+      case Success(eventStreamPosOpt) => eventStreamPosOpt.getOrElse(0.toLong)
+      case Failure(err) => Logger.error(s"Timeout reading BoxAccessTokens for BoxTokenActor from DB:\n $err")
+      throw err
+    }
+  }
 
   def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Option[ProjectLike] = {
     val collaboratorsOpt = box.fetchCollaborators(file)
@@ -56,10 +67,11 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
   }
 
   def handleEventStream(implicit accessTokens: BoxAccessTokens) {
-    box.fetchEvents(eventStreamPos).map { jsonResponse =>
-      eventStreamPos = (jsonResponse \ "next_stream_position").as[Long]
-      DBProxy.setBoxEventStreamPos(eventStreamPos)
-      Logger.debug(s"new eventStreamPos: $eventStreamPos")
+    
+    box.fetchEvents(getEventStreamPos).map { jsonResponse =>
+      val nextEventStreamPos = (jsonResponse \ "next_stream_position").as[Long]
+      DBProxy.setBoxEventStreamPos(nextEventStreamPos)
+      Logger.debug(s"new eventStreamPos: $nextEventStreamPos")
       (jsonResponse \ "entries").as[JsArray].value.map { json =>
         json.validate(api.BoxEvent.BoxEventReads) match {
           case JsSuccess(event, _) =>
@@ -85,7 +97,6 @@ class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventS
   def aggregate() = {
     (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map { tokenOpt =>
       tokenOpt.map { implicit token =>
-        context.parent ! UpdateBoxAccessTokens(token)
         handleEventStream
       }
     }

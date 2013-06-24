@@ -8,42 +8,45 @@ import play.api.libs.json._
 import play.api.libs.ws._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
-
-case class BoxAccessTokens(access_token: String, access_token_expires: Long, token_type: String, refresh_token: String, refresh_token_expires: Long)
-
-object BoxAccessTokens extends Function5[String, Long, String, String, Long, BoxAccessTokens]{
-  
-  val refresh_token_validity = 3600 * 24 * 14 //14 days
-  
-  implicit val boxAccessTokensFormat = Json.format[BoxAccessTokens]
-  implicit val boxExpirationReader = 
-    (__).json.update(
-        ( __ \ 'access_token_expires).json.copyFrom((__ \ 'expires_in).json.pick[JsNumber].map{
-          case JsNumber(t) => JsNumber(System.currentTimeMillis / 1000 + t)
-        }
-    )) andThen (__).json.update(
-        (__ \ 'refresh_token_expires).json.put(
-        JsNumber(System.currentTimeMillis() / 1000 + refresh_token_validity)
-    )) andThen (__ \ 'expires_in).json.prune
-      
-}
-case class UpdateBoxAccessTokens(tokens: BoxAccessTokens)
+import projectZoom.connector.DBProxy
+import scala.util.{Try, Success, Failure}
 
 case object AccessTokensRequest
 
-class BoxTokenActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) extends Actor{
+class NoBoxConfigException(msg: String) extends Exception
+class NoBoxAccessTokensException(msg: String) extends Exception
+
+class BoxTokenActor extends Actor{
   import BoxAccessTokens._
   
-  private var tokens: BoxAccessTokens = accessTokens
+  val appKeys = {
+    BoxAppKeyPair.readFromConfig match {
+      case Some(appKeyPair) => appKeyPair
+      case _ => throw new NoBoxConfigException("No config for Box found")
+    }
+  }
   
-  def isTokenValid : Boolean = (System.currentTimeMillis() / 1000 + 200) < tokens.access_token_expires 
+  def getTokens = {
+    val accessTokenFut = DBProxy.getBoxTokens
+    Try{
+      Await.result(accessTokenFut, 10 seconds)    
+    } match {
+      case Success(Some(accessTokens)) => accessTokens
+      case Success(None) => throw new NoBoxAccessTokensException("No BoxAccessTokens for BoxTokenActor found in DB")
+      case Failure(err) => Logger.error(s"Timeout reading BoxAccessTokens for BoxTokenActor from DB:\n $err")
+      throw err
+    }
+  }
+  
+  def isTokenValid(tokens: BoxAccessTokens) : Boolean = (System.currentTimeMillis() / 1000 + 200) < tokens.access_token_expires 
   
   def receive = {
     case AccessTokensRequest => sender ! refreshTokens
   }
   
-  def refreshTokens: Option[BoxAccessTokens] = {
-    if(isTokenValid) Some(tokens)
+  def refreshTokens: Option[BoxAccessTokens] = { 
+    val tokens = getTokens
+    if(isTokenValid(tokens)) Some(tokens)
     else {
       Logger.debug("fetching new box access token")
       val tokenRequest = WS.url("https://www.box.com/api/oauth2/token").post(
@@ -55,7 +58,8 @@ class BoxTokenActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens) exten
       val response = Await.result(tokenRequest, 10 seconds)
       if(response.status == 200){
         Json.parse(response.body).validate(boxExpirationReader andThen boxAccessTokensFormat) match {
-          case JsSuccess(newBoxTokens, _) => tokens = newBoxTokens
+          case JsSuccess(newBoxTokens, _) =>
+            DBProxy.setBoxToken(newBoxTokens)
             Some(newBoxTokens)
           case JsError(errors) => Logger.error(errors.mkString)
             None

@@ -8,9 +8,7 @@ import play.api.Logger
 import scala.util.{ Try, Success, Failure }
 import play.api.libs.iteratee.Iteratee
 
-case class BoxAppKeyPair(client_id: String, client_secret: String)
-
-class BoxAPI(appKeys: BoxAppKeyPair) {
+class BoxAPI {
 
   val pickEntries = (__ \ 'entries).json.pick[JsArray]
 
