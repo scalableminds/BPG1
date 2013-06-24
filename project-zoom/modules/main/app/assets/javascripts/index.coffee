@@ -13,6 +13,6 @@ define [
   require [
     "view/toasts"
     "model"
-    "view"
+    "controller"
   ], -> app.start( test : 123 )
 

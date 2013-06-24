@@ -32,7 +32,7 @@ app.addInitializer ->
   app.view.process = new ViewWrapper(
       -> new ProcessView(app.model.project)
       (level) -> 
-        # 100 steps starting from .2
+        # 110 steps starting from .2
         Math.max(
           if level > 60
             (level - 50) * .1 + 1
