@@ -8,27 +8,33 @@ import projectZoom.util.PlayActorSystem
 import org.joda.time.DateTime
 import models.ProjectLike
 import play.Logger
+import akka.actor._
+import projectZoom.core.event._
+import scala.util.{Success, Failure}
 
-object ProjectCache extends PlayActorSystem{
-  private val cache = Agent[List[ProjectLike]](Nil)
+case object ProjectsUpdated
+case object ProjectsRequest
+
+class ProjectCache extends Actor with EventSubscriber {
+  import context.become
   
-  def getProjects = cache()
-  
-  def setProjects(l: List[ProjectLike]) = cache send l 
-  
-  private def currentSeason() = {
-    val month = new DateTime().getMonthOfYear
-    if(3 < month && month < 10) "ST" else "WT"
+  def upToDate(projects: List[ProjectLike]): Receive = {
+    case ProjectsRequest => sender ! projects
+    case ProjectsUpdated => become(outDated)
   }
   
-  private def currentYear() = new DateTime().getYear()
-  
-  
-  def getCurrentProjects = {
-    getProjects.filter(_.year == currentYear).filter(_.season == currentSeason)
+  def outDated: Receive = {
+    case ProjectsRequest => 
+      DBProxy.getProjects.onComplete{
+        case Success(projects) => sender ! projects
+            become(upToDate(projects))
+        case Failure(err) => Logger.error(s"ProjectCache failed reading Projects from DB:\n$err")
+      }
   }
-  
-  def getAllProjectsExistingBy(date: DateTime) = {
-    getProjects.filter(project => date.compareTo(project.startDate) >= 0)
-  }
+
+  def receive = outDated
+}
+
+object ProjectCache {
+  def apply(name: String): Props = Props(() => new ProjectCache, name)
 }

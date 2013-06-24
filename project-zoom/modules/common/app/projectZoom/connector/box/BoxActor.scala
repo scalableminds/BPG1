@@ -15,11 +15,11 @@ import api._
 import models.{ Artifact, ProjectLike }
 import org.joda.time.DateTime
 import scala.util.{Try, Success, Failure }
+import akka.pattern.ask
 
 class BoxActor extends ArtifactAggregatorActor {
-
-  implicit val timeout = Timeout(30 seconds)
- 
+  
+  val fileProjectMatcher = context.actorFor(s"${context.parent.path}/FileProjectMatcher")
   val tokenActor = context.actorOf(Props[BoxTokenActor])
   lazy val box = new BoxExtendedAPI
   
@@ -44,8 +44,8 @@ class BoxActor extends ArtifactAggregatorActor {
   def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Option[ProjectLike] = {
     val collaboratorsOpt = box.fetchCollaborators(file)
     collaboratorsOpt.flatMap { collaborators =>
-      val collaboratorEMails = collaborators.map(_.login.toLowerCase).toSet
-      FileProjectMatcher(file.path, collaboratorEMails, new DateTime(file.created_at))
+      val collaboratorEMails = collaborators.map(_.login)
+      Await.result((fileProjectMatcher ? BoxFileInfo(file.name, file.path, collaboratorEMails)).mapTo[Option[ProjectLike]], 30 seconds)
     }
   }
 

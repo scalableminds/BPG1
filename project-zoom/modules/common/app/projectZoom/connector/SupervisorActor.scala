@@ -16,36 +16,28 @@ import akka.pattern.gracefulStop
 import scala.concurrent._
 import scala.util.{Try, Success, Failure}
 
-case object UpdateProjects
-
 case class BoxUpdated(accessTokens: BoxAccessTokens) extends Event
 
 class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConfig {
+
+  val projectCache = context.actorOf(ProjectCache("ProjectCache"))
+  val fileProjectMatcher = context.actorOf(FileProjectMatcher("FileProjectMatcher"))
 
   val BoxActor = context.actorOf(Props[BoxActor], "BoxActor")
   val FilemakerActor = context.actorOf(Props[FilemakerActor], "FilemakerActor")
   
   //val test = context.actorOf(TestActor.props)
   
-  Future(updateProjects).onComplete{
-    case Success(_) => 
-      FilemakerActor ! StartAggregating
-      BoxActor ! StartAggregating    
-    case Failure(err) => Logger.error(s"Supervisor failed creating Project cache:\n$err")
-  }
+  FilemakerActor ! StartAggregating
+  BoxActor ! StartAggregating    
+  
 
   override def receive = {
-    case UpdateProjects => updateProjects
     case BoxUpdated(accessTokens) => 
       BoxActor ! StopAggregating
       BoxActor ! BoxUpdated(accessTokens)
       BoxActor ! StartAggregating
   }
-
-  def updateProjects =
-    DBProxy.getProjects.map{projects =>
-      ProjectCache.setProjects(projects)
-    }
 
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1 minute) {
     case _ => Restart

@@ -3,14 +3,36 @@ package projectZoom.connector
 import org.joda.time.DateTime
 import models.ProjectLike
 import akka.agent._
+import akka.actor._
 import projectZoom.util.PlayActorSystem
 import play.Logger
+import scala.concurrent._
+import scala.concurrent.duration._
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext.Implicits.global
 
-object FileProjectMatcher extends PlayActorSystem {
+case class BoxFileInfo(name: String, path: String, collaborators: List[String])
 
-  val splittedProjectNames = Agent[Map[String, List[String]]](Map())
+class FileProjectMatcher extends Actor {
+  
+  implicit val timeout = Timeout(60 seconds)
+  
+  val projectCache = context.actorFor(s"${context.parent.path}/ProjectCache")
+  
+  val projects = (projectCache ? ProjectsRequest).mapTo[List[ProjectLike]]
 
-  val threshold = 0.5
+  def receive = {
+    case BoxFileInfo(name, path, collaborators) => sender ! matchBoxFile(name, path, collaborators)
+      
+  }
+  
+  def matchBoxFile(name: String, path: String, collaborators: List[String]): Future[Option[ProjectLike]] = {
+    projects.map(projects => projects.headOption)
+  }
+  
+  
+/*  val threshold = 0.5
 
   private def emailMatching(weight: Double, collaboratorEMails: Set[String], project: ProjectLike) = {
     val stepSize = weight / project.emails.size
@@ -26,7 +48,7 @@ object FileProjectMatcher extends PlayActorSystem {
   }
 
   def apply(path: String, collaboratorEMails: Set[String], creationDate: DateTime): Option[ProjectLike] = {
-    val projects = ProjectCache.getAllProjectsExistingBy(creationDate)
+    val projects = Await.result(projects, 30 seconds)
     val evaluatedProjects = projects.zip(projects.map { project =>
       matchHeuristic(path, collaboratorEMails, project)
     })
@@ -62,5 +84,9 @@ object FileProjectMatcher extends PlayActorSystem {
       Logger.debug("")
     }
     stepSize * maxMatch
-  }
+  }*/
+}
+
+object FileProjectMatcher{
+  def apply(name: String) = Props(() => new FileProjectMatcher, name)
 }
