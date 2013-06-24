@@ -2,6 +2,7 @@ package projectZoom.connector.box
 
 import projectZoom.connector._
 import akka.actor._
+import akka.actor.SupervisorStrategy._
 import akka.agent._
 import scala.concurrent.duration._
 import scala.concurrent._
@@ -15,24 +16,30 @@ import models.{ Artifact, ProjectLike }
 import org.joda.time.DateTime
 import scala.util.{Try, Success, Failure }
 
-
 class BoxActor extends ArtifactAggregatorActor {
 
   implicit val timeout = Timeout(30 seconds)
  
-  lazy val tokenActor = context.actorOf(Props[BoxTokenActor])
+  val tokenActor = context.actorOf(Props[BoxTokenActor])
   lazy val box = new BoxExtendedAPI
   
   def getEventStreamPos = {
-    val eventStreamPosFut = DBProxy.getBoxEventStreamPos
     Try {
-      Await.result(eventStreamPosFut, 10 seconds)    
+      Await.result(DBProxy.getBoxEventStreamPos, 10 seconds)    
     } match {
       case Success(eventStreamPosOpt) => eventStreamPosOpt.getOrElse(0.toLong)
       case Failure(err) => Logger.error(s"Timeout reading BoxAccessTokens for BoxTokenActor from DB:\n $err")
       throw err
     }
   }
+  
+  def boxActorStopped: Receive = {
+    case BoxUpdated(tokens) => 
+      DBProxy.setBoxToken(tokens)
+      DBProxy.unsetBoxEventStreamPos
+  }
+  
+  override def stopped: Receive = super.stopped.orElse(boxActorStopped)
 
   def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Option[ProjectLike] = {
     val collaboratorsOpt = box.fetchCollaborators(file)
@@ -102,6 +109,17 @@ class BoxActor extends ArtifactAggregatorActor {
     }
   }
   
-  def start() = Logger.debug("Starting BoxActor")
-  def stop() = Logger.debug("Stopping BoxActor")
+  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1 minute) {
+    case NoBoxConfigException(msg) => Escalate
+    case _ => Restart
+  }
+  
+  def start() = {
+    Logger.debug("Starting BoxActor")
+    tokenActor ! InitializeBoxTokenActor
+  }
+  def stop() = {
+    Logger.debug("Stopping BoxActor")
+    tokenActor ! ResetBoxTokenActor
+  }
 }

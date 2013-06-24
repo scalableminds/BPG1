@@ -8,8 +8,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import projectZoom.util.PlayConfig
 
 case object StartAggregating
+case class StartedAggregating(actor: ActorRef)
 case object Aggregate
 case object StopAggregating
+case class StoppedAggregating(actor: ActorRef)
 
 trait ConnectorInterface {
   def start()
@@ -33,12 +35,14 @@ trait ConnectorActor extends Actor with ConnectorInterface with PlayConfig {
   def stopped: Receive = {
     case StartAggregating =>
       start()
+      context.parent ! StartedAggregating(context.self)
       become(started)
   }
 
   def started: Receive = {
     case StopAggregating =>
       stop()
+      context.parent ! StoppedAggregating(context.self)
       become(stopped)
     case Aggregate => aggregate()
   }
