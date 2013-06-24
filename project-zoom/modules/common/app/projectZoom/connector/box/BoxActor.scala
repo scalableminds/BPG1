@@ -17,8 +17,6 @@ import scala.util.{ Success, Failure }
 
 
 class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventStreamPos: Long) extends ArtifactAggregatorActor {
-  
-  val TICKER_INTERVAL = 1 minute
 
   implicit val timeout = Timeout(30 seconds)
 

@@ -94,9 +94,9 @@ class FilemakerAPI(con: java.sql.Connection) {
 
 object FilemakerAPI extends PlayConfig {
 
-  val d = Class.forName("com.filemaker.jdbc.Driver").newInstance() // load Driver
+  private val d = Class.forName("com.filemaker.jdbc.Driver").newInstance() // load Driver
 
-  def connect(host: String, dbName: String, user: String, password: String): Option[FilemakerAPI] =
+  private def connect(host: String, dbName: String, user: String, password: String): Option[FilemakerAPI] =
     Try {
       val con = DriverManager.getConnection(s"jdbc:filemaker://$host/$dbName", user, password)
       con.setReadOnly(true)
@@ -108,36 +108,43 @@ object FilemakerAPI extends PlayConfig {
         None
     }
 
-  def buildConnection: Option[FilemakerAPI] = {
+  private def buildConnection: Option[FilemakerAPI] = {
     for {
       host <- config.getString("filemaker.host")
       dbName <- config.getString("filemaker.db")
       user <- config.getString("filemaker.user")
       password <- config.getString("filemaker.password")
-      api <- connect(host, dbName, user, password)
+      connection <- connect(host, dbName, user, password)
     } yield {
-      api
+      connection
+    }
+  }
+  
+  private def buildTunnel(host: String, user: String, password: String) = {
+    val f = Future(SSH.createTunnel(host, 22, user, password, 2399, "127.0.0.1", 2399)).map { created =>
+      if (created) Logger.info("created SSH Tunnel to filemaker")
+      else Logger.info("Failed to create SSH Tunnel, maybe it's already open")
+    }
+    Try{
+      Await.ready(f, 10 seconds)
+    } match {
+      case Success(_) => true
+      case Failure(err) => Logger.error("Timeout for tunnelcreation")
+      false
     }
   }
 
   def create: Option[FilemakerAPI] = {
     if (config.getBoolean("filemaker.ssh.enabled") getOrElse false) {
-      (for {
+      for {
         host <- config.getString("filemaker.ssh.host")
         user <- config.getString("filemaker.ssh.user")
         password <- config.getString("filemaker.ssh.password")
+        if buildTunnel(host, user, password)
+        connection <- buildConnection
       } yield {
-        val f = Future(SSH.createTunnel(host, 22, user, password, 2399, "127.0.0.1", 2399)).map { created =>
-          if (created) Logger.info("created SSH Tunnel to filemaker")
-          else Logger.info("Failed to create SSH Tunnel, maybe it's already open")
-        }
-        Try{
-          Await.ready(f, 10 seconds)
-        } match {
-          case Success(_) => 
-          case Failure(err) => Logger.error("Timeout for tunnelcreation")
-        }
-      }).flatMap(_ => buildConnection)
+        connection
+      }
     } else buildConnection
   }
 

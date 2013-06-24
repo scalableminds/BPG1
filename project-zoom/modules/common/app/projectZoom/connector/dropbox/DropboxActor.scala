@@ -15,7 +15,6 @@ case class DropboxAuth(
   appKey: String)
 
 class DropboxActor(dropbox: DropboxAPI) extends ConnectorActor with PlayConfig {
-  val TICKER_INTERVAL = 1 minute
 
   def aggregate = {
     dropbox.updateLocalDropbox.map { l =>

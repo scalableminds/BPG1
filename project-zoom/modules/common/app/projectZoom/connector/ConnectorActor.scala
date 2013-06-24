@@ -11,37 +11,37 @@ case object StartAggregating
 case object Aggregate
 case object StopAggregating
 
-trait ConnectorInterface{
+trait ConnectorInterface {
   def start()
   def aggregate()
   def stop()
 }
 
-trait ConnectorActor extends Actor with ConnectorInterface with PlayConfig{
-  
+trait ConnectorActor extends Actor with ConnectorInterface with PlayConfig {
+
   import context.become
-  
-  val TICKER_INTERVAL: FiniteDuration
-  
+
+  val TICKER_INTERVAL: FiniteDuration = 1 minute
+
   val updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL, self, Aggregate)
-  
-  override def preRestart = {
+
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
     updateTicker.cancel
-    super.preStart
+    super.preRestart(reason, message)
   }
-  
+
   def stopped: Receive = {
     case StartAggregating =>
       start()
       become(started)
   }
-  
+
   def started: Receive = {
     case StopAggregating =>
       stop()
       become(stopped)
     case Aggregate => aggregate()
   }
-    
-  def receive = stopped
+
+  def receive = started
 }

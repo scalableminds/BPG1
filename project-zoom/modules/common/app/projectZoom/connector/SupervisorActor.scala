@@ -7,7 +7,6 @@ import scala.concurrent.duration._
 import projectZoom.core.event.EventSubscriber
 import projectZoom.connector.Filemaker._
 import projectZoom.connector.box._
-import projectZoom.util.SSH
 import projectZoom.util.{ PlayActorSystem, StartableActor, PlayConfig }
 import play.api.Logger
 import scala.concurrent.Future
@@ -28,18 +27,18 @@ class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConf
   val BoxActor = Agent[Option[ActorRef]](None)
   val FilemakerActor = Agent[Option[ActorRef]](None)
   
+  //val test = context.actorOf(TestActor.props)
+  
   Future(updateProjects).onSuccess{
     case _ => 
       startFilemakerActor
       startBoxActor
+      
   }
   
   def startFilemakerActor = {
-    FilemakerAPI.create.map{fmAPI => 
-      val fmActor = context.actorOf(Props(new FilemakerActor(fmAPI)))
-      FilemakerActor.send(Some(fmActor))
-      fmActor ! StartAggregating
-    }
+    val fmActor = context.actorOf(Props[FilemakerActor], "FilemakerActor")
+    FilemakerActor.send(Some(fmActor))
   }
 
   def startBoxActor = {

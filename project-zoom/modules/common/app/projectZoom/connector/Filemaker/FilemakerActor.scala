@@ -7,15 +7,22 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Logger
 import scala.concurrent.Future
 import projectZoom.util.SSH
+import akka.agent._
+import projectZoom.util.PlayActorSystem
 
-class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor {
+class FilemakerActor extends KnowledgeAggregatorActor with PlayActorSystem {
 
-  val TICKER_INTERVAL = 1 minute
+  val filemaker = Agent[Option[FilemakerAPI]](None)
 
   def aggregate() = {
-    publishProfiles(filemaker.extractStudents)
-    val projects = filemaker.extractProjects
-    publishProjects(projects)
+    filemaker().orElse {
+      val newAPI = FilemakerAPI.create
+      filemaker.send(newAPI)
+      newAPI
+    }.foreach { fm =>
+      publishProfiles(fm.extractStudents)
+      publishProjects(fm.extractProjects)
+    }
   }
 
   def start = {
@@ -24,5 +31,7 @@ class FilemakerActor(filemaker: FilemakerAPI) extends KnowledgeAggregatorActor {
 
   def stop = {
     Logger.debug("Stopping FilemakerActor")
+    filemaker.send(None)
   }
 }
+
