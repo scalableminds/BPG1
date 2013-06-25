@@ -45,7 +45,7 @@ class BoxActor extends ArtifactAggregatorActor {
     val collaboratorsOpt = box.fetchCollaborators(file)
     collaboratorsOpt.flatMap { collaborators =>
       val collaboratorEMails = collaborators.map(_.login)
-      Await.result((fileProjectMatcher ? BoxFileInfo(file.name, file.path, collaboratorEMails)).mapTo[Option[ProjectLike]], 30 seconds)
+      Await.result((fileProjectMatcher ? BoxFileInfo(file.name, file.pathString, collaboratorEMails)).mapTo[Option[ProjectLike]], 30 seconds)
     }
   }
 
@@ -59,7 +59,7 @@ class BoxActor extends ArtifactAggregatorActor {
                 findProjectForFile(file).foreach { project =>
                   val sourceJson = (event.json \ "source")
                   Logger.debug(s"found ${file.fullPath} to be in project ${project.name}")
-                  publishFoundArtifact(byteArray, Artifact(file.name, project.name, file.path, "box", file.created_at.getMillis(), sourceJson))
+                  publishFoundArtifact(byteArray, Artifact(file.name, project.name, file.pathString, "box", file.created_at.getMillis(), sourceJson))
                 }
               }
             case Some(folder: BoxFolder) =>

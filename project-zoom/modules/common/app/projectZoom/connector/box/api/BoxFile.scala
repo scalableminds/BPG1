@@ -5,6 +5,13 @@ import play.api.libs.functional.syntax._
 import org.joda.time.DateTime
 import projectZoom.util.DateTimeHelper
 
+trait BoxFileSystemElement {
+  val id: String
+  val name: String
+  val path: List[String]
+  val fullPath: List[String]
+}
+
 case class BoxMiniFile(id: String, sequence_id: String, name: String) extends BoxMiniSource
 
 object BoxMiniFile extends Function3[String, String, String, BoxMiniFile] {
@@ -36,9 +43,14 @@ case class BoxFile(
     owned_by: BoxMiniUser,
     parent: BoxMiniFolder,
     item_status: String
-    ) extends BoxSource {
-  val fullPath = s"${path_collection.path}/$name"
-  val path = path_collection.path
+    ) extends BoxSource with BoxFileSystemElement{
+  def pathString = path_collection.pathString
+  def fullPathString = s"${path_collection.pathString}/$name"
+  def path = path_collection.path
+  def fullPath = path_collection.path :+ name
+  
+  def rename(name: String) = this.copy(name = name)
+  def relocate(index: Int, name: String) = this.copy(path_collection = path_collection.relocate(index, name))
 }
 
 object BoxFile extends Function19[String, String, String, String, String, String, Int, BoxPathCollection, DateTime, DateTime, Option[DateTime], Option[DateTime], DateTime, DateTime, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, BoxFile]{

@@ -9,7 +9,9 @@ trait BoxBaseFolder{
   val id: String
 }
 
-case class BoxMiniFolder(id: String, sequence_id: Option[String], name: String) extends BoxMiniSource with BoxBaseFolder
+case class BoxMiniFolder(id: String, sequence_id: Option[String], name: String) extends BoxMiniSource with BoxBaseFolder {
+  def rename(name: String) = this.copy(name = name)
+}
 
 object BoxMiniFolder extends Function3[String, Option[String], String, BoxMiniFolder]{
   implicit val BoxMiniFolderAsSourceReads: Reads[BoxMiniSource] = (
@@ -36,7 +38,15 @@ case class BoxFolder(
     parent: BoxMiniFolder,
     item_status: String,
     item_collection: Option[List[BoxMiniSource]],
-    synced: Boolean) extends BoxSource with BoxBaseFolder
+    synced: Boolean) extends BoxSource with BoxBaseFolder with BoxFileSystemElement{
+  def pathString = path_collection.pathString
+  def fullPathString = s"${path_collection.pathString}/$name"
+  def path = path_collection.path
+  def fullPath = path_collection.path :+ name
+  
+  def rename(name: String) = this.copy(name = name)
+  def relocate(index: Int, name: String) = this.copy(path_collection = path_collection.relocate(index, name))
+}
 
 object BoxFolder extends Function16[String, Option[String], Option[String], String, DateTime, DateTime, String, Int, BoxPathCollection, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, Option[List[BoxMiniSource]], Boolean, BoxFolder]{
   import DateTimeHelper.BoxTimeStampReader
