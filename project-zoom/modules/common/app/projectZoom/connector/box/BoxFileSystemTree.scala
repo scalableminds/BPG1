@@ -13,9 +13,10 @@ sealed trait BoxFileSystemTree {
   val project: Option[ProjectLike]
 
   def findAllFiles: List[TreeFile]
+  def get(atPath: List[String]): BoxFileSystemTree
   def insert(atPath: List[String], tree: BoxFileSystemTree): BoxFileSystemTree
   def remove(atPath: List[String]): BoxFileSystemTree
-  def addCollaborators(atPath: List[String], newCollaborators: Set[String]): BoxFileSystemTree
+  def addCollaborators(atPath: List[String], newCollaborators: Set[String], propagating: Boolean = false): BoxFileSystemTree
   def trash(atPath: List[String]): BoxFileSystemTree
   def addComment(atPath: List[String], comment: BoxComment): BoxFileSystemTree
   def rename(atPath: List[String], name: String): BoxFileSystemTree
@@ -37,8 +38,12 @@ case class TreeFile(element: BoxFile, reporter: ActorRef, collaborators: Set[Str
       this.copy(project = project)
     } else throw new NoSuchElementException
   
-  def addCollaborators(atPath: List[String], newCollaborators: Set[String]) =
-    if (atPath.isEmpty) this.copy(collaborators = collaborators union newCollaborators)
+  def addCollaborators(atPath: List[String], newCollaborators: Set[String], propagating: Boolean = false) =
+    if (atPath.isEmpty) {
+      val result = this.copy(collaborators = collaborators union newCollaborators)
+      if(! propagating) reporter ! CollaboratorsChangedFor(result.collaborators, element)
+      result
+    }
     else throw new NoSuchElementException
 
   def trash(atPath: List[String]) =
@@ -66,6 +71,7 @@ case class TreeFile(element: BoxFile, reporter: ActorRef, collaborators: Set[Str
     if (atPath.isEmpty) {
       val result = this.copy(element = element.rename(name))
       reporter ! ItemRenamed(result.element)
+      comments.foreach(comment => reporter ! CommentUnderlyingRenamed(comment, element))
       result
     } else throw new NoSuchElementException
   }
@@ -73,8 +79,13 @@ case class TreeFile(element: BoxFile, reporter: ActorRef, collaborators: Set[Str
   def relocate(index: Int, name: String) = {
     val result = this.copy(element = element.relocate(index, name))
     reporter ! ItemRelocated(result.element)
+    comments.foreach(comment => reporter ! CommentUnderlyingRelocated(comment, element))
     result
   }
+  
+  def get(atPath: List[String]) = 
+    if(atPath.isEmpty) this
+    else throw new NoSuchElementException
 }
 
 case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set[String], comments: List[BoxComment], project: Option[ProjectLike], trashed: Boolean, children: Map[String, BoxFileSystemTree]) extends BoxFileSystemTree {
@@ -105,8 +116,13 @@ case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set
     else this.copy(children = children + (atPath.head -> children(atPath.head).remove(atPath.tail)))
   }
 
-  def addCollaborators(atPath: List[String], newCollaborators: Set[String]) = {
-    if (atPath.isEmpty) this.copy(collaborators = collaborators.union(newCollaborators), children = children.mapValues(c => c.addCollaborators(Nil, newCollaborators)))
+  def addCollaborators(atPath: List[String], newCollaborators: Set[String], propagating: Boolean = false) = {
+    if (atPath.isEmpty) {
+      val result = this.copy(collaborators = collaborators.union(newCollaborators), 
+          children = children.mapValues(c => c.addCollaborators(Nil, newCollaborators, true)))
+      if(! propagating) reporter ! CollaboratorsChangedFor(result.collaborators, element)
+      result
+    }
     else this.copy(children = children + (atPath.head -> children(atPath.head).addCollaborators(atPath.tail, newCollaborators)))
   }
 
@@ -136,13 +152,17 @@ case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set
 
   def rename(atPath: List[String], name: String) = {
     if (atPath.isEmpty) {
-      this.copy(element = element.rename(name), children = children.mapValues(c => c.relocate(element.path.size, name)))
+      val result = this.copy(element = element.rename(name), children = children.mapValues(c => c.relocate(element.path.size, name)))
+      comments.foreach{comment => reporter ! CommentUnderlyingRenamed(comment, element)}
+      result
     } else if (atPath.size == 1) this.copy(children = children - atPath.head + (name -> children(atPath.head).rename(Nil, name)))
     else this.copy(children = children + (atPath.head -> children(atPath.head).rename(atPath.tail, name)))
   }
 
   def relocate(index: Int, name: String) = {
-    this.copy(element = element.relocate(index, name), children = children.mapValues(c => c.relocate(index, name)))
+    val result = this.copy(element = element.relocate(index, name), children = children.mapValues(c => c.relocate(index, name)))
+    comments.foreach{comment => reporter ! CommentUnderlyingRelocated(comment, element)}
+    result
   }
 
   def setProject(atPath: List[String], project: Option[ProjectLike]) = {
@@ -155,6 +175,10 @@ case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set
       result
     } else this.copy(children = children + (atPath.head -> children(atPath.head).setProject(atPath.tail, project)))
   }
+  
+  def get(atPath: List[String]) = 
+    if(atPath.isEmpty) this
+    else children(atPath.head).get(atPath.tail)
 }
 
 object BoxFileSystemTree {
