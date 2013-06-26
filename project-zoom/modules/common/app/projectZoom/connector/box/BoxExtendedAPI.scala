@@ -17,10 +17,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import projectZoom.util.PlayConfig
 
 class BoxExtendedAPI extends BoxAPI with PlayActorSystem {
-  type FolderId=String
-  
+
   implicit val timeout = Timeout(5 seconds)
-  val collaborations = Agent[Map[FolderId, List[BoxMiniUser]]](Map())
+  val collaborations = Agent[Map[String, List[BoxMiniUser]]](Map())
   
   def getRelevantStreamPosition(implicit accessTokens: BoxAccessTokens): Future[Long] = {
     def loop(streamPosition: Long): Future[Long] = {
@@ -75,7 +74,7 @@ class BoxExtendedAPI extends BoxAPI with PlayActorSystem {
     }
   }
     
-  private def fetchCollaboratorsList(folderId: FolderId)(implicit accessTokens: BoxAccessTokens): Future[Option[List[BoxMiniUser]]] = {
+  private def fetchCollaboratorsList(folderId: String)(implicit accessTokens: BoxAccessTokens): Future[Option[List[BoxMiniUser]]] = {
     fetchFolderCollaborations(folderId).map{ json =>
       (json \ "entries").validate[List[BoxCollaboration]] match {
         case JsSuccess(collaborationList, _) => 
