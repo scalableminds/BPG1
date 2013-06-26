@@ -54,15 +54,8 @@ class BoxFileSystemTreeActor(root: BoxFolder, fileProjectMatcher: ActorRef) exte
     
     case ItemRenamed(f) => 
       ids.send(_ + (f.id -> f.fullPath))
-      parent ! ItemRenamed(f)
-      
-    case CollaboratorsChangedFor(coll, f) =>
-      fileProjectMatcher ! MatchFile(coll, )
-    
-    
+      parent ! ItemRenamed(f) 
   }
-  
-  
 }
 
 object BoxFileSystemTreeActor {
