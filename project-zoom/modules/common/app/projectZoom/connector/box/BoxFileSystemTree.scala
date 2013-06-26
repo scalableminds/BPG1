@@ -184,7 +184,9 @@ case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set
     if(atPath.isEmpty) this
     else children(atPath.head).get(atPath.tail)
     
-  def prettyPrinted(indentation: Int) = "."*indentation + s"/${element.name}\n" + printComments(indentation + 1) + children.map(p => p._2.prettyPrinted(indentation+2)).mkString("")
+  def prettyPrinted(indentation: Int) = "."*indentation + s"/${element.name} (${collaborators.mkString(",")})\n" + 
+      printComments(indentation + 1) + 
+      children.map(p => p._2.prettyPrinted(indentation+2)).mkString("")
 }
 
 object BoxFileSystemTree {
