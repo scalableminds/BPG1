@@ -8,8 +8,8 @@ import projectZoom.util.DateTimeHelper
 trait BoxFileSystemElement {
   val id: String
   val name: String
-  val path: List[String]
-  val fullPath: List[String]
+  def path: List[String]
+  def fullPath: List[String]
 }
 
 case class BoxMiniFile(id: String, sequence_id: String, name: String) extends BoxMiniSource
