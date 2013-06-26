@@ -21,7 +21,8 @@ class BoxActor extends ArtifactAggregatorActor {
   
   val fileProjectMatcher = context.actorFor(s"${context.parent.path}/FileProjectMatcher")
   val tokenActor = context.actorOf(Props[BoxTokenActor])
-  lazy val box = new BoxExtendedAPI
+  val box = new BoxExtendedAPI
+  val BoxFileSystem = context.actorOf(BoxFileSystemTreeActor.props(fileProjectMatcher, "BoxFileSystem"))
   
   def getEventStreamPos = {
     Try {
@@ -37,6 +38,51 @@ class BoxActor extends ArtifactAggregatorActor {
     case BoxUpdated(tokens) => 
       DBProxy.setBoxToken(tokens)
       DBProxy.unsetBoxEventStreamPos
+  }
+  
+  def startUp(implicit accessTokens: BoxAccessTokens) = {
+    box.enumerateEvents(getEventStreamPos).onComplete{
+      case Success(t) => DBProxy.setBoxEventStreamPos(t._1)
+      case Failure(err) => Logger.error(s"Error fetching current stream Position:\n$err")
+    }
+    traverseBoxFileStructure.map{x => BoxFileSystem ! PrintTree}
+   
+  }
+  
+  def traverseBoxFileStructure(implicit accessTokens: BoxAccessTokens) = {
+    def loop(entries: List[BoxMiniSource]): Future[List[BoxMiniSource]] = {
+      val x = (Future.traverse(entries){ 
+        case f@BoxMiniFile(id,_,_, _) => box.fetchBoxFileInfo(id).flatMap{ fileOpt => 
+            fileOpt.foreach(file => BoxFileSystem ! Add(file))
+            Future(List(f))
+        }.recover{ 
+          case err => Logger.error(s"Error fetching file info:$err")
+              List[BoxMiniSource]()
+        }
+        case BoxMiniFolder(id,_,_, _) => box.fetchBoxFolderInfo(id).flatMap{ folderOpt => 
+            folderOpt.foreach(folder => BoxFileSystem ! Add(folder))
+            folderOpt.foreach(folder => box.fetchCollaboratorsEmail(folder.id).foreach{_.foreach{l => 
+              BoxFileSystem ! AddCollaborations(folder, l.toSet)}})
+            val itemCollectionOpt = folderOpt.flatMap(_.item_collection)
+            itemCollectionOpt match {
+              case Some(itemCollection) => loop(itemCollection.entries)
+              case None => Future(List())
+            }
+
+        }.recover {
+          case err => Logger.error(s"Error fetching file info:$err")
+          List[BoxMiniSource]()
+        } 
+      })
+      x.map(_.flatten)
+    }
+    box.fetchBoxRootInfo.flatMap{folderOpt => 
+      folderOpt.flatMap{folder => folder.item_collection} match {
+        case Some(items) => loop(items.entries)
+        case None => Logger.error("No Items")
+        Future(List())
+      }
+    }
   }
   
   override def stopped: Receive = super.stopped.orElse(boxActorStopped)
@@ -100,12 +146,18 @@ class BoxActor extends ArtifactAggregatorActor {
           handleITEM_RENAME(eventMap.get("ITEM_RENAME").map(_.toList) getOrElse Nil)
       }
   }
+  
+  def withAccessToken(f: BoxAccessTokens => Unit) = {
+    (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map { tokenOpt =>
+      tokenOpt.map { token =>
+        f(token)
+      }
+    }
+  }
 
   def aggregate() = {
-    (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map { tokenOpt =>
-      tokenOpt.map { implicit token =>
-        handleEventStream
-      }
+    withAccessToken{ implicit token =>
+        //handleEventStream    
     }
   }
   
@@ -117,9 +169,22 @@ class BoxActor extends ArtifactAggregatorActor {
   def start() = {
     Logger.debug("Starting BoxActor")
     tokenActor ! InitializeBoxTokenActor
+    withAccessToken{implicit token => 
+      box.fetchBoxRootInfo.onComplete{
+        case Success(folderOpt) => 
+          Logger.debug(folderOpt.toString)
+          folderOpt.foreach{folder => 
+            Logger.debug(folder.toString)
+            BoxFileSystem ! InitializeTree(folder)
+            startUp}
+        case Failure(err) => Logger.error(s"Error getting BoxRootInfo for startup:\n$err")
+      }
+    
+    }
   }
   def stop() = {
     Logger.debug("Stopping BoxActor")
     tokenActor ! ResetBoxTokenActor
+    BoxFileSystem ! ResetTree
   }
 }

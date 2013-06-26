@@ -22,6 +22,8 @@ sealed trait BoxFileSystemTree {
   def rename(atPath: List[String], name: String): BoxFileSystemTree
   def relocate(index: Int, name: String): BoxFileSystemTree
   def setProject(atPath: List[String], project: Option[ProjectLike]): BoxFileSystemTree
+  def prettyPrinted(indentation: Int): String
+  def printComments(indentation: Int): String = comments.zipWithIndex.map(p => "."*indentation+s"[]comment_${p._2}").mkString("\n")
 }
 
 case class TreeFile(element: BoxFile, reporter: ActorRef, collaborators: Set[String], comments: List[BoxComment], project: Option[ProjectLike], trashed: Boolean) extends BoxFileSystemTree {
@@ -86,6 +88,8 @@ case class TreeFile(element: BoxFile, reporter: ActorRef, collaborators: Set[Str
   def get(atPath: List[String]) = 
     if(atPath.isEmpty) this
     else throw new NoSuchElementException
+    
+  def prettyPrinted(indentation: Int) = "."*indentation+s"()${element.name}\n" + printComments(indentation+1)
 }
 
 case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set[String], comments: List[BoxComment], project: Option[ProjectLike], trashed: Boolean, children: Map[String, BoxFileSystemTree]) extends BoxFileSystemTree {
@@ -179,6 +183,8 @@ case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set
   def get(atPath: List[String]) = 
     if(atPath.isEmpty) this
     else children(atPath.head).get(atPath.tail)
+    
+  def prettyPrinted(indentation: Int) = "."*indentation + s"/${element.name}\n" + printComments(indentation + 1) + children.map(p => p._2.prettyPrinted(indentation+2)).mkString("")
 }
 
 object BoxFileSystemTree {
