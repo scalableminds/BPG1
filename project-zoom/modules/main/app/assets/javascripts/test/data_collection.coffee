@@ -1,5 +1,6 @@
 ### define
 lib/data_item : DataItem
+lib/json_patch_accumulator : JsonPatchAccumulator
 lib/request : Request
 lib/chai : chai
 jquery : $
@@ -197,11 +198,12 @@ describe "DataItem.Collection", ->
 
     it "should record member add", ->
 
+      patchAcc = JsonPatchAccumulator.attach(@dataCollection)
       @dataCollection.add("test")
       @dataCollection.add("test1")
       @dataCollection.set(1, "test2")
 
-      jsonPatch = @dataCollection.patchAcc.flush()
+      jsonPatch = patchAcc.flush()
 
       jsonPatch.should.deep.equal(
         [

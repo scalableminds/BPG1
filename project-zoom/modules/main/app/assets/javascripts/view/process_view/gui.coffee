@@ -1,6 +1,6 @@
 ### define
 jquery : $
-text!templates/process_view_toolbar.html : ToolbarTemplate
+
 ###
 
 class GUI
@@ -9,7 +9,6 @@ class GUI
 
     @appendArtifactFinder()
     @appendSVG()
-    @appendToolbar()
 
     @windowResize()
 
@@ -17,23 +16,16 @@ class GUI
   activate : ->
 
     @initToggleHandler()
-    @initToolbarHandler()
 
 
   deactivate : ->
 
-    @$el.find(".toolbar .btn").off("click")
     @$el.find("a.toggles").off("click")
 
 
   windowResize : ->
 
     @svg.attr("height", $(window).height() - @$el.find(".graph").offset().top - 30)
-
-
-  appendToolbar : ->
-
-    @$el.find("#main").prepend(ToolbarTemplate)
 
 
   appendSVG : ->
@@ -45,19 +37,7 @@ class GUI
         width: @$el.find(".graph").width()
         "pointer-events": "all"
       )
-
-
-  initToolbarHandler : ->
-
-    @$el.find(".toolbar .btn").on "click", (event) =>
-      @$el.find(".toolbar .btn").removeClass('active')
-
-      $this = $(event.target)
-      unless $this.hasClass('active')
-        $this.addClass('active')
-
-      event.preventDefault()
-
+      
 
   initToggleHandler : ->
 

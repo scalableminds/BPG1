@@ -2,6 +2,7 @@
 underscore : _
 jquery : $
 lib/data_item : DataItem
+lib/json_patch_accumulator : JsonPatchAccumulator
 lib/request : Request
 lib/utils : Utils
 ###
@@ -66,6 +67,8 @@ Project =
     ).then(
       (graph) ->
 
+        patchAcc = JsonPatchAccumulator.attach(graph)
+
         isSaving = false
 
         graph.save = ->
@@ -76,7 +79,7 @@ Project =
               graph.save()
             return
 
-          patchData = project.get("graphs/0").patchAcc.flush()
+          patchData = patchAcc.flush()
 
           return if patchData.length == 0
 

@@ -8,6 +8,7 @@ jquery.mousewheel : Mousewheel
 
 ./process_view/graph : Graph
 ./process_view/gui : GUI
+./process_view/toolbar : Toolbar
 ./process_view/artifact_finder : ArtifactFinder
 ./process_view/artifact : Artifact
 
@@ -34,7 +35,11 @@ class ProcessView
     @el = @$el[0]
 
     @artifactFinder = new ArtifactFinder(@projectModel.get("artifacts"))
+    @toolbar = new Toolbar()
+    @$el.find("#main").prepend(@toolbar.el)
+
     @gui = new GUI(@$el, @artifactFinder)
+
     @projectModel.get("graphs/0", this, (graphModel) =>
 
       @graph = new Graph(@$el.find(".graph")[0], graphModel, @artifactFinder)
@@ -67,6 +72,7 @@ class ProcessView
     $(window).off("resize", @windowResize)
 
     @gui.deactivate()
+    @toolbar.deactivate()
     @artifactFinder.deactivate()
     @panning.deactivate()
     @dragAndDrop.deactivate()
@@ -88,6 +94,7 @@ class ProcessView
       $(window).on("resize", @windowResize)
 
       @gui.activate()
+      @toolbar.activate()
       @artifactFinder.activate()
       @panning.activate()
       @dragAndDrop.activate()
