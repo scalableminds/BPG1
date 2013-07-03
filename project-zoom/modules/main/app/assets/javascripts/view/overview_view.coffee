@@ -11,7 +11,7 @@ app : app
 text!templates/overview_view.html : OverviewTemplate
 ###
 
-class ProjectsOverviewView
+class OverviewView
 
   IMAGE_FOLDER = "/assets/images/letter_images/"
 
@@ -27,6 +27,7 @@ class ProjectsOverviewView
     @tagbar.init_tag_count(@projects)
 
     @panning = new PanZoomBehavior(@$el, @graph)
+
 
   initTagbar : ->
 
@@ -45,9 +46,9 @@ class ProjectsOverviewView
     # drag artifact into graph
     @$el.on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
 
-    @hh = Hammer(@$el.find(".graph svg")[0]).on("tap", "image", (event) -> 
-      app.model.setProject(d3.select(event.target).datum())
-    )
+    # @hh = Hammer(@$el.find(".graph svg")[0]).on("tap", "image", (event) -> 
+    #   app.model.setProject(d3.select(event.target).datum())
+    # )
     
 
     @graph.drawProjects()
@@ -64,11 +65,17 @@ class ProjectsOverviewView
 
     @$el.find(".tagbarItem input").off("click")
 
-    @hh.off("tap")
+    # @hh.off("tap")
 
     @gui.deactivate()
     @panning.deactivate()
     @tagbar.deactivate()
+
+
+  hittest : (x,y) ->
+
+    target = document.elementFromPoint(x, y)
+    d3.select(target).datum()?.original
 
 
   initGraph : ->
@@ -88,6 +95,7 @@ class ProjectsOverviewView
         width:        "100px"
         height:       "100px"
         tags:         @clean_tags project.get("tags").toObject() # [project.get("year")]
+        original:     project
 
       @projects.push p
     )

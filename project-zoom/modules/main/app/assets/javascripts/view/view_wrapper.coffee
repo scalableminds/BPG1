@@ -5,13 +5,26 @@ app : app
 lib/event_mixin : EventMixin
 ###
 
+PreventableFunction = (func) ->
+
+  wrappedFunc = ->
+    func.apply(this, arguments)
+
+  wrappedFunc.stop = ->
+    func = ->
+
+  wrappedFunc
+
+
 class ViewWrapper
 
-  constructor : (@maker, @zoomConverter = _.identity) ->
+  constructor : (@viewClass, @argsMaker, @zoomConverter = _.identity) ->
 
     EventMixin.extend(this)
     @zoom = 0
     @isActivated = false
+    @$placeholder = $("<div>", class : "placeholder-view")
+    @nextAction = null
 
 
   view : null
@@ -19,11 +32,19 @@ class ViewWrapper
   make : (args...) ->
 
     unless @view
-      @view = @maker(args...)
+      @showPlaceholder()
+
+      viewArgs = @argsMaker(args...)
+
+      model = viewArgs[0]
+      model.loaded.done(
+        => @hidePlaceholder()
+      )
+      @view = new @viewClass(viewArgs...)
       $(".content").append(@view.el)
       @isActivated = false
 
-
+      
   kill : ->
 
     if @view
@@ -63,6 +84,10 @@ class ViewWrapper
       "transform" : "scale(#{scale})"
       "transformOrigin" : if position then "#{position[0]}px #{position[1] - 41}px" else ""
     )
+    @$placeholder.css(
+      "transform" : "scale(#{scale})"
+      "transformOrigin" : if position then "#{position[0]}px #{position[1] - 41}px" else ""
+    )
 
 
   resetZoom : ->
@@ -72,7 +97,17 @@ class ViewWrapper
       "transform" : ""
       "transformOrigin" : ""
     )
+    @$placeholder.css(
+      "transform" : ""
+      "transformOrigin" : ""
+    )
 
+
+  hidePlaceholder : ->
+    @$placeholder.remove()
+
+  showPlaceholder : ->
+    @$placeholder.appendTo(".content")
 
   changeZoom : (delta, position) =>
 

@@ -23,17 +23,20 @@ app.addInitializer (options, callback) ->
     project : null
     setProject : (project) ->
 
+      return new $.Deferred().resolve(project) if project == model.project
+
+      model.project = project
+
       unless project instanceof DataItem
         project = model.projects.find( (a) -> a.get("id") == project.id )
 
-      ModelFunctions.Project.load(project).then ->
-        model.project = project
-        alert("Done")
+      ModelFunctions.Project.load(project)
+
 
 
   $.when(
 
-    model.projects.fetchNext().then( 
+    model.projects.loaded = model.projects.fetchNext().then( 
       ->
         model.project = model.projects.at(0) #find( (a) -> a.get("name") == "Project-Zoom" )
         $.when(

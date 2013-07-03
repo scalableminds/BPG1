@@ -5,7 +5,7 @@ app : app
 hammer : Hammer
 ./view/zoom : Zoom
 ./view/wheel : Wheel
-./view/overview_view : ProjectsOverviewView
+./view/overview_view : OverviewView
 ./view/process_view : ProcessView
 ./view/details_view : DetailsView
 ./view/view_wrapper : ViewWrapper
@@ -21,16 +21,19 @@ app.addInitializer ->
 
   app.view.zoom = new Zoom()
   app.view.overview = new ViewWrapper(
-    -> new ProjectsOverviewView(app.model.projects)
+    OverviewView
+    -> [ app.model.projects ]
     (level) -> Math.max(level * .3 + .3, .3)
   )
 
   app.view.details = new ViewWrapper(
-    -> new DetailsView(app.model.project)
+    DetailsView
+    -> [ app.model.project ]
   )
 
   app.view.process = new ViewWrapper(
-      -> new ProcessView(app.model.project)
+      ProcessView
+      -> [ app.model.project ]
       (level) -> 
         # 110 steps starting from .2
         Math.max(
@@ -68,6 +71,12 @@ switchView = RangeSwitch(
 
     app.view.overview.deactivate()
     app.view.overview.setZoom(1 + normalizedLevel, position)
+
+    if position
+      obj = app.view.overview.view.hittest(position[0], position[1])
+      if obj
+        app.model.setProject(obj)
+        console.log(obj.get("name"))
     
     app.view.details.deactivate()
     app.view.details.setZoom(normalizedLevel, position)

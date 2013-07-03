@@ -16,12 +16,13 @@ Project =
 
   load : (project) ->
 
-    $.when(
+    return project.loaded if project.loaded
+
+    project.loaded = $.when(
       @prepareTags(project)
       @prepareArtifacts(project)
       @prepareGraph(project)
     )
-
 
 
   prepareTags : (project) ->
@@ -66,6 +67,9 @@ Project =
 
     ).then(
       (graph) ->
+
+        webSocket = new WebSocket("ws://#{window.location.host}/projects/#{project.get("id")}/updateChannel")
+        webSocket.addEventListener("message", console.log.bind(console))
 
         patchAcc = JsonPatchAccumulator.attach(graph)
 

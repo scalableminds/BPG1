@@ -242,6 +242,21 @@ class DataItem
     )
 
 
+  applyPatches : (patch) ->
+
+    for entry in patch
+
+      switch entry.op
+        when "add"
+          @set(entry.path, entry.value)
+        when "replace"
+          @set(entry.path, entry.value)
+        when "remove"
+          @unset(entry.path)
+          
+
+
+
   @prepareValue : (value) ->
 
     if _.isArray(value)
