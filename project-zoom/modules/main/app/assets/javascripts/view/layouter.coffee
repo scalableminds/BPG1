@@ -1,7 +1,5 @@
 ### define
 jquery : $
-app : app
-../view/process_view/node : Node
 underscore : _
 d3 : d3
 ###

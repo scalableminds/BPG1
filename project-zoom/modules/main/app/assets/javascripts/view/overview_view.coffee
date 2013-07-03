@@ -4,11 +4,11 @@ underscore : _
 jquery : $
 d3 : d3
 app : app
-./overview/projectGraph : ProjectGraph
-./overview/gui : GUI
-../component/tagbar : Tagbar
+./overview_view/projectGraph : ProjectGraph
+./overview_view/gui : GUI
+./overview_view/tagbar : Tagbar
+./overview_view/behavior/pan_zoom_behavior : PanZoomBehavior
 text!templates/overview_view.html : OverviewTemplate
-./overview/behavior/pan_zoom_behavior : PanZoomBehavior
 ###
 
 class ProjectsOverviewView

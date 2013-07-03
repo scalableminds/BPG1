@@ -1,5 +1,6 @@
 ### define
 lib/data_item : DataItem
+lib/json_patch_accumulator : JsonPatchAccumulator
 lib/sinon : sinon
 lib/chai : chai
 lib/request : Request
@@ -235,12 +236,12 @@ describe "DataItem", ->
         test : "test"
       )
 
-      @dataItem.patchAcc.flush()
+      patchAcc = JsonPatchAccumulator.attach(@dataItem)
 
       @dataItem.set("test1", "test1")
       @dataItem.unset("test")
 
-      jsonPatch = @dataItem.patchAcc.flush()
+      jsonPatch = patchAcc.flush()
 
       jsonPatch.should.deep.equal(
         [
@@ -258,11 +259,11 @@ describe "DataItem", ->
         ]
       )
 
-      @dataItem.patchAcc.flush()
+      patchAcc = JsonPatchAccumulator.attach(@dataItem)
 
       @dataItem.get("test/0").set("test2", "test3")
 
-      jsonPatch = @dataItem.patchAcc.flush()
+      jsonPatch = patchAcc.flush()
       jsonPatch.should.deep.equal(
         [
           { op : "replace", path : "/test/0/test2", value : "test3" }
@@ -289,24 +290,26 @@ describe "DataItem", ->
 
       it "should remove added then removed patches", ->
 
+        patchAcc = JsonPatchAccumulator.attach(@dataItem)
         @dataItem.set("test", "test2")
 
-        @dataItem.patchAcc.peek().should.deep.equal([
+        patchAcc.peek().should.deep.equal([
           op : "add", path : "/test", value : "test2"
         ])
 
         @dataItem.unset("test")
 
-        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch = patchAcc.compact()
         jsonPatch.should.deep.equal([])
 
 
       it "should merge redundant (replace after add) patches", ->
 
+        patchAcc = JsonPatchAccumulator.attach(@dataItem)
         @dataItem.set("test", "test2")
         @dataItem.set("test", "test3")
 
-        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch = patchAcc.compact()
         jsonPatch.should.deep.equal([
           op : "add", path : "/test", value : "test3"
         ])
@@ -314,13 +317,15 @@ describe "DataItem", ->
 
       it "should merge nested patches", ->
 
+        patchAcc = JsonPatchAccumulator.attach(@dataItem)
+
         @dataItem.set(
           test :
             test2 : "test3"
             test4 : []
         )
 
-        @dataItem.patchAcc.peek().should.deep.equal([
+        patchAcc.peek().should.deep.equal([
           op : "add"
           path : "/test"
           value : 
@@ -330,7 +335,7 @@ describe "DataItem", ->
 
         @dataItem.set("test/test2", "test4")
 
-        @dataItem.patchAcc.compact().should.deep.equal([
+        patchAcc.compact().should.deep.equal([
           op : "add"
           path : "/test"
           value : 
@@ -341,7 +346,7 @@ describe "DataItem", ->
         @dataItem.set("test/test3", "test5")
         @dataItem.get("test/test4").add("test6")
 
-        @dataItem.patchAcc.compact().should.deep.equal([
+        patchAcc.compact().should.deep.equal([
           op : "add"
           path : "/test"
           value : 
@@ -352,7 +357,7 @@ describe "DataItem", ->
 
         @dataItem.set("test/test4/0", "test7")
 
-        @dataItem.patchAcc.compact().should.deep.equal([
+        patchAcc.compact().should.deep.equal([
           op : "add"
           path : "/test"
           value : 
@@ -365,13 +370,14 @@ describe "DataItem", ->
       it "should merge array addings", ->
 
         @dataItem.set("test", [])
-        @dataItem.patchAcc.flush()
+        
+        patchAcc = JsonPatchAccumulator.attach(@dataItem)
 
         @dataItem.get("test").add("test1")
         @dataItem.get("test").add("test2")
         @dataItem.set("test/1", "test3")
 
-        @dataItem.patchAcc.compact().should.deep.equal([
+        patchAcc.compact().should.deep.equal([
           { op : "add", path : "/test/0", value : "test1" }
           { op : "add", path : "/test/1", value : "test3" }
         ])
@@ -379,13 +385,15 @@ describe "DataItem", ->
 
       it "should merge weird array operations", ->
 
+        patchAcc = JsonPatchAccumulator.attach(@dataItem)
+
         @dataItem.set("test", [])
         @dataItem.get("test").add("test1")
         @dataItem.get("test").add("test2")
         @dataItem.set("test/1", "test3")
         @dataItem.get("test").add("test4")
 
-        @dataItem.patchAcc.compact().should.deep.equal([
+        patchAcc.compact().should.deep.equal([
           op : "add"
           path : "/test"
           value : [
@@ -405,7 +413,7 @@ describe "DataItem", ->
           ]
         )
 
-        @dataItem.patchAcc.flush()
+        patchAcc = JsonPatchAccumulator.attach(@dataItem)
 
         @dataItem.get("test/0").set("test2", "test3")
         @dataItem.get("test/0").set("test2", "test4")
@@ -413,7 +421,7 @@ describe "DataItem", ->
         @dataItem.get("test/0").set("test3", "test4")
         @dataItem.get("test/0").unset("test3")
 
-        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch = patchAcc.compact()
         jsonPatch.should.deep.equal(
           [
             { op : "replace", path : "/test/0/test2", value : "test4" }
@@ -422,6 +430,8 @@ describe "DataItem", ->
 
 
       it "should merge nested items", ->
+
+        patchAcc = JsonPatchAccumulator.attach(@dataItem)
 
         @dataItem.set(
           test : [
@@ -432,7 +442,7 @@ describe "DataItem", ->
 
         @dataItem.set("test/0/test2/test3" : "test4")
 
-        jsonPatch = @dataItem.patchAcc.compact()
+        jsonPatch = patchAcc.compact()
         jsonPatch.should.deep.equal(
           [
             { 

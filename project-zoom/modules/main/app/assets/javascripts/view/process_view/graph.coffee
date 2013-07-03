@@ -1,13 +1,17 @@
 ### define
 jquery : $
 d3 : d3
-./node : Node
-./edge : Edge
-./cluster : Cluster
-../../component/artifact : Artifact
-../../component/layouter : Layouter
 lib/data_item : DataItem
 lib/event_mixin : EventMixin
+
+./helpers/node : Node
+./helpers/edge : Edge
+./helpers/cluster : Cluster
+
+./artifact : Artifact
+
+../layouter : Layouter
+
 ./behavior/drag_behavior : DragBehavior
 ###
 

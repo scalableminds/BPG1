@@ -5,7 +5,7 @@ app : app
 hammer : Hammer
 ./view/zoom : Zoom
 ./view/wheel : Wheel
-./view/projects_overview_view : ProjectsOverviewView
+./view/overview_view : ProjectsOverviewView
 ./view/process_view : ProcessView
 ./view/details_view : DetailsView
 ./view/view_wrapper : ViewWrapper
@@ -32,7 +32,7 @@ app.addInitializer ->
   app.view.process = new ViewWrapper(
       -> new ProcessView(app.model.project)
       (level) -> 
-        # 100 steps starting from .2
+        # 110 steps starting from .2
         Math.max(
           if level > 60
             (level - 50) * .1 + 1
@@ -55,6 +55,7 @@ switchView = RangeSwitch(
   "0 <= x < 10" : ->
 
     app.view.overview.activate()
+    app.view.overview.resetZoom()
 
     app.view.details.kill()
     app.view.process.kill()
@@ -63,10 +64,11 @@ switchView = RangeSwitch(
 
   "10 <= x < 20" : (level, position) ->
 
-    app.view.overview.deactivate()
-    
     normalizedLevel = (level - 10) / 10
 
+    app.view.overview.deactivate()
+    app.view.overview.setZoom(1 + normalizedLevel, position)
+    
     app.view.details.deactivate()
     app.view.details.setZoom(normalizedLevel, position)
 
@@ -89,10 +91,10 @@ switchView = RangeSwitch(
 
     app.view.overview.kill()
 
-    app.view.details.deactivate()
-    app.view.details.resetZoom()
-
     normalizedLevel = (level - 30) / 10
+
+    app.view.details.deactivate()
+    app.view.details.setZoom(1 + normalizedLevel, position)
 
     app.view.process.deactivate()
     app.view.process.setZoom(normalizedLevel, position)

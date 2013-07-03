@@ -1,7 +1,7 @@
 ### define
 d3 : d3
 lib/event_mixin : EventMixin
-../../component/layouter : Layouter
+../layouter : Layouter
 ###
 
 class ProjectGraph

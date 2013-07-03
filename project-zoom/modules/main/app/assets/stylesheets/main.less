@@ -1,11 +1,6 @@
-@import "graph.less";
-@import "projects_overview_view.less";
-@import "process_view.less";
-@import "details_view.less";
-
 html {
   height: 100%;
-}
+} 
 
 body {
 
@@ -39,6 +34,13 @@ body {
 		text-align: center;
 		margin: 0 auto;
 	}
+}
+
+header.navbar {
+  position: fixed;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 100;
 }
 
 .zoom-slider {
@@ -115,3 +117,6 @@ body {
   z-index: 3;
 }
 
+@import "graph.less";
+@import "process_view.less";
+@import "details_view.less";

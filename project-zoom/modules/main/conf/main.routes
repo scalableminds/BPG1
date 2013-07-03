@@ -5,8 +5,6 @@
 # Home page
 GET    /                                                                  controllers.main.Application.index
 GET    /test                                                              controllers.main.Application.test
-GET    /overview                                                          controllers.main.Application.overview
-GET    /processView                                                       controllers.main.Application.processView
 
 # CRUD Urls
 GET    /projects                                                          controllers.main.project.ProjectController.list(offset: Int ?= 0, limit: Int ?= 50)

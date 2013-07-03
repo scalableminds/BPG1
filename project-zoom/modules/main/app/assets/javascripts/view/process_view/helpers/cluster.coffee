@@ -30,10 +30,7 @@ Cluster = (cluster) ->
     if @pointInPolygon(node)
 
       #if node is already associated with a cluster, then dont do anything
-      unless node.cluster == cluster
-
-        #else, associate it
-        node.cluster = cluster
+      unless cluster.get("content").contains(node.get("id"))
         cluster.get("content").add(node.get("id"))
 
       return true
@@ -55,7 +52,6 @@ Cluster = (cluster) ->
   removeNode : (node) ->
 
     cluster.get("content").remove(node.get("id"))
-    node.cluster = null if node.cluster == cluster
 
 
   # alogrithm uses even-odd-rule
