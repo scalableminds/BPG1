@@ -2,7 +2,7 @@
   <div class="inactive-blocker"></div>
 
     <div class="row-fluid">
-      <div class="span6">
+      <div class="span5">
 
       	<h2><%= project.name %></h2>
         <p>
@@ -25,22 +25,76 @@
         <%= term[project.season] %>
       </p>
 
+      <blockquote>Bei vielen Projekten verliert man leicht den Überblick. Unsere Software ermöglicht der HPI School of Design Thinking ihre Projekte und deren Kontext zu dokumentieren.</blockquote>
+
+      <p>&nbsp;</p>
+
       <p>
-        Tags:
+        <strong>Tags:</strong>
         <ul>
         <% project.tags.forEach( function(tag){ %>
           <li><%= tag.name %></li>
        <% }) %>
         </ul>
       </p>
+
+      <p>
+        <strong>Participants:</strong>
+        <ul>
+        <% _.sortBy(project.participants.filter(function(a) { return a.user; }), function(a) { return a.user.lastName; }).forEach( function(participant){ %>
+          <% if (participant.user) { %>
+            <li><%= participant.user.firstName %> <%= participant.user.lastName %> (<%= participant.duty %>)</li>
+          <% } %>
+       <% }) %>
+          <li>Prof. Dr. Holger Giese (teacher)</li>
+          <li>Gregor Berg (teacher)</li>
+          <li>Thomas Beyhl (teacher)</li>
+        </ul>
+      </p>
     </div>
 
-    <div class="span6">
-    <% project.participants.forEach( function(){ %>
-      <!-- image credit: http://cookiemonstercrumbs.deviantart.com/art/Psy-Default-Profile-Picture-331778788 -->
-      <img src="assets/images/default_profile_picture.jpg">
-    <% }) %>
-
-
+    <div class="span7">
+      <div class="row-fluid">
+        <div class="span4">
+          <img src="assets/images/press/tomb.jpg">
+          <p>Tom Bocklisch</p>
+        </div>
+        <div class="span4">
+          <img src="assets/images/press/dominic.jpg">
+          <p>Dominic Bräunlein</p>
+        </div>
+        <div class="span4">
+          <img src="assets/images/press/anita.jpg">
+          <p>Anita Dieckhoff</p>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span4">
+          <img src="assets/images/press/tomh.jpg">
+          <p>Tom Herold</p>
+        </div>
+        <div class="span4">
+          <img src="assets/images/press/norman.jpg">
+          <p>Norman Rzepka</p>
+        </div>
+        <div class="span4">
+          <img src="assets/images/press/thomas.jpg">
+          <p>Thomas Werkmeister</p>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span4">
+          <img src="assets/images/press/giese.jpg">
+          <p>Prof. Dr. Holger Giese</p>
+        </div>
+        <div class="span4">
+          <img src="assets/images/press/gregor.jpg">
+          <p>Gregor Berg</p>
+        </div>
+        <div class="span4">
+          <img src="assets/images/press/thomasb.jpg">
+          <p>Thomas Beyhl</p>
+        </div>
+      </div>
     </div>
 </div>
