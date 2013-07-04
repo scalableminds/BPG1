@@ -100,12 +100,12 @@ case class TreeFolder(element: BoxFolder, reporter: ActorRef, collaborators: Set
       val result = this.copy(children = children + (tree.element.name -> tree.addCollaborators(Nil, collaborators).setProject(Nil, project)))
       if(children.contains(tree.element.name))
         tree match{
-          case f: TreeFile => reporter ! UpdatedFile(f.element)
+          case f: TreeFile => reporter ! UpdatedFile(f.element, collaborators)
           case _ => 
       }
       else {
         tree match {
-          case f: TreeFile => reporter ! NewFile(f.element)
+          case f: TreeFile => reporter ! NewFile(f.element, collaborators)
           case _ => 
         }
       }

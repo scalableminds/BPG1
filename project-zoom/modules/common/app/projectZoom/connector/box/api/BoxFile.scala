@@ -63,7 +63,7 @@ case class BoxFile(
 object BoxFile extends Function19[String, String, String, String, String, String, Int, BoxPathCollection, DateTime, DateTime, Option[DateTime], Option[DateTime], DateTime, DateTime, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, BoxFile]{
   import DateTimeHelper.BoxTimeStampReader
   
-  implicit val BoxFileReads: Reads[BoxFile] = Json.reads[BoxFile]
+  implicit val BoxFileReads: Format[BoxFile] = Json.format[BoxFile]
 
   implicit val BoxFileAsSourceReads: Reads[BoxSource] = (
     (__ \ "id").read[String] and

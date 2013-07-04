@@ -22,11 +22,11 @@ object BoxMiniFolder extends Function4[String, Option[String], String, String, B
       (__ \ "name").read[String] and
       (__ \ "type").read[String](pattern("folder".r)))(BoxMiniFolder.apply _)
   
-  implicit val BoxMiniFolderReads: Reads[BoxMiniFolder] = (
-      (__ \ "id").read[String] and
-      (__ \ "sequence_id").readNullable[String] and 
-      (__ \ "name").read[String] and
-      (__ \ "type").read[String](pattern("folder".r)))(BoxMiniFolder.apply _)
+  implicit val BoxMiniFolderReads: Format[BoxMiniFolder] = (
+      (__ \ "id").format[String] and
+      (__ \ "sequence_id").formatNullable[String] and 
+      (__ \ "name").format[String] and
+      (__ \ "type").format[String](pattern("folder".r)))(BoxMiniFolder.apply _, unlift(BoxMiniFolder.unapply))
 }   
 
 case class BoxFolder( 

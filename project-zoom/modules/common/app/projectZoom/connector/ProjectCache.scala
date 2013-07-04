@@ -16,15 +16,19 @@ case object ProjectsUpdated
 case object ProjectsRequest
 
 class ProjectCache extends Actor with EventSubscriber {
+  
+  Logger.debug(s"ProjectCachePath: ${context.self.path.toString}")
   import context.become
   
   def upToDate(projects: List[ProjectLike]): Receive = {
-    case ProjectsRequest => sender ! projects
+    case ProjectsRequest => Logger.debug("ProjectCache up-to-date") 
+        sender ! projects
     case ProjectsUpdated => become(outDated)
   }
   
   def outDated: Receive = {
     case ProjectsRequest => 
+      Logger.debug("ProjectCache outdated, requesting new data")
       DBProxy.getProjects.onComplete{
         case Success(projects) => sender ! projects
             become(upToDate(projects))

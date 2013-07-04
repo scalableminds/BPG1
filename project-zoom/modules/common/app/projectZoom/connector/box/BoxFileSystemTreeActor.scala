@@ -25,8 +25,8 @@ case class CommentModified(comment: BoxComment, f: BoxFileSystemElement)
 case class CommentTrashed(comment: BoxComment, f: BoxFileSystemElement)
 case class CommentUnderlyingRenamed(comment: BoxComment, f: BoxFileSystemElement)
 case class CommentUnderlyingRelocated(comment: BoxComment, f: BoxFileSystemElement)
-case class NewFile(f: BoxFile)
-case class UpdatedFile(f: BoxFile)
+case class NewFile(f: BoxFile, collaborators: Set[String])
+case class UpdatedFile(f: BoxFile, collaborators: Set[String])
 case class ProjectSetFor(project: ProjectLike, f: BoxFileSystemElement)
 case class ProjectSetForComment(project: ProjectLike, comment: BoxComment)
 case class CollaboratorsChangedFor(collaborators: Set[String], f: BoxFileSystemElement)
@@ -69,9 +69,9 @@ class BoxFileSystemTreeActor(fileProjectMatcher: ActorRef) extends Actor with Pl
 
     case Rename(f) => alterTree(_.rename(ids()(f.id), f.name))
     
-    case NewFile(f: BoxFile) => 
+    case NewFile(f: BoxFile, collaborators: Set[String]) => 
       ids.send(_ + (f.id -> f.fullPath))
-      parent ! NewFile(f)
+      parent ! NewFile(f, collaborators)
     
     case ItemRelocated(f) => 
       ids.send(_ + (f.id -> f.fullPath))

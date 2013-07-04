@@ -11,82 +11,67 @@ import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.ExecutionContext.Implicits.global
+import projectZoom.connector.util.{Jaccard, Levenshtein}
 
-case class BoxFileInfo(name: String, path: String, collaborators: List[String])
+case class BoxFileInfo(name: String, path: String, collaborators: Set[String])
 
 class FileProjectMatcher extends Actor {
+  
+  Logger.debug(s"FileProjectMatcherPath: ${context.self.path.toString}")
   
   implicit val timeout = Timeout(60 seconds)
   
   val projectCache = context.actorFor(s"${context.parent.path}/ProjectCache")
+  def projects = (projectCache ? ProjectsRequest).mapTo[List[ProjectLike]]
   
-  val projects = (projectCache ? ProjectsRequest).mapTo[List[ProjectLike]]
+  val collaboratorWeight = 0.6
+  val pathWeight = 0.4
+  val threshold = 0.5
 
   def receive = {
-    case BoxFileInfo(name, path, collaborators) => sender ! matchBoxFile(name, path, collaborators)
-      
+    case BoxFileInfo(name, path, collaborators) => 
+      val cachedSender = sender
+      matchHeuristic(path, collaborators).foreach{ projectOpt => 
+        Logger.debug(s"Found project $projectOpt")
+        cachedSender ! projectOpt}
   }
   
-  def matchBoxFile(name: String, path: String, collaborators: List[String]): Future[Option[ProjectLike]] = {
+  def matchBoxFile(name: String, path: String, collaborators: Set[String]): Future[Option[ProjectLike]] = {
     projects.map(projects => projects.headOption)
   }
   
+  def emailMatching(collaborators: Set[String], participants: Set[String]) = {
+     Jaccard(collaborators, participants)
+  }
   
-/*  val threshold = 0.5
-
-  private def emailMatching(weight: Double, collaboratorEMails: Set[String], project: ProjectLike) = {
-    val stepSize = weight / project.emails.size
-    val intersection = (project.emails intersect collaboratorEMails).size
-    val total = stepSize * intersection - (stepSize * List(collaboratorEMails.diff(project.emails).size - 5, 0).max)
-    List(total, 0).max
+  def pathMatching(pathSplit: List[String], projectName: String): Double = {
+    pathSplit.map(pathSegment => Levenshtein.similarity(pathSegment, projectName)).max
   }
-
-  private def matchHeuristic(path: String, collaboratorEMails: Set[String], project: ProjectLike) = {
-    val emailValue = emailMatching(0.7, collaboratorEMails, project)
-    val pathValue = evaluatePath(0.3, path, project)
-    (emailValue -> pathValue)
+  
+  def evaluate(pathSplit: List[String], collaborators: Set[String], project: ProjectLike ) = {
+    (emailMatching(collaborators, project.emails) * collaboratorWeight ->
+    pathMatching(pathSplit, project.canonicalName) * pathWeight)
   }
-
-  def apply(path: String, collaboratorEMails: Set[String], creationDate: DateTime): Option[ProjectLike] = {
-    val projects = Await.result(projects, 30 seconds)
-    val evaluatedProjects = projects.zip(projects.map { project =>
-      matchHeuristic(path, collaboratorEMails, project)
-    })
-    val candidates = evaluatedProjects.sortBy(t => t._2._1 + t._2._2).reverse.take(5)
-    candidates.head match {
-      case (project, t) if (t._1 + t._2 < threshold) =>
-        Logger.debug(s"can't match file: ${path}\ncandidates are:")
-        candidates.foreach(p=> Logger.debug(s"project ${p._1.name}: email(${p._2._1}) path(${p._2._2})"))
-        None
-      case (project, t) => 
-        Some(project)
-      case _ => 
-        None
+  
+  def matchHeuristic(path: String, collaborators: Set[String]) = {
+    Logger.debug(s"match heuristic on path $path")
+    val pathSplit = splitAndCanonicalizePath(path)
+    projects.map{ projects => 
+      val evaluatedProjects = projects.zip(projects.map(project => evaluate(pathSplit, collaborators, project)))
+      val candidates = evaluatedProjects.sortBy(t => t._2._1 + t._2._2).reverse.take(5)
+      candidates.head match {
+        case (project, t) if (t._1 + t._2 < threshold) =>
+          Logger.debug(s"can't match file: ${path}\ncandidates are:")
+          candidates.foreach(p=> Logger.debug(s"project ${p._1.name}: email(${p._2._1}) path(${p._2._2})"))
+          None
+        case (project, t) => 
+          Some(project)
+        case _ => 
+          None
+      }
     }
   }
-
+  
   private def splitAndCanonicalizePath(path: String, separator: String = "/") =
-    path.replaceAll("""[-.()=_{}!@?:;"']""", " ").toLowerCase.split(separator).filterNot(_.isEmpty).map(_.split(" ").filterNot(_.isEmpty).toSet)
-
-  private def evaluatePath(weight: Double, path: String, project: ProjectLike): Double = {
-    val canonicalPathSegments = splitAndCanonicalizePath(path)
-    val projectNameSplit = project.canonicalName.split(" ").filterNot(_.isEmpty).toSet
-    val stepSize = weight / projectNameSplit.size
-    val maxMatch = canonicalPathSegments.map { seg =>
-      (projectNameSplit intersect seg).size
-    }.max
-    if (maxMatch * stepSize > weight) {
-      Logger.debug(s"project: ${project.name}\n")
-      Logger.debug(canonicalPathSegments.mkString("\n"))
-      Logger.debug(projectNameSplit.mkString(", "))
-      Logger.debug(stepSize.toString)
-      Logger.debug(maxMatch.toString)
-      Logger.debug("")
-    }
-    stepSize * maxMatch
-  }*/
-}
-
-object FileProjectMatcher{
-  def apply(name: String) = Props(() => new FileProjectMatcher, name)
+    path.replaceAll("""[-.()=_{}!@?:;"']""", " ").toLowerCase.split(separator).filterNot(_.isEmpty).toList
 }

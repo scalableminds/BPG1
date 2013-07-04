@@ -11,5 +11,5 @@ case class BoxPathCollection(total_count: Int, entries: List[BoxMiniFolder]) {
 }
 
 object BoxPathCollection extends Function2[Int, List[BoxMiniFolder], BoxPathCollection] {
-  implicit val BoxPathCollectionReads: Reads[BoxPathCollection] = Json.reads[BoxPathCollection]
+  implicit val BoxPathCollectionReads: Format[BoxPathCollection] = Json.format[BoxPathCollection]
 }

@@ -20,8 +20,8 @@ case class BoxUpdated(accessTokens: BoxAccessTokens) extends Event
 
 class SupervisorActor extends EventSubscriber with PlayActorSystem with PlayConfig {
 
-  val projectCache = context.actorOf(ProjectCache("ProjectCache"))
-  val fileProjectMatcher = context.actorOf(FileProjectMatcher("FileProjectMatcher"))
+  val projectCache = context.actorOf(Props[ProjectCache], "ProjectCache")
+  val fileProjectMatcher = context.actorOf(Props[FileProjectMatcher],"FileProjectMatcher")
 
   val BoxActor = context.actorOf(Props[BoxActor], "BoxActor")
   val FilemakerActor = context.actorOf(Props[FilemakerActor], "FilemakerActor")
