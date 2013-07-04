@@ -21,7 +21,7 @@ class SelectionHandler extends Behavior
       COMMENT : new CommentBehavior(@graph)
       IDLE : new Behavior(@graph)
 
-    @selection = null
+    @oldSelection = @selection = null
 
     @currentBehavior = @behaviors.IDLE
 
@@ -32,7 +32,7 @@ class SelectionHandler extends Behavior
 
     @hammerContext = Hammer( @graph.svgEl )
       .on("tap", "svg", @unselect)
-      .on("touch", ".node", @selectNode)
+      .on("tap", ".node", @selectNode)
       .on("tap", ".cluster", @selectCluster)
       .on("dragstart", ".node", @selectNode)
       .on("dragstart", ".cluster", @selectCluster)
@@ -82,6 +82,8 @@ class SelectionHandler extends Behavior
     return unless event.gesture
     return if @currentBehavior instanceof ConnectBehavior #unclean workaround
 
+    @oldSelection = @selection
+
     app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
 
     @selection = event.gesture.target
@@ -98,13 +100,15 @@ class SelectionHandler extends Behavior
       .addClass("node") # make sure we only add the class once
       .show()
 
-    @changeBehavior( @behaviors.DRAG )
+    @changeBehavior( @behaviors.DRAG ) unless @selection == @oldSelection
 
 
   selectCluster : (event) =>
 
     return unless event.gesture
     app.trigger "behavior:disable_panning" if event.gesture.eventType = "move"
+
+    @oldSelection = @selection
 
     @selection = event.gesture.target
     @selection.position = @mouseToSVGLocalCoordinates(event)
@@ -115,7 +119,7 @@ class SelectionHandler extends Behavior
       .addClass("cluster") # make sure we only add the class once
       .show()
 
-    @changeBehavior( @behaviors.DRAG )
+    @changeBehavior( @behaviors.DRAG ) unless @selection == @oldSelection
 
 
   createToolBar : ->
@@ -185,6 +189,8 @@ class SelectionHandler extends Behavior
     @currentBehavior.deactivate()
     @currentBehavior = behavior
     @currentBehavior.activate(@selection)
+
+    @previous
 
 
   enablePanning : ->

@@ -1,9 +1,9 @@
 ### define
 hammer : Hammer
-./behavior : Behavior
-../cluster : Cluster
 lib/data_item : DataItem
 app : app
+./behavior : Behavior
+../helpers/cluster : Cluster
 ###
 
 class DrawClusterBehavior extends Behavior

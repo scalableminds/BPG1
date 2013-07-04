@@ -9,6 +9,13 @@ class JsonPatchAccumulator
     @patches = []
 
 
+  @attach : (dataItem) ->
+
+    patchAcc = new JsonPatchAccumulator()
+    dataItem.on(patchAcc, "patch:*", patchAcc.addChange)
+    patchAcc
+
+
   addChange : (op, path, value) =>
 
     path = "/#{path}"

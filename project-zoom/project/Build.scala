@@ -16,10 +16,6 @@ object ApplicationBuild extends Build {
   val projectZoomDependencies = Seq(
     "org.reactivemongo" %% "play2-reactivemongo" % "0.9",
     "org.reactivemongo" %% "reactivemongo-bson-macros" % "0.9",
-    "org.mongodb" %% "casbah-commons" % "2.5.0",
-    "org.mongodb" %% "casbah-core" % "2.5.0",
-    "org.mongodb" %% "casbah-query" % "2.5.0",
-    "com.restfb" % "restfb" % "1.6.11",
     "commons-io" % "commons-io" % "1.3.2",
     "org.apache.commons" % "commons-email" % "1.2",
     "com.typesafe.akka" %% "akka-agent" % "2.1.0",

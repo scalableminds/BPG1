@@ -7,16 +7,8 @@ import securesocial.core.SecureSocial
 
 object Application extends ControllerBase with SecureSocial {
 
-  def index = Action {
-    Redirect(controllers.main.routes.Application.processView)
-  }
-
-  def processView = SecuredAction { implicit request =>
-    Ok(views.html.main.processView())
-  }
-
-  def overview = SecuredAction { implicit request =>
-    Ok(views.html.main.projectsOverview())
+  def index = SecuredAction { implicit request =>
+    Ok(views.html.main.index())
   }
 
   def test = SecuredAction { implicit request =>

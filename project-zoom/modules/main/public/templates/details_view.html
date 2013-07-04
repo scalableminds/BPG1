@@ -1,7 +1,46 @@
 <div class="zoom-view details-view">
   <div class="inactive-blocker"></div>
 
-	<h2><%= project.name %></h2>
-	<p><%= project.year %> <%= project.season %></p>
+    <div class="row-fluid">
+      <div class="span6">
 
+      	<h2><%= project.name %></h2>
+        <p>
+          <%
+            track = {
+              "3W" : "Basic Track - 3 Week Project",
+              "6W" : "Basic Track - 6 Week Project",
+              "12W" : "Advanced Track - 12 Week Project"
+            }
+          %>
+          <%= track[project.length] %>
+        </p>
+      	<p><%= project.year %>
+        <%
+          term = {
+            ST: "Sommer Term",
+            WT: "Winter Term"
+          }
+        %>
+        <%= term[project.season] %>
+      </p>
+
+      <p>
+        Tags:
+        <ul>
+        <% project.tags.forEach( function(tag){ %>
+          <li><%= tag.name %></li>
+       <% }) %>
+        </ul>
+      </p>
+    </div>
+
+    <div class="span6">
+    <% project.participants.forEach( function(){ %>
+      <!-- image credit: http://cookiemonstercrumbs.deviantart.com/art/Psy-Default-Profile-Picture-331778788 -->
+      <img src="assets/images/default_profile_picture.jpg">
+    <% }) %>
+
+
+    </div>
 </div>

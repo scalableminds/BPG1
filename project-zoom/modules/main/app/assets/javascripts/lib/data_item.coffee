@@ -4,7 +4,6 @@ async : async
 ./event_mixin : EventMixin
 ./request : Request
 ./change_accumulator : ChangeAccumulator
-./json_patch_accumulator : JsonPatchAccumulator
 ###
 
 ###
@@ -25,9 +24,6 @@ class DataItem
     @lazyAttributes = options.lazy ? {}
 
     @set(json)
-
-    @patchAcc = new JsonPatchAccumulator()
-    @on(@patchAcc, "patch:*", @patchAcc.addChange)
 
     @changeAcc = new ChangeAccumulator()
     @on(@changeAcc, "change", @changeAcc.addChange)
@@ -303,8 +299,6 @@ class DataItem.Collection
 
     @add(items...)
 
-    @patchAcc = new JsonPatchAccumulator()
-    @on(@patchAcc, "patch:*", @patchAcc.addChange)
     @on(this, "patch:*", @trackChanges)
 
 
