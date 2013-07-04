@@ -20,6 +20,7 @@ Project =
 
     project.loaded = $.when(
       @prepareTags(project)
+      @prepareParticipants(project)
       @prepareArtifacts(project)
       @prepareGraph(project)
     )
@@ -34,6 +35,19 @@ Project =
     )
 
 
+  prepareParticipants : (project) ->
+
+    $.when(
+      project.get("participants").map((participant) -> 
+        (new $.Deferred (deferred) ->
+          participant.get("user", project, (user) ->
+            deferred.resolve(user)
+          )
+        )
+      )...
+    )
+
+
   prepareArtifacts : (project) ->
 
     artifacts = new DataItem.Collection("/projects/#{project.get("id")}/artifacts")
@@ -45,7 +59,8 @@ Project =
 
   prepareGraph : (project) ->
 
-    (new $.Deferred (deferred) ->
+    new $.Deferred (deferred) ->
+
       project.get("graphs", project, (graphCollection) ->
 
         unless graphCollection
@@ -63,77 +78,79 @@ Project =
         else
           deferred.resolve(graphCollection.at(0))
       )
-      return
 
-    ).then(
-      (graph) ->
+      deferred.then(
+        (graph) ->
 
-        webSocket = new WebSocket("ws://#{window.location.host}/projects/#{project.get("id")}/updateChannel")
-        webSocket.addEventListener("message", console.log.bind(console))
+          # webSocket = new WebSocket("ws://#{window.location.host}/projects/#{project.get("id")}/updateChannel")
+          # webSocket.addEventListener("message", console.log.bind(console))
 
-        patchAcc = JsonPatchAccumulator.attach(graph)
+          patchAcc = JsonPatchAccumulator.attach(graph)
 
-        isSaving = false
+          isSaving = false
 
-        graph.save = ->
+          graph.save = ->
 
-          if isSaving
-            isSaving.done -> 
-              graph.isDirty = true
-              graph.save()
-            return
+            if isSaving
+              isSaving.done -> 
+                graph.isDirty = true
+                graph.save()
+              return
 
-          patchData = patchAcc.flush()
+            patchData = patchAcc.flush()
 
-          return if patchData.length == 0
+            return if patchData.length == 0
 
-          graph.trigger("save:start")
+            graph.trigger("save:start")
 
-          isSaving = Utils.retryDeferred(
-            ->
-              Request.send(
-                url : "/graphs/#{graph.get("group")}/#{graph.get("version")}"
-                method : "PATCH"
-                data : patchData
-                dataType : "json"
-              ).then( 
-                ({ version }) -> 
-                  graph.set("version", version, silent : true)
-                  graph.isDirty = false
-                  return
-                ($xhr) ->
-                  if $xhr.status == 400 
-                    alert("Sorry. We couldn't save. (400)")
-                    $.Deferred().resolve()
-                  else
-                    null
+            isSaving = Utils.retryDeferred(
+              ->
+                Request.send(
+                  url : "/graphs/#{graph.get("group")}/#{graph.get("version")}"
+                  method : "PATCH"
+                  data : patchData
+                  dataType : "json"
+                ).then( 
+                  ({ version }) -> 
+                    graph.set("version", version, silent : true)
+                    graph.isDirty = false
+                    return
+                  ($xhr) ->
+                    if $xhr.status == 400 
+                      alert("Sorry. We couldn't save. (400)")
+                      $.Deferred().resolve()
+                    else
+                      null
+                )
+
+              SAVE_RETRY_COUNT
+              SAVE_RETRY_TIMEOUT
+
+            )
+              .fail( ->
+                alert("Sorry. We couldn't save. (Retry timeout)")
+              )
+              .always( ->
+                graph.trigger("save:done")
+                isSaving = false
               )
 
-            SAVE_RETRY_COUNT
-            SAVE_RETRY_TIMEOUT
-
+          graph.on(graph, "patch:*", ->
+            graph.isDirty = true
           )
-            .fail( ->
-              alert("Sorry. We couldn't save. (Retry timeout)")
-            )
-            .always( ->
-              graph.trigger("save:done")
-              isSaving = false
-            )
 
-        graph.on(graph, "patch:*", ->
-          graph.isDirty = true
-        )
+          graph.on(graph, "patch:*", _.debounce(
+            -> graph.save()
+            SAVE_DEBOUNCE
+          ))
 
-        graph.on(graph, "patch:*", _.debounce(
-          -> graph.save()
-          SAVE_DEBOUNCE
-        ))
+          $(window).on("beforeunload", ->
+            if graph.isDirty
+              graph.save()
+              return "We haven't saved yet. Please wait a little longer."
+          )
 
-        $(window).on("beforeunload", ->
-          if graph.isDirty
-            graph.save()
-            return "We haven't saved yet. Please wait a little longer."
-        )
+          graph
 
-    )
+      )
+    
