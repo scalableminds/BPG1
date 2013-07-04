@@ -1,6 +1,6 @@
 $ = jQuery
 
-version = 1
+version = 2
 
 NODE_SIZE = 64
 MARGIN = 5
@@ -189,8 +189,8 @@ drag = d3.behavior.drag()
     if get_collisions(@copy, _.without(list_of_nodes, d) ).length is 0
       d3.select(this).attr "transform", (d, i) ->
         "translate(" + [d.x, d.y] + ")"
-      d.x = d3.event.x
-      d.y = d3.event.y
+      d.x = @copy.x
+      d.y = @copy.y
       @copy = _.clone(d)
   else
     d.x += d3.event.dx

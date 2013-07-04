@@ -14,12 +14,26 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import projectZoom.util.PlayConfig
 
-class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayActorSystem {
-  type FolderId=String
-  
+class BoxExtendedAPI extends BoxAPI with PlayActorSystem {
+
   implicit val timeout = Timeout(5 seconds)
-  val collaborations = Agent[Map[FolderId, List[BoxMiniUser]]](Map())
+  val collaborations = Agent[Map[String, List[BoxMiniUser]]](Map())
+  
+  def getRelevantStreamPosition(implicit accessTokens: BoxAccessTokens): Future[Long] = {
+    def loop(streamPosition: Long): Future[Long] = {
+      fetchEvents(streamPosition).flatMap{ json => 
+        val chunkSize = (json \ "chunk_size").as[Int]
+        val nextStreamPosition = (json \ "next_stream_position").as[Long]
+        if(chunkSize == 0)
+          Future(nextStreamPosition)
+        else
+          loop(nextStreamPosition)
+      }
+    }
+    loop(0)
+  }
   
   def enumerateEvents(streamPos: Long = 0)(implicit accessTokens: BoxAccessTokens) = {
     def loop(stream_position: Long, accumulatedEvents: JsArray): Future[(Long, Future[JsArray])] = {
@@ -59,8 +73,12 @@ class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayAc
       }
     }
   }
+  
+  def fetchCollaboratorsEmail(folderId: String)(implicit accessTokens: BoxAccessTokens): Future[Option[List[String]]] = {
+    fetchCollaboratorsList(folderId).map(_.map(_.map(_.login)))
+  }
     
-  private def fetchCollaboratorsList(folderId: FolderId)(implicit accessTokens: BoxAccessTokens): Future[Option[List[BoxMiniUser]]] = {
+  def fetchCollaboratorsList(folderId: String)(implicit accessTokens: BoxAccessTokens): Future[Option[List[BoxMiniUser]]] = {
     fetchFolderCollaborations(folderId).map{ json =>
       (json \ "entries").validate[List[BoxCollaboration]] match {
         case JsSuccess(collaborationList, _) => 
@@ -70,5 +88,37 @@ class BoxExtendedAPI(appKeys: BoxAppKeyPair) extends BoxAPI(appKeys) with PlayAc
         None
       }
     }
+  }
+  
+  def fetchBoxFileInfo(fileId: String)(implicit accessTokens: BoxAccessTokens) = {
+    import BoxFile.BoxFileReads
+    fetchFileInfo(fileId).map{fileJson=> 
+      fileJson.validate[BoxFile] match {
+        case JsSuccess(f, _) => Some(f)
+        case JsError(err) => Logger.error(s"Error fetching file($fileId) Info:\n ${err.mkString}\njson:\n${Json.stringify(fileJson)}")
+        None
+      }
+    }
+  }
+  
+  
+  def fetchBoxRootInfo(implicit accessTokens: BoxAccessTokens) = fetchBoxFolderInfo("0")
+  
+  def fetchBoxFolderInfo(folderId: String)(implicit accessTokens: BoxAccessTokens): Future[Option[BoxFolder]] = {
+    import BoxFolder.BoxFolderReads
+    fetchFolderInfo(folderId).map{folderJson=> 
+      folderJson.validate[BoxFolder] match {
+        case JsSuccess(f, _) => Some(f)
+        case JsError(err) => Logger.error(s"Error fetching folder($folderId) Info:\n ${err.mkString}\njson:\n${Json.stringify(folderJson)}")
+        None
+      }
+    }
+  }
+  
+}
+
+object BoxExtendedAPI extends PlayConfig{
+  def create = {
+
   }
 }

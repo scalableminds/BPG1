@@ -4,16 +4,30 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import org.joda.time.DateTime
 import projectZoom.util.DateTimeHelper
+import Reads.pattern
 
-case class BoxMiniFile(id: String, sequence_id: String, name: String) extends BoxMiniSource
+trait BoxFileSystemElement {
+  val id: String
+  val name: String
+  def path: List[String]
+  def fullPath: List[String]
+}
 
-object BoxMiniFile extends Function3[String, String, String, BoxMiniFile] {
+case class BoxMiniFile(id: String, sequence_id: String, name: String, realType: String) extends BoxMiniSource
+
+object BoxMiniFile extends Function4[String, String, String, String, BoxMiniFile] {
+  
   implicit val BoxMiniFileAsSourceReads: Reads[BoxMiniSource] = (
       (__ \ "id").read[String] and
       (__ \ "sequence_id").read[String] and 
-      (__ \ "name").read[String])(BoxMiniFile.apply _)
+      (__ \ "name").read[String] and
+      (__ \ "type").read[String](pattern("file".r)))(BoxMiniFile.apply _)
       
-  implicit val BoxMiniFileReads: Reads[BoxMiniFile] = Json.reads[BoxMiniFile]
+  implicit val BoxMiniFileReads: Reads[BoxMiniFile] = (
+      (__ \ "id").read[String] and
+      (__ \ "sequence_id").read[String] and 
+      (__ \ "name").read[String] and
+      (__ \ "type").read[String](pattern("file".r)))(BoxMiniFile.apply _)
 }
 
 case class BoxFile(
@@ -36,13 +50,20 @@ case class BoxFile(
     owned_by: BoxMiniUser,
     parent: BoxMiniFolder,
     item_status: String
-    ) extends BoxSource {
-  val fullPath = s"${path_collection.path}/$name"
-  val path = path_collection.path
+    ) extends BoxSource with BoxFileSystemElement{
+  def pathString = path_collection.pathString
+  def fullPathString = s"${path_collection.pathString}/$name"
+  def path = path_collection.path
+  def fullPath = path_collection.path :+ name
+  
+  def rename(name: String) = this.copy(name = name)
+  def relocate(index: Int, name: String) = this.copy(path_collection = path_collection.relocate(index, name))
 }
 
 object BoxFile extends Function19[String, String, String, String, String, String, Int, BoxPathCollection, DateTime, DateTime, Option[DateTime], Option[DateTime], DateTime, DateTime, BoxMiniUser, BoxMiniUser, BoxMiniUser, BoxMiniFolder, String, BoxFile]{
   import DateTimeHelper.BoxTimeStampReader
+  
+  implicit val BoxFileReads: Format[BoxFile] = Json.format[BoxFile]
 
   implicit val BoxFileAsSourceReads: Reads[BoxSource] = (
     (__ \ "id").read[String] and

@@ -37,7 +37,6 @@ object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with 
               "client_secret" -> Seq(client_secret))).map{ response =>
               Json.parse(response.body).transform(BoxAccessTokens.boxExpirationReader) match {
                 case JsSuccess(boxAccessTokens, _) => 
-                  PermanentValueService.put("box.tokens", boxAccessTokens)
                   boxAccessTokens.validate[BoxAccessTokens] match {
                     case JsSuccess(accessTokens, _) => publish(BoxUpdated(accessTokens))
                     case JsError(errors) => Logger.error(errors.mkString)

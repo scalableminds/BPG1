@@ -8,9 +8,7 @@ import play.api.Logger
 import scala.util.{ Try, Success, Failure }
 import play.api.libs.iteratee.Iteratee
 
-case class BoxAppKeyPair(client_id: String, client_secret: String)
-
-class BoxAPI(appKeys: BoxAppKeyPair) {
+class BoxAPI {
 
   val pickEntries = (__ \ 'entries).json.pick[JsArray]
 
@@ -45,7 +43,7 @@ class BoxAPI(appKeys: BoxAppKeyPair) {
     jsonAPI(s"$apiURL/files/$fileId")
   }
 
-  def fetchEvents(stream_position: Long = 0, limit: Int = 100)(implicit accessTokens: BoxAccessTokens) = {
+  def fetchEvents(stream_position: Long = 0, limit: Int = 1000)(implicit accessTokens: BoxAccessTokens) = {
     jsonAPI(s"$apiURL/events?stream_position=$stream_position&limit=$limit")
   }
 
