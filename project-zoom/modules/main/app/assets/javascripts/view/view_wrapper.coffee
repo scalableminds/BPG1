@@ -40,7 +40,7 @@ class ViewWrapper
     EventMixin.extend(this)
     @zoom = 0
     @isActivated = false
-    @$placeholder = $("<div>", class : "placeholder-view").append("""<i class="icon-refresh"></i>""")
+    @$placeholder = $("<div>", class : "placeholder-view").append("""<i class="icon-refresh icon-spin"></i>""")
     @placeholderIsActive = false
     @actionQueue = null
 

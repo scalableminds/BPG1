@@ -16,7 +16,7 @@ class PanZoomBehavior extends Behavior
       "behavior:enable_panning" : => @activate()
       "behavior:disable_panning": => @deactivate()
 
-    @wheel = new Wheel(@$el.find(".graph"))
+    @wheel = new Wheel(@$el.find(".graph")[0])
 
     @oldZoomLevel = 1
     @panZoom(.4)

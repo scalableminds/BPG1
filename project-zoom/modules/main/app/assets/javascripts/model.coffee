@@ -38,7 +38,7 @@ app.addInitializer (options, callback) ->
 
     model.projects.loaded = model.projects.fetchNext().then( 
       ->
-        model.project = model.projects.at(0) #find( (a) -> a.get("name") == "Project-Zoom" )
+        model.project = model.projects.at(0)
         $.when(
           model.projects.map(ModelFunctions.Project.prepareTags)...
           ModelFunctions.Project.load(model.project)

@@ -126,6 +126,8 @@ switchView = RangeSwitch(
 
 app.on "start", ->
 
+  $(document).on("touchstart", "svg", (ev) -> ev.preventDefault())
+
   $(".content").append(app.view.zoom.el)
   app.view.zoom.activate()
 
