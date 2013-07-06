@@ -4,7 +4,7 @@
 
   $ = jQuery;
 
-  version = 1;
+  version = 2;
 
   NODE_SIZE = 64;
 
@@ -194,8 +194,8 @@
         d3.select(this).attr("transform", function(d, i) {
           return "translate(" + [d.x, d.y] + ")";
         });
-        d.x = d3.event.x;
-        d.y = d3.event.y;
+        d.x = this.copy.x;
+        d.y = this.copy.y;
         return this.copy = _.clone(d);
       }
     } else {

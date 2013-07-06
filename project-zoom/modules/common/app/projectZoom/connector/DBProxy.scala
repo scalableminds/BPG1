@@ -32,6 +32,8 @@ object DBProxy extends ArtifactTransformers{
     }
  
   def setBoxEventStreamPos(eventStreamPos: Long) = PermanentValueService.put("box.eventStreamPos", JsNumber(eventStreamPos)) 
+  
+  def unsetBoxEventStreamPos = setBoxEventStreamPos(0.toLong)
 
   def deleteBoxEventStreamPos() = PermanentValueService.del("box.eventStreamPos")
   

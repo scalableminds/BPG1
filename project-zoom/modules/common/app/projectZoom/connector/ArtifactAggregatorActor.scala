@@ -5,10 +5,17 @@ import models.ArtifactLike
 import projectZoom.core.event.{EventPublisher, Event}
 import projectZoom.core.artifact._
 import java.io.ByteArrayInputStream
+import akka.pattern.ask
+import scala.concurrent.duration._
+import akka.util.Timeout
 
 trait ArtifactAggregatorActor extends ConnectorActor with EventPublisher {
 
-  def projects = ProjectCache.getCurrentProjects
+  implicit val timeout = Timeout(60 seconds)
+
+  def projectCache = context.actorFor(s"${context.parent.path}/ProjectCache")
+  
+  def projects = projectCache ? ProjectsRequest
   
   def toInputStream(bytes: Array[Byte]) = new ByteArrayInputStream(bytes)
   

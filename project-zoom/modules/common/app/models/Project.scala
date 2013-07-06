@@ -12,9 +12,9 @@ import play.api.Logger
 import org.joda.time.DateTime
 
 case class ProjectLike(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String]){
-  val canonicalName = name.replace("-", " ").toLowerCase()
-  val emails = participants.map(_._user).toSet
-  val startDate = new DateTime(year.toInt, if(season=="ST") 4 else 10, 1, 0, 0)
+  lazy val canonicalName = name.replaceAll("""[-.()=_{}!@?:;"']""", " ").toLowerCase()
+  lazy val emails = participants.map(_._user.toLowerCase()).toSet
+  lazy val startDate = new DateTime(year.toInt, if(season=="ST") 4 else 10, 1, 0, 0)
 }
 
 case class Participant(duty: String, _user: String)

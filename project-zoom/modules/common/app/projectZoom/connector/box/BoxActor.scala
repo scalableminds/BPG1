@@ -2,6 +2,8 @@ package projectZoom.connector.box
 
 import projectZoom.connector._
 import akka.actor._
+import akka.actor.SupervisorStrategy._
+import akka.agent._
 import scala.concurrent.duration._
 import scala.concurrent._
 import play.api.libs.concurrent.Execution.Implicits._
@@ -12,99 +14,151 @@ import play.api.libs.json._
 import api._
 import models.{ Artifact, ProjectLike }
 import org.joda.time.DateTime
+import scala.util.{ Try, Success, Failure }
+import akka.pattern.ask
 
-import scala.util.{ Success, Failure }
+class BoxActor extends ArtifactAggregatorActor {
 
-class BoxActor(appKeys: BoxAppKeyPair, accessTokens: BoxAccessTokens, var eventStreamPos: Long) extends ArtifactAggregatorActor {
+  Logger.debug(context.self.path.toString)
+  val fileProjectMatcher = context.actorFor(s"${context.parent.path}/FileProjectMatcher")
+  Logger.debug(fileProjectMatcher.path.toString)
+  val tokenActor = context.actorOf(Props[BoxTokenActor])
+  val box = new BoxExtendedAPI
+  val BoxFileSystem = context.actorOf(BoxFileSystemTreeActor.props(fileProjectMatcher, "BoxFileSystem"))
 
-  Logger.debug(projects.mkString("\n"))
-  val TICKER_INTERVAL = 1 minute
-
-  implicit val timeout = Timeout(30 seconds)
-
-  lazy val tokenActor = context.actorOf(Props(new BoxTokenActor(appKeys, accessTokens)))
-  lazy val box = new BoxExtendedAPI(appKeys)
-
-  var updateTicker: Cancellable = null
-
-  def findProjectForFile(file: BoxFile)(implicit accessTokens: BoxAccessTokens): Option[ProjectLike] = {
-    val collaboratorsOpt = box.fetchCollaborators(file)
-    collaboratorsOpt.flatMap { collaborators =>
-      val collaboratorEMails = collaborators.map(_.login.toLowerCase).toSet
-      FileProjectMatcher(file.path, collaboratorEMails, new DateTime(file.created_at))
+  def getEventStreamPos = {
+    Try {
+      Await.result(DBProxy.getBoxEventStreamPos, 10 seconds)
+    } match {
+      case Success(eventStreamPosOpt) => eventStreamPosOpt.getOrElse(0.toLong)
+      case Failure(err) =>
+        Logger.error(s"Timeout reading BoxAccessTokens for BoxTokenActor from DB:\n $err")
+        throw err
     }
   }
 
-  def handleITEM_UPLOAD(events: List[BoxEvent])(implicit accessTokens: BoxAccessTokens) {
-    box.buildCollaboratorCache(events).onComplete {
-      case x =>
-        events.foreach { event =>
-          event.source match {
-            case Some(file: BoxFile) =>
-              box.downloadFile(file.id).map { byteArray =>
-                findProjectForFile(file).foreach { project =>
-                  val sourceJson = (event.json \ "source")
-                  Logger.debug(s"found ${file.fullPath} to be in project ${project.name}")
-                  publishFoundArtifact(byteArray, Artifact(file.name, project.name, file.path, "box", file.created_at.getMillis(), sourceJson))
-                }
-              }
-            case Some(folder: BoxFolder) =>
-              Logger.debug(s"found folder being uploaded: $folder")
+  def startUp(implicit accessTokens: BoxAccessTokens) = {
+    box.enumerateEvents(getEventStreamPos).onComplete {
+      case Success(t) => DBProxy.setBoxEventStreamPos(t._1)
+      case Failure(err) => Logger.error(s"Error fetching current stream Position:\n$err")
+    }
+    traverseBoxFileStructure.map { x => BoxFileSystem ! PrintTree }
+  }
+
+  def traverseBoxFileStructure(implicit accessTokens: BoxAccessTokens) = {
+    def loop(entries: List[BoxMiniSource]): List[BoxMiniSource] = {
+      val x = entries.flatMap {
+        case f @ BoxMiniFile(id, _, _, _) => box.fetchBoxFileInfo(id).map { file =>
+          BoxFileSystem ! Add(file)
+          List(f)
+        }
+        case BoxMiniFolder(id, _, _, _) => box.fetchBoxFolderInfo(id).map { folder =>
+          BoxFileSystem ! Add(folder)
+          box.fetchCollaboratorsEmail(folder.id).foreach { l =>
+              BoxFileSystem ! AddCollaborations(folder, l.toSet)
+            
+          }
+          folder.item_collection match {
+            case Some(itemCollection) => loop(itemCollection.entries)
+            case None => List()
           }
         }
+      }
+      x.flatten
+    }
+    box.fetchBoxRootInfo.flatMap { folder => folder.item_collection } match {
+        case Some(items) => loop(items.entries)
+        case None =>
+          Logger.error("No Items")
+          List()
     }
   }
 
-  def handleITEM_RENAME(events: List[BoxEvent])(implicit accessTokens: BoxAccessTokens) {
+  def findProjectForFile(file: BoxFile, collaborators: Set[String]) = {
+    Logger.debug("About to ask FileProjectMatcher for project")
+    (fileProjectMatcher ? BoxFileInfo(file.name, file.pathString, collaborators)).mapTo[Option[ProjectLike]]
+  }
 
+  def downloadAndPublishFile(file: BoxFile, collaborators: Set[String])(implicit accessTokens: BoxAccessTokens) = {
+    box.downloadFile(file.id).map { byteArray =>
+      Logger.debug(s"finished downloading file with id ${file.id}")
+      findProjectForFile(file, collaborators).foreach { projectOpt =>
+        projectOpt.foreach { project =>
+          Logger.debug(s"found ${file.fullPath} to be in project ${project.name}")
+          publishFoundArtifact(byteArray, Artifact(file.name, project.name, file.pathString, "box", file.created_at.getMillis(), Json.toJson(file)))
+        }
+      }
+    }
   }
 
   def handleEventStream(implicit accessTokens: BoxAccessTokens) {
-    box.fetchEvents(eventStreamPos).map { jsonResponse =>
-      eventStreamPos = (jsonResponse \ "next_stream_position").as[Long]
-      DBProxy.setBoxEventStreamPos(eventStreamPos)
-      Logger.debug(s"new eventStreamPos: $eventStreamPos")
-      (jsonResponse \ "entries").as[JsArray].value.map { json =>
-        json.validate(api.BoxEvent.BoxEventReads) match {
-          case JsSuccess(event, _) =>
-            if (event.event_type == "ITEM_RENAME")
-              Logger.debug(s"json:\n${Json.stringify(json)}")
+
+    val jsonResponse = box.fetchEvents(getEventStreamPos)
+    val nextEventStreamPos = (jsonResponse \ "next_stream_position").as[Long]
+    DBProxy.setBoxEventStreamPos(nextEventStreamPos)
+    Logger.debug(s"new eventStreamPos: $nextEventStreamPos")
+    val eventList = (jsonResponse \ "entries").as[JsArray].value.map { json =>
+      json.validate(api.BoxEvent.BoxEventReads) match {
+        case JsSuccess(event, _) =>
+          if (event.event_type == "ITEM_RENAME")
             Some(event)
-          case JsError(err) =>
-            Logger.error(s"Error validating BoxEvents:\n${err.mkString}")
-            Logger.debug(s"json:\n${Json.stringify(json)}")
-            None
-        }
-      }.flatten
-    }
-      .onSuccess {
-        case eventList =>
-          Logger.debug(s"got ${eventList.size} events")
-          val eventMap = eventList.groupBy { event => event.event_type }
-          handleITEM_UPLOAD(eventMap.get("ITEM_UPLOAD").map(_.toList) getOrElse Nil)
-          handleITEM_RENAME(eventMap.get("ITEM_RENAME").map(_.toList) getOrElse Nil)
+        case JsError(err) =>
+          Logger.error(s"Error validating BoxEvents:\n${err.mkString}")
+          Logger.debug(s"json:\n${Json.stringify(json)}")
+          None
       }
+    }
+  }
+
+  def withAccessToken(f: BoxAccessTokens => Unit) = {
+    (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map { tokenOpt =>
+      tokenOpt.map { token =>
+        f(token)
+      }
+    }
   }
 
   def aggregate() = {
-    (tokenActor ? AccessTokensRequest).mapTo[Option[BoxAccessTokens]].map { tokenOpt =>
-      tokenOpt.map { implicit token =>
-        context.parent ! UpdateBoxAccessTokens(token)
-        handleEventStream
-      }
+    withAccessToken { implicit token =>
+      //handleEventStream    
     }
   }
 
-  def start = {
-    Logger.debug("Starting update ticker")
-    updateTicker = context.system.scheduler.schedule(0 seconds, TICKER_INTERVAL, self, Aggregate)
+  def boxActorStarted: Receive = {
+    case NewFile(f: BoxFile, collaborators) =>
+      withAccessToken { implicit token =>
+        downloadAndPublishFile(f, collaborators)
+      }
   }
 
-  def stop = {
-    updateTicker.cancel
+  def boxActorStopped: Receive = {
+    case BoxUpdated(tokens) =>
+      DBProxy.setBoxToken(tokens)
+      DBProxy.unsetBoxEventStreamPos
   }
 
-  override def preStart() {
-    self ! StartAggregating
+  override def started: Receive = super.started.orElse(boxActorStarted)
+
+  override def stopped: Receive = super.stopped.orElse(boxActorStopped)
+
+  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1 minute) {
+    case NoBoxConfigException(msg) => Escalate
+    case _ => Restart
+  }
+
+  def start() = {
+    Logger.debug("Starting BoxActor")
+    tokenActor ! InitializeBoxTokenActor
+    withAccessToken { implicit token =>
+      box.fetchBoxRootInfo.foreach{ folder =>
+        BoxFileSystem ! InitializeTree(folder)
+        startUp
+      }
+    }
+  }
+  def stop() = {
+    Logger.debug("Stopping BoxActor")
+    tokenActor ! ResetBoxTokenActor
+    BoxFileSystem ! ResetTree
   }
 }
