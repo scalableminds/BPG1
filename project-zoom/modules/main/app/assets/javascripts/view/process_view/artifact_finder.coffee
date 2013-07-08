@@ -97,13 +97,13 @@ class ArtifactFinder
   addArtifacts : (artifacts) ->
 
     { group, getSliderValue, domElement } = @
-    
+
     @generateToGroupFolder(artifacts)
     @generateToGroupDates(artifacts)
 
     $('#sortTabs a[href="#tabdate"]').tab('show')
-    $('#sortTabs a[href="#tabfolder"]').tab('show') 
-    
+    $('#sortTabs a[href="#tabfolder"]').tab('show')
+
 
 
   generateToGroupFolder : (artifacts) ->
@@ -112,10 +112,10 @@ class ArtifactFinder
 
     group = @groups[0]
     paths = _.uniq(_.map(artifacts, (a) -> a.get("path"))).sort()
-    
+
     group.div.append("<div class=\"accordion\">")
     folder = []
-    for path in paths         
+    for path in paths
       group.div.append(
         @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/[^A-Za-z0-9]/g,"_")}" }
       )
@@ -130,7 +130,7 @@ class ArtifactFinder
       @artifactComponents.push artifactC
       parent.append(artifactC.getContainerElement())
 
-   
+
 
 
   generateToGroupDates : (artifacts) ->
@@ -139,11 +139,11 @@ class ArtifactFinder
 
     group = @groups[1]
 
-    paths = _.uniq(_.map(artifacts, (a) => @getStringFromTimeStamp(a.get("createdAt")))).sort()
-    
+    paths = _.sortBy(_.uniq(_.map(artifacts, (a) => @getStringFromTimeStamp(a.get("createdAt")))), (b) -> -b)
+
     group.div.append("<div class=\"accordion\">")
     folder = []
-    for path in paths         
+    for path in paths
       group.div.append(
         @accordionDocTemplate { path, bodyId : "collapseBody#{path.replace(/\//g,"_")}" }
       )

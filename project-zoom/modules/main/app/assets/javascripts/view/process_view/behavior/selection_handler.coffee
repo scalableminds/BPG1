@@ -38,9 +38,9 @@ class SelectionHandler extends Behavior
       .on("dragstart", ".cluster", @selectCluster)
       .on("dragend", @enablePanning)
 
-    @toolsContext = Hammer(@$tools[0])
-      .on("tap", ".btn", @selectBehavior)
-      .on("tap", "i", @selectBehavior)
+    @$tools
+      .on("click", ".btn", @selectBehavior)
+      .on("click", "i", @selectBehavior)
 
     app.on this,
       "behavior:done" : =>
@@ -58,7 +58,9 @@ class SelectionHandler extends Behavior
   deactivate : ->
 
     @$tools.remove()
-    @$tools.find(".btn").off("tap", @changeBehavior)
+    @$tools
+      .on("click", ".btn", @selectBehavior)
+      .on("click", "i", @selectBehavior)
     @$tools = null
 
     @hammerContext
@@ -68,9 +70,6 @@ class SelectionHandler extends Behavior
       .off("dragstart", @selectNode)
       .off("dragstart", @selectCluster)
       .off("dragend", @enablePanning)
-
-    @toolsContext
-      .off("tap", @selectBehavior)
 
     @dispatcher.unregisterAll(this)
 
