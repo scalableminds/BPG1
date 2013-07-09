@@ -38,6 +38,12 @@ Wheel = (el) ->
       @trigger("delta", delta, [ event.pageX, event.pageY ])
 
 
+  pinchHandler = ( {gesture} ) =>
+
+    scale = gesture.scale - 1
+    @trigger("delta", scale / Math.abs(scale), [ gesture.center.pageX, gesture.center.pageY ])
+
+
   @activate = ->
 
     unless isActivated
@@ -47,6 +53,7 @@ Wheel = (el) ->
         .on("release", mouseUpHandler)
 
       $(el).on("mousewheel", mouseWheelHandler)
+      Hammer(el).on("pinch", pinchHandler)
 
 
   @deactivate = ->
@@ -58,5 +65,7 @@ Wheel = (el) ->
         .off("release", mouseUpHandler)
 
       $(el).off("mousewheel", mouseWheelHandler)
+      Hammer(el).off("pinch", pinchHandler)
+
 
   return

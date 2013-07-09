@@ -46,9 +46,11 @@ class OverviewView
     # drag artifact into graph
     @$el.on( "dragstart", "#artifact-finder .artifact-image", (e) -> e.preventDefault() )
 
-    # @hh = Hammer(@$el.find(".graph svg")[0]).on("tap", "image", (event) -> 
-    #   app.model.setProject(d3.select(event.target).datum())
-    # )
+    @doubleTapHandler = Hammer(@$el.find(".graph svg")[0]).on("doubletap", "image", (event) -> 
+      app.model.setProject(d3.select(event.target).datum()?.original)
+      # HACK: Fixed zoom level
+      app.view.zoom.setZoom(20)
+    )
     
 
     @graph.drawProjects()
@@ -65,7 +67,7 @@ class OverviewView
 
     @$el.find(".tagbarItem input").off("click")
 
-    # @hh.off("tap")
+    @doubleTapHandler.off("doubletap")
 
     @gui.deactivate()
     @panning.deactivate()

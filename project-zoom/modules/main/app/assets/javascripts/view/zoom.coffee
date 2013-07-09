@@ -45,14 +45,20 @@ class Zoom
 
   onzoom : (event) =>
 
-    @level = +event.target.value
-    @trigger("change", @level)
+    @setZoom(+event.target.value)
+
+
+  setZoom : (value, position) ->
+
+    @level = Utils.clamp(@min, value, @max)
+    $input = @$el.find("input")
+    $input.val(@level)
+    @trigger("change", @level, position)
     return
 
 
   changeZoom : (delta, position) =>
 
-    $input = @$el.find("input")
-    @level = Utils.clamp(@min, (+$input.val() + delta) * @step, @max)
-    $input.val(@level)
-    @trigger("change", @level, position)
+    @setZoom((@level + delta) * @step, position)
+    
+
