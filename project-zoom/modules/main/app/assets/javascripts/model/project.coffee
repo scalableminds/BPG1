@@ -12,6 +12,8 @@ SAVE_DEBOUNCE = 500
 SAVE_RETRY_TIMEOUT = 10000
 SAVE_RETRY_COUNT = 20
 
+VIEW_ONLY = !!window.location.href.match(/viewer/)
+
 Project =
 
   load : (project) ->
@@ -82,9 +84,6 @@ Project =
       deferred.then(
         (graph) ->
 
-          # webSocket = new WebSocket("ws://#{window.location.host}/projects/#{project.get("id")}/updateChannel")
-          # webSocket.addEventListener("message", console.log.bind(console))
-
           patchAcc = JsonPatchAccumulator.attach(graph)
 
           isSaving = false
@@ -135,20 +134,34 @@ Project =
                 isSaving = false
               )
 
-          graph.on(graph, "patch:*", ->
-            graph.isDirty = true
-          )
+          if VIEW_ONLY
 
-          graph.on(graph, "patch:*", _.debounce(
-            -> graph.save()
-            SAVE_DEBOUNCE
-          ))
+            webSocket = new WebSocket("ws://#{window.location.host}/projects/#{project.get("id")}/updateChannel")
+            webSocket.addEventListener("message", (event) ->
 
-          $(window).on("beforeunload", ->
-            if graph.isDirty
-              graph.save()
-              return "We haven't saved yet. Please wait a little longer."
-          )
+              data = JSON.parse(event.data)
+              if data.collection == "graphs" and data.operation == "patch"
+                graph.applyPatches(data.value)
+                console.log(data.value)
+
+            )
+
+          else
+
+            graph.on(graph, "patch:*", ->
+              graph.isDirty = true
+            )
+
+            graph.on(graph, "patch:*", _.debounce(
+              -> graph.save()
+              SAVE_DEBOUNCE
+            ))
+
+            $(window).on("beforeunload", ->
+              if graph.isDirty
+                graph.save()
+                return "We haven't saved yet. Please wait a little longer."
+            )
 
           graph
 

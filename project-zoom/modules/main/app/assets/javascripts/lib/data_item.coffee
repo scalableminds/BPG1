@@ -242,18 +242,30 @@ class DataItem
     )
 
 
+  traverse : (key, func) ->
+
+    if key.indexOf("/") == -1
+      func(this, key)
+
+    else
+      remainingKey = key.substring(key.indexOf("/") + 1)
+      key = key.substring(0, key.indexOf("/"))
+      this.attributes[key].traverse(remainingKey, func)
+
+
   applyPatches : (patch) ->
 
     for entry in patch
 
-      switch entry.op
-        when "add"
-          @set(entry.path, entry.value)
-        when "replace"
-          @set(entry.path, entry.value)
-        when "remove"
-          @unset(entry.path)
-          
+      @traverse(entry.path.substring(1), (obj, key) ->
+        switch entry.op
+          when "add"
+            obj.set(key, entry.value)
+          when "replace"
+            obj.set(key, entry.value)
+          when "remove"
+            obj.unset(key)
+      )
 
 
 
@@ -448,7 +460,17 @@ class DataItem.Collection
       else
         @trigger("patch:add", index, item, this)
 
-    
+  
+  unset : (index) ->
+
+    item = @at(index)
+    if item instanceof DataItem or item instanceof DataItem.Collection
+      item.off(this, "patch:*", @trackPatches)
+    @items.splice(index, 1)
+    @trigger("patch:remove", index, item, this)
+    return
+
+
   remove : (items...) ->
 
     for item in items
@@ -470,6 +492,18 @@ class DataItem.Collection
       @set(key, updater(@get(key)), options)
 
     this
+
+
+  traverse : (key, func) ->
+
+    key = "#{key}"
+    if key.indexOf("/") == -1
+      func(this, key)
+
+    else
+      remainingKey = key.substring(key.indexOf("/") + 1)
+      key = +key.substring(0, key.indexOf("/"))
+      this.items[key].traverse(remainingKey, func)
 
 
   toObject : ->

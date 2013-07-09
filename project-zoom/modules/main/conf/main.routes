@@ -4,6 +4,7 @@
 
 # Home page
 GET    /                                                                  controllers.main.Application.index
+GET    /viewer                                                            controllers.main.Application.index
 GET    /test                                                              controllers.main.Application.test
 
 # CRUD Urls
