@@ -21,6 +21,9 @@ object Color extends Function3[Int, Int, Int, Color] {
 case class Tag(name: String, color: Color, _tagType: Option[BSONObjectID])
 
 object TagDAO extends SecuredMongoJsonDAO[Tag] {
+    /**
+   * Name of the DB collection
+   */
   val collectionName = "tags"
 
   val manager = collection.indexesManager

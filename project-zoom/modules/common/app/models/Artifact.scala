@@ -10,21 +10,55 @@ import reactivemongo.core.commands.LastError
 import reactivemongo.bson.BSONObjectID
 import play.modules.reactivemongo.json.BSONFormats._
 
+/**
+ * An Artifact describes a documentation content object.
+ */
 trait ArtifactLike {
+  /**
+   * Name of the artifact
+   */
   def name: String
+  /**
+   * Name of the project the artifact relates to
+   */
   def projectName: String
+  /**
+   * Path of the artifact in the original source. The source should be able
+   * to identify the artifact using the path
+   */
   def path: String
+  /**
+   * Origin of the artifact.
+   */
   def source: String
+  /**
+   * Time of creation
+   */
   def createdAt: Long
+  /**
+   * Additional data the data source provides
+   */
   def metadata: JsValue
+  /**
+   * Specifies if the artifact was deleted from the data source
+   */
   def isDeleted: Boolean
 }
 
+/**
+ * Converters of the ArtifactInterface
+ */
 trait ArtifactLikeTransformers extends ResourceLikeTransformers {
 
+  /**
+   * Creates a tuple from an artifact like object
+   */
   def toTuple(a: ArtifactLike) =
     (a.name, a.projectName, a.path, a.source, a.createdAt, a.metadata, a.isDeleted)
 
+  /**
+   * Converts smth artifact like to json
+   */
   implicit val artifactLikeWrites =
     ((__ \ 'name).write[String] and
       (__ \ 'projectName).write[String] and
@@ -35,6 +69,9 @@ trait ArtifactLikeTransformers extends ResourceLikeTransformers {
       (__ \ 'isDeleted).write[Boolean])(toTuple _)
 }
 
+/**
+ * An Artifact
+ */
 case class Artifact(
   name: String,
   projectName: String,
@@ -47,16 +84,25 @@ case class Artifact(
   _id: BSONObjectID = BSONObjectID.generate)
     extends ArtifactLike
 
+/**
+ * Converters from and to an artifact
+ */
 trait ArtifactTransformers extends ResourceHelpers {
   implicit val artifactFormat: Format[Artifact] = Json.format[Artifact]
 }
 
+/**
+ * Factory for artifacts
+ */
 trait ArtifactFactory extends ArtifactTransformers {
   def createArtifactFrom(js: JsObject) = {
     js.asOpt[Artifact]
   }
 }
 
+/**
+ * DAO for artifacts
+ */
 object ArtifactDAO
     extends SecuredMongoJsonDAO[Artifact]
     with ArtifactFactory
@@ -64,6 +110,9 @@ object ArtifactDAO
     with ArtifactLikeTransformers
     with ArtifactTransformers {
 
+  /**
+   * Name of the DB collection
+   */
   val collectionName = "artifacts"
 
   def findByArtifactQ(artifact: ArtifactLike): JsObject =
@@ -102,13 +151,13 @@ object ArtifactDAO
     collectionFind(Json.obj(
       "projectName" -> projectName))
 
-  def findAllForSource(_source: String)(implicit ctx: DBAccessContext) = 
+  def findAllForSource(_source: String)(implicit ctx: DBAccessContext) =
     findForSource(_source).cursor[JsObject].toList
-    
-  def findForSource(source: String)(implicit ctx: DBAccessContext) = 
+
+  def findForSource(source: String)(implicit ctx: DBAccessContext) =
     collectionFind(Json.obj(
-        "source" -> source))
-     
+      "source" -> source))
+
   def findResource(artifact: ArtifactLike, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
     collectionFind(findByArtifactQ(artifact) ++ findByResourceQ(resource)).one[Artifact].map(
       _.flatMap(_.resources.find(_.isSameAs(resource))))

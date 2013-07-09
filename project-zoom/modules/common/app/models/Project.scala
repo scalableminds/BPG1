@@ -22,7 +22,11 @@ case class Participant(duty: String, _user: String)
 case class Project(name: String, participants: List[Participant], season: String, year: String, length: String, _tags: List[String], _graphs: Option[List[String]], _id: BSONObjectID = BSONObjectID.generate)
 
 object ProjectDAO extends SecuredMongoJsonDAO[Project] {
+    /**
+   * Name of the DB collection
+   */
   override val collectionName = "projects"
+    
   override val defaultOrderBy = "name"
 
   implicit val participantFormat = Json.format[Participant]

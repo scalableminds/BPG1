@@ -10,34 +10,37 @@ import play.api.libs.concurrent.Execution.Implicits._
 case class PermanentValue(key: String, value: JsValue)
 
 object PermanentValueDAO extends UnsecuredMongoJsonDAO[PermanentValue] {
+  /**
+   * Name of the DB collection
+   */
   val collectionName = "permanentValues"
 
   implicit val permanentValueFormat = Json.format[PermanentValue]
-  
+
   def update(p: PermanentValue) = {
     collectionUpdate(Json.obj("key" -> p.key), permanentValueFormat.writes(p), true)
   }
 }
 
-object PermanentValueService extends GlobalDBAccess{
+object PermanentValueService extends GlobalDBAccess {
   import PermanentValueDAO.permanentValueFormat
-  
+
   def get(key: String): Future[Option[JsValue]] = {
     PermanentValueDAO.find("key", key).one[PermanentValue].map(_.map(_.value))
   }
-  
+
   def put(key: String, value: JsValue): JsValue = {
     PermanentValueDAO.update(PermanentValue(key, value))
     value
   }
-  
+
   def getOrPut(key: String)(value: => JsValue) = {
-    get(key).map( _.getOrElse {
+    get(key).map(_.getOrElse {
       put(key, value)
       value
     })
   }
-  
+
   def del(key: String) = {
     PermanentValueDAO.remove("key", key)
   }
