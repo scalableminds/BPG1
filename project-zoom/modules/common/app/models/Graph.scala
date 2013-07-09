@@ -64,13 +64,13 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers {
   def replacePayloadIdWithContent(content: JsValue) =
     (__).json.update((__ \ 'payload).json.put(content))
 
-  def transformNode(node: JsValue)(implicit ctx: DBAccessContext): Future[JsValue] = {
+  def transformToNodeWithPayload(node: JsValue)(implicit ctx: DBAccessContext): Future[JsValue] = {
     node
       .asOpt[Node]
       .map { node: Node =>
         payloadTypMapping
           .get(node.typ)
-          .map(_(node.payload.id))
+          .map(dbObjetFinder => dbObjetFinder(node.payload.id))
           .getOrElse(Future.successful(None))
       }
       .getOrElse(Future.successful(None))
@@ -87,17 +87,18 @@ trait GraphTransformers extends PayloadTransformers with MongoHelpers {
   def includePayloadDetails(implicit ctx: DBAccessContext) =
     (__ \ 'nodes).json.update(
       of[JsArray].map {
-        case JsArray(list) => {
+        case JsArray(nodes) => {
           Await.result(Future
-            .sequence(list.map { jsNode: JsValue =>
-              transformNode(jsNode)
-            })
+            .sequence(nodes.map(transformToNodeWithPayload))
             .map(l => JsArray(l)), 5 seconds)
         }
       })
 }
 
 object GraphDAO extends SecuredMongoJsonDAO[Graph] with GraphTransformers {
+  /**
+   * Name of the DB collection
+   */
   val collectionName = "graphs"
 
   def extractVersionInfo(graph: Graph) = {
@@ -105,7 +106,7 @@ object GraphDAO extends SecuredMongoJsonDAO[Graph] with GraphTransformers {
   }
 
   def generateEmptyGraph(_project: String) = {
-    BSONObjectID.parse(_project).map{ id =>
+    BSONObjectID.parse(_project).map { id =>
       Graph(
         group = UUID.randomUUID().toString,
         version = 0,

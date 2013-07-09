@@ -32,14 +32,41 @@ import projectZoom.thumbnails.all.AllThumbnailActor
 import projectZoom.thumbnails.image.ImageThumbnailActor
 import projectZoom.thumbnails.video.VideoThumbnailActor
 import controllers.main.project.ProjectRoomEventDispatcher
+import akka.actor.ActorRef
 
+/**
+ * Main Entry and configuration point for the application
+ */
 object Global extends GlobalSettings with GlobalDBAccess {
 
+  /**
+   * Called as the first function after application start. Brings all actors to
+   * life and inserts initial data.
+   */
   override def onStart(app: Application) {
     implicit val sys = Akka.system(app)
+
+    startCoreActors
+    startExternalActors
+
+    if (app.mode == Mode.Dev) {
+      mockupFoundArtefacts(sys.actorFor("/user/" + ArtifactActor.name))
+    }
+  }
+  
+  /**
+   * Starts all actors necessary for the backend core
+   */
+  def startCoreActors(implicit sys: ActorSystem) {
     EventActor.start
     SettingsActor.start
-    val aa = ArtifactActor.start
+    ArtifactActor.start
+  }
+
+  /**
+   * Starts all actors used by external components
+   */
+  def startExternalActors(implicit sys: ActorSystem) {
     KnowledgeActor.start
     TextThumbnailActor.start
     AllThumbnailActor.start
@@ -47,25 +74,23 @@ object Global extends GlobalSettings with GlobalDBAccess {
     VideoThumbnailActor.start
     ProjectRoomEventDispatcher.start
     SupervisorActor.start
-    if (app.mode == Mode.Dev) {
-      putSampleValuesInDB
-
-
-       sys.scheduler.scheduleOnce(5 seconds) {
-         new File("modules/common/public/testfiles").listFiles.map{f =>
-             models.Artifact(f.getName, "Project-Zoom", "someFolder", "dummy", 0, Json.obj()) ->
-               new FileInputStream(f)
-         }.map{
-           case (info, stream) =>
-             Logger.debug("Inserted dummy Artifact: " + info)
-             aa ! projectZoom.core.artifact.ArtifactFound(stream, info)
-         }
-       }
-    }
   }
-
-  def putSampleValuesInDB(implicit sys: ActorSystem) = {
-
+  
+  /**
+   * Simulates found artifacts. Should be used in development mode to ensure
+   * that there is some data to work with
+   */
+  def mockupFoundArtefacts(artifactActor: ActorRef)(implicit sys: ActorSystem) {
+    sys.scheduler.scheduleOnce(5 seconds) {
+      new File("modules/common/public/testfiles").listFiles.map { f =>
+        models.Artifact(f.getName, "Project-Zoom", "someFolder", "dummy", 0, Json.obj()) ->
+          new FileInputStream(f)
+      }.map {
+        case (info, stream) =>
+          Logger.debug("Inserted dummy Artifact: " + info)
+          artifactActor ! projectZoom.core.artifact.ArtifactFound(stream, info)
+      }
+    }
   }
 
   override def onStop(app: Application) {

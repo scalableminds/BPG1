@@ -9,6 +9,9 @@ import org.joda.time.DateTime
 import play.api.Logger
 
 object UserCookieDAO extends UnsecuredMongoDAO[Authenticator] {
+    /**
+   * Name of the DB collection
+   */
   val collectionName = "userCookies"
   
   def refreshCookie(a: Authenticator) = {

@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 
+
+/**
+ * INFO:
+ * Package got introduced into the application to use the Box type. Till now the 
+ * net.liftweb.common.Box type is not seperated from the Lift Web Framework and
+ * one would need to introduce a dependency on the whole framework to use the 
+ * Box type. To get around the dependency the code for the box was extracted 
+ * and copied into the project.
+ */
+
 package net.liftweb
 package common
 

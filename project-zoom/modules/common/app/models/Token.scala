@@ -9,6 +9,9 @@ import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits._
 
 object Token extends UnsecuredMongoDAO[SocialToken]{
+    /**
+   * Name of the DB collection
+   */
   val collectionName = "tokens"
 
   def findByAccessToken(accessToken: String) = findHeadOption("accessToken", accessToken)
@@ -32,24 +35,4 @@ object Token extends UnsecuredMongoDAO[SocialToken]{
     (__ \ "creationTime").format[DateTime] and
     (__ \ "expirationTime").format[DateTime] and
     (__ \ "isSignUp").format[Boolean])(SocialToken.apply, unlift(SocialToken.unapply))
-    
-  /*implicit object handler extends BSONDocumentHandler[SocialToken]{
-    def write(token: SocialToken): BSONDocument = {
-      BSONDocument(
-          "uuid" -> BSONString(token.uuid),
-          "email" -> BSONString(token.email),
-          "creationTime" -> BSONDateTime(token.creationTime.getMillis()),
-          "expirationTime" -> BSONDateTime(token.expirationTime.getMillis()),
-          "isSignUp" -> BSONBoolean(token.isSignUp)
-      )
-    }
-    def read(doc: BSONDocument): SocialToken = {
-      SocialToken(
-        doc.getAs[BSONString]("uuid").get.value,
-        doc.getAs[BSONString]("email").get.value,
-        new DateTime(doc.getAs[BSONDateTime]("creationTime").get.value),
-        new DateTime(doc.getAs[BSONDateTime]("expirationTime").get.value),
-        doc.getAs[BSONBoolean]("isSignUp").get.value)
-    }
-  }*/
 }

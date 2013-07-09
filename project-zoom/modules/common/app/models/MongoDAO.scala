@@ -101,7 +101,11 @@ trait MongoJsonDAO[T] extends MongoDAO[JsObject] {
 
 trait MongoDAO[T] extends DAO[T] {
   import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
+    /**
+   * Name of the DB collection
+   */
   def collectionName: String
+  
   implicit def formatter: OFormat[T]
 
   def defaultOrderBy = "_id"

@@ -39,6 +39,7 @@ import models.ArtifactLike
 import akka.actor.PoisonPill
 import projectZoom.util.StartableActor
 import controllers.main.GraphUpdated
+import play.api.Mode
 
 case class Join(userId: UserId)
 case class Quit(userId: UserId)
@@ -98,68 +99,13 @@ object ProjectRoom extends ClosedChannelHelper {
   }
 }
 
-class ProjectRoomEventDispatcher1 extends Actor with EventSubscriber with GlobalDBAccess {
-
-  def forwardToProject(_project: String, e: ProjectUpdate) =
-    ProjectRoom.roomPlan().get(_project).map { projectActor =>
-      projectActor.forward(e)
-    }
-
-  def withProject[T](projectName: String)(f: Project => T) = {
-    ProjectDAO.findProject(projectName).map(_.map { project =>
-      f(project)
-    })
-  }
-
-  def forwardProjectUpdate(projectName: String, update: ProjectUpdate) = {
-    withProject(projectName) { project =>
-      forwardToProject(project._id.stringify, update)
-    }
-  }
-
-  def handleArtifactUpdate(artifact: ArtifactLike) = {
-    forwardProjectUpdate(
-      artifact.projectName,
-      ProjectUpdate("artifacts", "update", ArtifactDAO.artifactLikeWrites.writes(artifact)))
-  }
-
-  def handleArtifactInserted(artifact: ArtifactLike) = {
-    forwardProjectUpdate(
-      artifact.projectName,
-      ProjectUpdate("artifacts", "insert", ArtifactDAO.artifactLikeWrites.writes(artifact)))
-  }
-
-  def receive = {
-    case e: ResourceInserted =>
-      handleArtifactUpdate(e.artifact)
-
-    case e: ResourceUpdated =>
-      handleArtifactUpdate(e.artifact)
-
-    case e: ArtifactInserted =>
-      handleArtifactInserted(e.artifact)
-
-    case e: ArtifactUpdated =>
-      handleArtifactUpdate(e.artifact)
-
-    case e: GraphUpdated =>
-      forwardToProject(
-        e.graph._project.stringify,
-        ProjectUpdate("graphs", "patch", e.patch, Some(e.graph._id.stringify)))
-  }
-}
-
-object ProjectRoomEventDispatcher1 extends StartableActor[ProjectRoomEventDispatcher] {
-  val name = "projectRoomEventDispatcher"
-}
-
 case class ProjectUpdate(collection: String, operation: String, value: JsValue, identifier: Option[String] = None)
 
 class ProjectRoom(_project: String) extends Actor {
 
   implicit val projectUpdateWrites = Json.writes[ProjectUpdate]
 
-  var members = Set.empty[UserId]
+  var members = List.empty[UserId]
   val (chatEnumerator, chatChannel) = Concurrent.broadcast[JsValue]
 
   def receive = {
@@ -168,17 +114,17 @@ class ProjectRoom(_project: String) extends Actor {
       notifyAll(update)
 
     case Join(userId) => {
-      if (members.contains(userId)) {
+      if (Play.current.mode != Mode.Dev && members.contains(userId)) {
         sender ! CannotConnect("This user already joined.")
       } else {
         Logger.debug(s"ProjectRoom.Join ${userId.id} has joined the room")
-        members = members + userId
+        members = userId :: members
         sender ! Connected(chatEnumerator)
       }
     }
 
     case Quit(userId) => {
-      members = members - userId
+      members = members.filter( _ == userId)
       Logger.debug(s"ProjectRoom ${_project}. Quit ${userId.id} has left the room")
       if (members.isEmpty) {
         Logger.debug(s"ProjectRoom ${_project} is Empty. Shutdown! ")

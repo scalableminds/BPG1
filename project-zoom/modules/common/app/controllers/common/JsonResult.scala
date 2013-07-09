@@ -15,16 +15,26 @@ import scala.concurrent.Future
 import play.api.http.Status._
 import scala.concurrent.ExecutionContext
 
+/**
+ * Predefined Results
+ */
 trait JsonResults extends JsonResultAttribues {
   val JsonOk = new JsonResult(OK)
   val JsonBadRequest = new JsonResult(BAD_REQUEST)
 }
 
+/**
+ * Success indicators
+ */
 trait JsonResultAttribues {
   val jsonSuccess = "success"
   val jsonError = "error"
 }
 
+/**
+ * Wrapper around a HTTP Status. Allows a unified JSON result scheme for the
+ * whole application
+ */
 class JsonResult(status: Int)
     extends SimpleResult[Results.EmptyContent](
       header = ResponseHeader(status),
@@ -33,6 +43,9 @@ class JsonResult(status: Int)
 
   val isSuccess = List(OK) contains status
 
+  /**
+   * Converts a JSON Object to a HTTP Result
+   */
   def createResult(content: JsObject)(implicit writeable: Writeable[JsObject]) =
     SimpleResult(
       header = ResponseHeader(
@@ -42,6 +55,11 @@ class JsonResult(status: Int)
           .map(ct => Map(HeaderNames.CONTENT_TYPE -> ct))
           .getOrElse(Map.empty)),
       Enumerator(content))
+
+  /**
+   * Constructors to create a JSON Result
+   * ------------->
+   */
 
   def apply(html: Html, messages: Seq[(String, String)]) =
     createResult(jsonHTMLResult(html, messages))
@@ -59,6 +77,13 @@ class JsonResult(status: Int)
   def apply(message: String): SimpleResult[JsObject] =
     apply(Html.empty, message)
 
+  /**
+   * <-------------
+   */
+
+  /**
+   * Defines, how a HTML Result gets embedded into the JSON Response
+   */
   def jsonHTMLResult(html: Html, messages: Seq[(String, String)]) = {
     val htmlJson = html.body match {
       case "" =>
