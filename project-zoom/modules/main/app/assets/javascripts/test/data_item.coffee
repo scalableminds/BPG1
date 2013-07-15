@@ -458,7 +458,99 @@ describe "DataItem", ->
         )
 
 
+    describe "apply", ->
 
+      it "should apply add patches", ->
+
+        jsonPatch = [
+          { 
+            op : "add"
+            path : "/test"
+            value : [
+              {
+                test2 : {
+                  test3 : "test4"
+                }
+              }
+            ] 
+          }
+        ]
+
+        @dataItem.applyPatches(jsonPatch)
+
+        @dataItem.toObject().should.deep.equal(
+          test : [
+            {
+              test2 :
+                test3 : "test4"
+            }
+          ]
+        )
+
+        @dataItem.get("test").should.be.instanceof(DataItem.Collection)
+
+
+      it "should apply replace patches", ->
+
+        @dataItem.set(
+          test : [
+            { test2 : "test3" }
+          ]
+        )
+
+        jsonPatch = [
+          {
+            op : "replace"
+            path : "/test"
+            value : "test4"
+          }
+        ]
+
+        @dataItem.applyPatches(jsonPatch)
+
+        @dataItem.get("test").should.equal("test4")
+
+
+      it "should apply remove patches", ->
+
+        @dataItem.set(
+          test : [
+            { test2 : "test3" }
+          ]
+          test4 : "test5"
+        )
+
+        jsonPatch = [
+          {
+            op : "remove"
+            path : "/test"
+          }
+        ]
+
+        @dataItem.applyPatches(jsonPatch)
+
+        chai.expect(@dataItem.get("test")).to.be.undefined
+        @dataItem.toObject().should.deep.equal(test4 : "test5")
+
+
+      it "should apply multiple patches", ->
+
+        jsonPatch = [
+          {
+            op : "add"
+            path : "/test"
+            value : "test1"
+          }
+          {
+            op : "replace"
+            path : "/test"
+            value : "test2"
+          }
+        ]
+
+        @dataItem.applyPatches(jsonPatch)
+
+        @dataItem.get("test").should.equal("test2")
 
 
 

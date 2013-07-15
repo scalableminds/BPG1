@@ -158,14 +158,9 @@ class DataItem
 
     else
 
-      if key.indexOf("/") == -1
-        @_set(key, value, options)
-
-      else
-        remainingKey = key.substring(key.indexOf("/") + 1)
-        key = key.substring(0, key.indexOf("/"))
-        this.attributes[key].set(remainingKey, value, options)
-
+      @traverse(key, (obj, key) ->
+        obj._set(key, value, options)
+      )
 
 
   _set : (key, value, options = {}) ->
@@ -427,17 +422,14 @@ class DataItem.Collection
 
     else
 
-      key = "#{key}"
-      if key.indexOf("/") == -1
-        @_set(+key, value, options)
-
-      else
-        remainingKey = key.substring(key.indexOf("/") + 1)
-        key = +key.substring(0, key.indexOf("/"))
-        this.items[key].set(remainingKey, value, options)
+      @traverse(key, (obj, key) ->
+        obj._set(key, value, options)
+      )
 
 
   _set : (index = @length, item, options = {}) ->
+
+    index = +index
 
     _.defaults(options, silent : false)
 
@@ -504,6 +496,21 @@ class DataItem.Collection
       remainingKey = key.substring(key.indexOf("/") + 1)
       key = +key.substring(0, key.indexOf("/"))
       this.items[key].traverse(remainingKey, func)
+
+
+  applyPatches : (patch) ->
+
+    for entry in patch
+
+      @traverse(entry.path.substring(1), (obj, key) ->
+        switch entry.op
+          when "add"
+            obj.set(key, entry.value)
+          when "replace"
+            obj.set(key, entry.value)
+          when "remove"
+            obj.unset(key)
+      )
 
 
   toObject : ->

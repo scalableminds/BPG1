@@ -58,6 +58,7 @@ describe "DataItem.Collection", ->
       @dataCollection.set("0/test", "test2")
       @dataCollection.get("0/test").should.equal("test2")
 
+
     it "should update", ->
 
       @dataCollection.add("test2")
@@ -211,6 +212,65 @@ describe "DataItem.Collection", ->
           { op : "add", path : "/1", value : "test2" }
         ]
       )
+
+
+    it "should apply add patches", ->
+
+      @dataCollection.add("test")
+
+      jsonPatch = [
+        {
+          op : "add"
+          path : "/1"
+          value : "test2"
+        }
+      ]
+
+      @dataCollection.applyPatches(jsonPatch)
+
+      @dataCollection.toObject().should.deep.equal([
+        "test"
+        "test2"
+      ])
+
+
+    it "should apply remove patches", ->
+
+      @dataCollection.add("test", "test2")
+
+      jsonPatch = [
+        {
+          op : "remove"
+          path : "/1"
+        }
+      ]
+
+      @dataCollection.applyPatches(jsonPatch)
+
+      @dataCollection.toObject().should.deep.equal([
+        "test"
+      ])
+
+
+
+    it "should apply replace patches", ->
+
+      @dataCollection.add("test", "test2")
+
+      jsonPatch = [
+        {
+          op : "replace"
+          path : "/1"
+          value : "test3"
+        }
+      ]
+
+      @dataCollection.applyPatches(jsonPatch)
+
+      @dataCollection.toObject().should.deep.equal([
+        "test"
+        "test3"
+      ])
 
 
 
