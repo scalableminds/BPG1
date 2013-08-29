@@ -34,7 +34,6 @@ object ArtifactController extends ControllerBase with JsonCRUDController with Pl
   val dao = ArtifactDAO
 
   def listForProject(projectId: String, offset: Int, limit: Int) = SecuredAction(ajaxCall = true) { implicit request =>
-    //TODO: restrict access
     Async {
       for{
         projectOpt <- ProjectDAO.findOneById(projectId).map(_.flatMap(ProjectDAO.asObjectOpt))

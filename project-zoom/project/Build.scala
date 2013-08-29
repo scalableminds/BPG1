@@ -22,11 +22,12 @@ object ApplicationBuild extends Build {
     "org.jvnet.hudson" % "ganymed-ssh-2" % "build260",
     "org.apache.tika" % "tika-parsers" % "1.3",
     "xuggle" % "xuggle-xuggler" % "5.4",
-    "com.scalableminds" %% "securesocial" % "master-SNAPSHOT" withSources ())
+    "com.scalableminds" %% "securesocial" % "2.1.0-SCM" withSources ())
 
 
   val dependencyResolvers = Seq(
     Resolver.url("Scalableminds SNAPS Repo", url("http://scalableminds.github.com/snapshots/"))(Resolver.ivyStylePatterns),
+    Resolver.url("Scalableminds REL Repo", url("http://scalableminds.github.com/releases/"))(Resolver.ivyStylePatterns),
     Resolver.url("play-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
     Resolver.url("typesafe community snaps", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns),
     "repo.novus rels" at "http://repo.novus.com/releases/",

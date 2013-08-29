@@ -19,34 +19,39 @@ import projectZoom.core.event._
 object OAuth extends ControllerBase with SecureSocial with PlayActorSystem with PlayConfig with EventPublisher {
 
   def beginBoxOAuth = SecuredAction { implicit request =>
-    (for{client_id <- config.getString("box.client_id")
-    } yield {
-      Redirect(s"https://www.box.com/api/oauth2/authorize?response_type=code&client_id=$client_id&state=authenticated")
-    }) getOrElse Ok("unfortunately box is not configured")
+    config.getString("box.client_id").map{ clientId =>
+      Redirect(s"https://www.box.com/api/oauth2/authorize?response_type=code&client_id=$clientId&state=authenticated")
+    } getOrElse Ok("Unfortunately box is not configured")
   }
   
   def boxAuthenticated(code: String, state: String) = SecuredAction { implicit request =>
     Async{
-      (for{client_id <- config.getString("box.client_id")
-           client_secret <- config.getString("box.client_secret")
+      (for{
+        clientId <- config.getString("box.client_id")
+        clientSecret <- config.getString("box.client_secret")
       } yield {
-        WS.url("https://www.box.com/api/oauth2/token").post(
-          Map("grant_type" -> Seq("authorization_code"), 
-              "code" -> Seq(code), 
-              "client_id" -> Seq(client_id),
-              "client_secret" -> Seq(client_secret))).map{ response =>
+        val postData = Map(
+          "grant_type" -> Seq("authorization_code"), 
+          "code" -> Seq(code), 
+          "client_id" -> Seq(clientId),
+          "client_secret" -> Seq(clientSecret))
+
+        WS.url("https://www.box.com/api/oauth2/token").post(postData).map{ response =>
               Json.parse(response.body).transform(BoxAccessTokens.boxExpirationReader) match {
                 case JsSuccess(boxAccessTokens, _) => 
                   boxAccessTokens.validate[BoxAccessTokens] match {
-                    case JsSuccess(accessTokens, _) => publish(BoxUpdated(accessTokens))
-                    case JsError(errors) => Logger.error(errors.mkString)
+                    case JsSuccess(accessTokens, _) => 
+                      publish(BoxUpdated(accessTokens))
+                    case JsError(errors) => 
+                      Logger.error(errors.mkString)
                   }
                   Ok(views.html.admin.dataSources())
-                case JsError(errors) => Logger.error(errors.mkString)
+                case JsError(errors) => 
+                  Logger.error(errors.mkString)
                   Ok(errors.mkString)
               }
           }
-      }) getOrElse Future.successful(Ok("retrieving box access token failed"))
+      }) getOrElse Future.successful(Ok("Retrieving box access token failed"))
     }
   }
 }

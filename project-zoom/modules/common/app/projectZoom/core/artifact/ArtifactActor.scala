@@ -53,6 +53,9 @@ case class ArtifactInserted(artifact: ArtifactLike) extends Event
 case class ResourceUpdated(file: File, artifact: ArtifactLike, resource: ResourceLike) extends Event
 case class ResourceInserted(file: File, artifact: ArtifactLike, resource: ResourceLike) extends Event
 
+/**
+ * Helper to write resources to the file system.
+ */
 trait FSWriter {
   val basePath = {
     val p = Play.current.configuration.getString("core.resource.basePath") getOrElse "data"
@@ -93,6 +96,9 @@ trait FSWriter {
   }
 }
 
+/**
+ * Actor to handle incoming artifact / resource updates.
+ */
 class ArtifactActor extends EventSubscriber with EventPublisher with FSWriter with GlobalDBAccess {
 
   def handleResourceUpdate(is: InputStream, artifact: ArtifactLike, resource: ResourceLike) = {

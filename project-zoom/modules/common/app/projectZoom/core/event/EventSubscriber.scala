@@ -5,6 +5,10 @@ import play.api.Play.current
 import akka.actor.Actor
 import java.util.UUID
 
+/**
+ * Every actor that wants to subscribe to messages can use this trait to ease subscription. By default the
+ * complete receive function is used as subscription filter
+ */
 trait EventSubscriber extends Actor {
 
   lazy val eventActor = Akka.system.actorFor(s"/user/${EventActor.name}")

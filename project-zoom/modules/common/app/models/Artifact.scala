@@ -172,6 +172,9 @@ object ArtifactDAO
     }
   }
 
+  /**
+   * Change the hash of the given artifact and resource in the database
+   */
   def updateHashOfResource(artifact: ArtifactLike)(hash: String, resource: ResourceLike)(implicit ctx: DBAccessContext) = {
     collectionUpdate(findByArtifactQ(artifact) ++ findByResourceQ(resource.withHash(hash)), Json.obj(
       "$set" -> Json.obj(

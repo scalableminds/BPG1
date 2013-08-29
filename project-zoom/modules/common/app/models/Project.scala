@@ -55,12 +55,4 @@ object ProjectDAO extends SecuredMongoJsonDAO[Project] {
   def update(p: ProjectLike)(implicit ctx: DBAccessContext): Future[LastError] =
     collectionUpdate(Json.obj("name" -> p.name),
       Json.obj("$set" -> p), upsert = true)
-
-  /*override def findQueryFilter(implicit ctx: DBAccessContext): JsObject = {
-    ctx.user.map{ user =>
-      val email = user.email.getOrElse("")
-      Json.obj(
-        "participants._user" -> email)
-    } getOrElse Json.obj()
-  }*/
 }

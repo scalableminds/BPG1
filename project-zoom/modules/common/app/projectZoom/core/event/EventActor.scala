@@ -13,6 +13,10 @@ case class Unsubscribe(key: String)
 case class SubscribeWithFilter(pf: PartialFunction[Any, Unit], key: String)
 case class UnsubscribeAll()
 
+/**
+ * Implementation of the backend Event-System. subscription is done using partial functions. If the partial function
+ * of a subscriber is defined on the incoming message, the message is forwarded to the subscriber.
+ */
 class EventActor extends Actor {
   case class EventSubscription(f: PartialFunction[Event, Unit], actor: ActorRef)
 

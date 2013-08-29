@@ -17,25 +17,7 @@ object DefaultMails {
   /**
    * Creates a registration mail which should allow the user to verify his
    * account
+   *
+   * All the emails should be created from templates and called via a method on this object
    */
-  /*def registerAdminNotifyerMail(name: String, brainDBResult: String) =
-    Mail(
-      from = defaultFrom,
-      subject = "A new user (" + name + ") registered on oxalis.at",
-      bodyText = html.mail.registerAdminNotify(name, brainDBResult).body,
-      recipients = List("braintracing@neuro.mpg.de"))
-
-  def registerMail(name: String, receiver: String, brainDBresult: String) =
-    Mail(
-      from = defaultFrom,
-      subject = "Thanks for your registration on " + uri,
-      bodyText = html.mail.register(name, Messages(brainDBresult)).body,
-      recipients = List(receiver))
-
-  def verifiedMail(name: String, receiver: String) =
-    Mail(
-      from = defaultFrom,
-      subject = "Your account on " + uri + "got activated",
-      bodyText = html.mail.validated(name).body,
-      recipients = List(receiver))*/
 }

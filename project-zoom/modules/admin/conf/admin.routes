@@ -3,8 +3,6 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.admin.Application.index
-
 GET    /datasources                 controllers.admin.DataSources.panel
 GET    /oauth/box/begin             controllers.admin.OAuth.beginBoxOAuth
 GET    /oauth/box/authenticated     controllers.admin.OAuth.boxAuthenticated(code: String, state: String)

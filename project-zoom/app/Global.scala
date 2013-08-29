@@ -39,6 +39,8 @@ import akka.actor.ActorRef
  */
 object Global extends GlobalSettings with GlobalDBAccess {
 
+  val testFilesFolder = new File("modules/common/public/testfiles")
+
   /**
    * Called as the first function after application start. Brings all actors to
    * life and inserts initial data.
@@ -81,11 +83,22 @@ object Global extends GlobalSettings with GlobalDBAccess {
    * that there is some data to work with
    */
   def mockupFoundArtefacts(artifactActor: ActorRef)(implicit sys: ActorSystem) {
+    def createArtifacts(file: File): List[(models.Artifact, FileInputStream)] = {
+      if(file.isFile){
+        val artifact = models.Artifact(file.getName, "Project-Zoom", "someFolder", "dummy", 0, Json.obj())
+        val stream = new FileInputStream(file)
+
+        List(artifact -> stream)
+      } else {
+        if(file.exists())
+          file.listFiles.toList.flatMap(createArtifacts)
+        else
+          Nil
+      }
+    }
+
     sys.scheduler.scheduleOnce(5 seconds) {
-      new File("modules/common/public/testfiles").listFiles.map { f =>
-        models.Artifact(f.getName, "Project-Zoom", "someFolder", "dummy", 0, Json.obj()) ->
-          new FileInputStream(f)
-      }.map {
+      createArtifacts(testFilesFolder).map {
         case (info, stream) =>
           Logger.debug("Inserted dummy Artifact: " + info)
           artifactActor ! projectZoom.core.artifact.ArtifactFound(stream, info)
@@ -93,6 +106,9 @@ object Global extends GlobalSettings with GlobalDBAccess {
     }
   }
 
+  /**
+   * Hook to react during the application shutdown
+   **/
   override def onStop(app: Application) {
 
   }

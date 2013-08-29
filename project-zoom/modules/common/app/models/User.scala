@@ -22,6 +22,7 @@ case class User(
     id: UserId, 
     firstName: String,
     lastName: String,
+    nickName: Option[String],
     email: Option[String],
     authMethod: AuthenticationMethod,
     oAuth1Info: Option[OAuth1Info],
@@ -38,7 +39,7 @@ object UserHelpers extends UserHelpers
 trait UserHelpers{
 
   def fromIdentity(i: Identity): User = {
-    User(i.id, i.firstName, i.lastName, i.email, i.authMethod, i.oAuth1Info, i.oAuth2Info, i.passwordInfo, Nil)
+    User(i.id, i.firstName, i.lastName, i.nickName, i.email, i.authMethod, i.oAuth1Info, i.oAuth2Info, i.passwordInfo, Nil)
   }
 
   implicit val AuthenticationMethodFormat: Format[AuthenticationMethod] =

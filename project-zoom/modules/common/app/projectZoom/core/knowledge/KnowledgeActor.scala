@@ -25,6 +25,9 @@ case class ProjectAggregation(l: List[ProjectFound]) extends Event
 case class ProfileFound(profile: Profile) extends Event
 case class ProfileAggregation(l: List[ProfileFound]) extends Event
 
+/**
+ * Actor to handle incoming profile / project updates.
+ */
 class KnowledgeActor extends EventSubscriber with EventPublisher with GlobalDBAccess {
 
   def handleProfileAggregation(foundProfiles: List[ProfileFound]) = {
@@ -69,10 +72,7 @@ class KnowledgeActor extends EventSubscriber with EventPublisher with GlobalDBAc
   def handleProfileUpdate(profile: Profile) = {
     ProfileDAO.update(profile).map { lastError =>
       if (lastError.updated > 0) {
-        //i f (lastError.updatedExisting)
-        //publish(ArtifactUpdated(artifactInfo))
-        //else
-        //publish(ArtifactInserted(artifactInfo))
+        // TODO: emit event, profile updated
       }
     }
   }
