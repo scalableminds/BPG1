@@ -4,6 +4,7 @@ What you need to run the application
 1. Grab the latest version of sbt for your platform (http://www.scala-sbt.org/, at least 0.12.2) and install it
 2. Install mongodb (http://www.mongodb.org/)
 3. Install OpenOffice (http://www.openoffice.org/)
+3. Install nodejs, npm, coffee, less (used as compilers for coffee and less files)
 
 How to start the application
 =====================================
