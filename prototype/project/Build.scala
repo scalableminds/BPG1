@@ -8,8 +8,11 @@ object ApplicationBuild extends Build {
     val appVersion      = "0.1"
 
     val appDependencies = Seq(
-      "org.mongodb" %% "casbah" % "2.4.0",
-      "com.novus" %% "salat" % "1.9.1"
+   "org.mongodb" %% "casbah-commons" % "2.5.0",
+    "org.mongodb" %% "casbah-core" % "2.5.0",
+    "org.mongodb" %% "casbah-query" % "2.5.0",
+    "org.mongodb" %% "casbah-gridfs" % "2.5.0",
+    "com.novus" %% "salat-core" % "1.9.2"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(

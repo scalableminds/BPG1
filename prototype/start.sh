@@ -1,1 +1,1 @@
-Play20/play run
+sbt run
